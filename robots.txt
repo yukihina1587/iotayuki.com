@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://iotayuki.com/sitemap.xml
+Sitemap: https://kryix.jp/sitemap.xml

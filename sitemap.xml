@@ -1,33 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://iotayuki.com/</loc>
+    <loc>https://kryix.jp/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/projects/</loc>
+    <loc>https://kryix.jp/about/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/projects/nextcloud-stream/</loc>
+    <loc>https://kryix.jp/projects/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/projects/sub-pc-homelab/</loc>
+    <loc>https://kryix.jp/projects/nextcloud-stream/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/projects/kototsuna/</loc>
+    <loc>https://kryix.jp/projects/sub-pc-homelab/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/projects/acrophobia-judge-system/</loc>
+    <loc>https://kryix.jp/projects/kototsuna/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/research/</loc>
+    <loc>https://kryix.jp/projects/acrophobia-judge-system/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/research/placebo-vr-2018/</loc>
+    <loc>https://kryix.jp/research/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/research/adaptive-vr-2019/</loc>
+    <loc>https://kryix.jp/research/placebo-vr-2018/</loc>
   </url>
   <url>
-    <loc>https://iotayuki.com/research/fear-state-judgement-2020/</loc>
+    <loc>https://kryix.jp/research/adaptive-vr-2019/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/research/fear-state-judgement-2020/</loc>
   </url>
 </urlset>
