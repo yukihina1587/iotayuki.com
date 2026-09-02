@@ -1,0 +1,199 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Docker 実践 — コンテナの本質から運用まで」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/devops/docker/docker%E5%AE%9F%E8%B7%B5/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Docker 実践 — コンテナの本質から運用まで — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Docker 実践 — コンテナの本質から運用まで」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/devops/docker/docker%E5%AE%9F%E8%B7%B5/"><meta name="theme-color" content="#c8ff4a"><title>Docker 実践 — コンテナの本質から運用まで — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-devops">DevOps・自動化</a> <span aria-hidden="true">/</span><span>docker</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">DEVOPS</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-コンテナの本質vm-との違い">1. コンテナの本質（VM との違い）</a> </li><li> <a href="#2-dockerfile-ベストプラクティス">2. Dockerfile ベストプラクティス</a> </li><li class="learning-toc-subitem"> <a href="#マルチステージビルド本番イメージを軽くする">マルチステージビルド（本番イメージを軽くする）</a> </li><li> <a href="#3-docker-compose--ローカル開発検証環境">3. Docker Compose — ローカル開発・検証環境</a> </li><li> <a href="#4-イメージサイズの調査と最適化">4. イメージサイズの調査と最適化</a> </li><li> <a href="#5-コンテナのネットワーク">5. コンテナのネットワーク</a> </li><li> <a href="#6-セキュリティのベストプラクティス">6. セキュリティのベストプラクティス</a> </li><li> <a href="#7-よく使うデバッグコマンド">7. よく使うデバッグコマンド</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="docker-実践--コンテナの本質から運用まで">Docker 実践 — コンテナの本質から運用まで</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了</p>
+</blockquote>
+<hr>
+<h2 id="1-コンテナの本質vm-との違い">1. コンテナの本質（VM との違い）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>VM:</span></span>
+<span class="line"><span>┌─────────────────────────────────┐</span></span>
+<span class="line"><span>│  App A  │  App B  │  App C      │</span></span>
+<span class="line"><span>│ (OS込み)│ (OS込み)│ (OS込み)    │  ← 各VMがフルOS</span></span>
+<span class="line"><span>├─────────────────────────────────┤</span></span>
+<span class="line"><span>│        Hypervisor               │</span></span>
+<span class="line"><span>├─────────────────────────────────┤</span></span>
+<span class="line"><span>│        Host OS                  │</span></span>
+<span class="line"><span>└─────────────────────────────────┘</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>コンテナ:</span></span>
+<span class="line"><span>┌─────────────────────────────────┐</span></span>
+<span class="line"><span>│  App A  │  App B  │  App C      │</span></span>
+<span class="line"><span>│(依存のみ)│(依存のみ)│(依存のみ)  │  ← アプリと依存のみ</span></span>
+<span class="line"><span>├─────────────────────────────────┤</span></span>
+<span class="line"><span>│        Docker Engine            │</span></span>
+<span class="line"><span>├─────────────────────────────────┤</span></span>
+<span class="line"><span>│        Host OS（カーネル共有）   │</span></span>
+<span class="line"><span>└─────────────────────────────────┘</span></span></code></pre>
+<p><strong>コンテナの実体:</strong> Linux の <code>namespace</code>（プロセス隔離）+ <code>cgroup</code>（リソース制限）</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># コンテナで見えるプロセスは namespace で隔離されている</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> --rm</span><span style="color:#9ECBFF"> ubuntu</span><span style="color:#9ECBFF"> ps</span><span style="color:#9ECBFF"> aux</span><span style="color:#6A737D">  # PID 1 だけ見える</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># コンテナのリソース制限（cgroup）</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> --cpus=</span><span style="color:#9ECBFF">"0.5"</span><span style="color:#79B8FF"> --memory=</span><span style="color:#9ECBFF">"512m"</span><span style="color:#9ECBFF"> nginx</span></span></code></pre>
+<hr>
+<h2 id="2-dockerfile-ベストプラクティス">2. Dockerfile ベストプラクティス</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="dockerfile"><code><span class="line"><span style="color:#6A737D"># ❌ アンチパターン</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> ubuntu:latest</span></span>
+<span class="line"><span style="color:#F97583">RUN</span><span style="color:#E1E4E8"> apt-get update</span></span>
+<span class="line"><span style="color:#F97583">RUN</span><span style="color:#E1E4E8"> apt-get install -y python3</span></span>
+<span class="line"><span style="color:#F97583">RUN</span><span style="color:#E1E4E8"> pip3 install flask</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> . /app</span></span>
+<span class="line"><span style="color:#F97583">CMD</span><span style="color:#E1E4E8"> python3 /app/main.py</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ✅ ベストプラクティス</span></span>
+<span class="line"><span style="color:#6A737D"># 1. 軽量ベースイメージ</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> python:3.12-slim</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 2. 非rootユーザー（セキュリティ）</span></span>
+<span class="line"><span style="color:#F97583">RUN</span><span style="color:#E1E4E8"> groupadd -r appuser &amp;&amp; useradd -r -g appuser appuser</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">WORKDIR</span><span style="color:#E1E4E8"> /app</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 3. 依存ファイルを先にコピー（レイヤーキャッシュ最適化）</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> requirements.txt .</span></span>
+<span class="line"><span style="color:#F97583">RUN</span><span style="color:#E1E4E8"> pip install --no-cache-dir -r requirements.txt</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 4. アプリコードは最後（変更頻度が高い）</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> --chown=appuser:appuser . .</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">USER</span><span style="color:#E1E4E8"> appuser</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 5. EXPOSE は文書化目的（実際の公開は -p オプション）</span></span>
+<span class="line"><span style="color:#F97583">EXPOSE</span><span style="color:#E1E4E8"> 8080</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 6. シグナルを受け取れるように exec 形式</span></span>
+<span class="line"><span style="color:#F97583">CMD</span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">"python3"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"main.py"</span><span style="color:#E1E4E8">]</span></span></code></pre>
+<h3 id="マルチステージビルド本番イメージを軽くする">マルチステージビルド（本番イメージを軽くする）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="dockerfile"><code><span class="line"><span style="color:#6A737D"># ビルドステージ</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> golang:1.22 </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> builder</span></span>
+<span class="line"><span style="color:#F97583">WORKDIR</span><span style="color:#E1E4E8"> /app</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> go.mod go.sum ./</span></span>
+<span class="line"><span style="color:#F97583">RUN</span><span style="color:#E1E4E8"> go mod download</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> . .</span></span>
+<span class="line"><span style="color:#F97583">RUN</span><span style="color:#E1E4E8"> CGO_ENABLED=0 go build -o server .</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 実行ステージ（scratch = 空のイメージ）</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> scratch</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> --from=builder /app/server /server</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/</span></span>
+<span class="line"><span style="color:#F97583">ENTRYPOINT</span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">"/server"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#6A737D"># → イメージサイズが数MB になる（golang:1.22 は約800MB）</span></span></code></pre>
+<hr>
+<h2 id="3-docker-compose--ローカル開発検証環境">3. Docker Compose — ローカル開発・検証環境</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># docker-compose.yml</span></span>
+<span class="line"><span style="color:#85E89D">version</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'3.9'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">services</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  app</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    build</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      context</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">.</span></span>
+<span class="line"><span style="color:#85E89D">      target</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">development</span><span style="color:#6A737D">  # マルチステージの特定ステージを指定</span></span>
+<span class="line"><span style="color:#85E89D">    ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">"8080:8080"</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">DATABASE_URL=postgresql://user:pass@db:5432/mydb</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">REDIS_URL=redis://redis:6379</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">.:/app</span><span style="color:#6A737D">  # ホットリロード用（開発時のみ）</span></span>
+<span class="line"><span style="color:#85E89D">    depends_on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      db</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        condition</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">service_healthy</span><span style="color:#6A737D">  # ヘルスチェック後に起動</span></span>
+<span class="line"><span style="color:#85E89D">    restart</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">unless-stopped</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  db</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">postgres:16-alpine</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      POSTGRES_USER</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">user</span></span>
+<span class="line"><span style="color:#85E89D">      POSTGRES_PASSWORD</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">pass</span></span>
+<span class="line"><span style="color:#85E89D">      POSTGRES_DB</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">mydb</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">postgres_data:/var/lib/postgresql/data</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">./init.sql:/docker-entrypoint-initdb.d/init.sql</span></span>
+<span class="line"><span style="color:#85E89D">    healthcheck</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      test</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"CMD-SHELL"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"pg_isready -U user -d mydb"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">      interval</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">10s</span></span>
+<span class="line"><span style="color:#85E89D">      timeout</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">5s</span></span>
+<span class="line"><span style="color:#85E89D">      retries</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  redis</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">redis:7-alpine</span></span>
+<span class="line"><span style="color:#85E89D">    command</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  postgres_data</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">networks</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  default</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    driver</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">bridge</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> up</span><span style="color:#79B8FF"> -d</span><span style="color:#6A737D">          # バックグラウンド起動</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> logs</span><span style="color:#79B8FF"> -f</span><span style="color:#9ECBFF"> app</span><span style="color:#6A737D">    # アプリのログ追跡</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> exec</span><span style="color:#9ECBFF"> app</span><span style="color:#9ECBFF"> bash</span><span style="color:#6A737D">  # コンテナ内に入る</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> down</span><span style="color:#79B8FF"> -v</span><span style="color:#6A737D">        # 停止＋ボリューム削除</span></span></code></pre>
+<hr>
+<h2 id="4-イメージサイズの調査と最適化">4. イメージサイズの調査と最適化</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># レイヤー別サイズ確認</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> history</span><span style="color:#9ECBFF"> myapp:latest</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 詳細な内容確認（dive ツール）</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> --rm</span><span style="color:#79B8FF"> -it</span><span style="color:#79B8FF"> -v</span><span style="color:#9ECBFF"> /var/run/docker.sock:/var/run/docker.sock</span><span style="color:#9ECBFF"> wagoodman/dive</span><span style="color:#9ECBFF"> myapp:latest</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 不要なイメージ・コンテナの一括削除</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> system</span><span style="color:#9ECBFF"> prune</span><span style="color:#79B8FF"> -af</span><span style="color:#79B8FF"> --volumes</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> image</span><span style="color:#9ECBFF"> prune</span><span style="color:#79B8FF"> -f</span><span style="color:#6A737D">  # タグのないイメージのみ</span></span></code></pre>
+<hr>
+<h2 id="5-コンテナのネットワーク">5. コンテナのネットワーク</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Dockerネットワーク一覧</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> network</span><span style="color:#9ECBFF"> ls</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># コンテナ間通信（同一ネットワーク内はコンテナ名で解決）</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> -d</span><span style="color:#79B8FF"> --name</span><span style="color:#9ECBFF"> db</span><span style="color:#79B8FF"> --network</span><span style="color:#9ECBFF"> mynet</span><span style="color:#9ECBFF"> postgres</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> -d</span><span style="color:#79B8FF"> --name</span><span style="color:#9ECBFF"> app</span><span style="color:#79B8FF"> --network</span><span style="color:#9ECBFF"> mynet</span><span style="color:#9ECBFF"> myapp</span></span>
+<span class="line"><span style="color:#6A737D"># → app から "db:5432" で接続可能</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ホストネットワーク（パフォーマンス重視の場合）</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> --network</span><span style="color:#9ECBFF"> host</span><span style="color:#9ECBFF"> nginx</span></span>
+<span class="line"><span style="color:#6A737D"># → localhost:80 でアクセス可能（ポートマッピング不要）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ネットワークデバッグ</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> network</span><span style="color:#9ECBFF"> inspect</span><span style="color:#9ECBFF"> mynet</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> exec</span><span style="color:#9ECBFF"> app</span><span style="color:#9ECBFF"> ping</span><span style="color:#9ECBFF"> db</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> exec</span><span style="color:#9ECBFF"> app</span><span style="color:#9ECBFF"> nslookup</span><span style="color:#9ECBFF"> db</span></span></code></pre>
+<hr>
+<h2 id="6-セキュリティのベストプラクティス">6. セキュリティのベストプラクティス</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 読み取り専用ファイルシステム</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> --read-only</span><span style="color:#79B8FF"> --tmpfs</span><span style="color:#9ECBFF"> /tmp</span><span style="color:#9ECBFF"> myapp</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ケイパビリティを最小限に</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> --cap-drop=ALL</span><span style="color:#79B8FF"> --cap-add=NET_BIND_SERVICE</span><span style="color:#9ECBFF"> myapp</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># セキュリティスキャン</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> scout</span><span style="color:#9ECBFF"> cves</span><span style="color:#9ECBFF"> myapp:latest</span><span style="color:#6A737D">      # Docker Scout</span></span>
+<span class="line"><span style="color:#B392F0">trivy</span><span style="color:#9ECBFF"> image</span><span style="color:#9ECBFF"> myapp:latest</span><span style="color:#6A737D">            # Trivy（OSS）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 実行中コンテナの確認</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> inspect</span><span style="color:#9ECBFF"> myapp</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> jq</span><span style="color:#9ECBFF"> '.[0].HostConfig | {Privileged, CapAdd, CapDrop}'</span></span></code></pre>
+<hr>
+<h2 id="7-よく使うデバッグコマンド">7. よく使うデバッグコマンド</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># コンテナのリソース使用量</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> stats</span><span style="color:#79B8FF"> --no-stream</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># コンテナ内でコマンド実行</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> exec</span><span style="color:#79B8FF"> -it</span><span style="color:#9ECBFF"> myapp</span><span style="color:#9ECBFF"> sh</span><span style="color:#6A737D">  # sh/bash が入っていない場合</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> exec</span><span style="color:#79B8FF"> -it</span><span style="color:#9ECBFF"> myapp</span><span style="color:#9ECBFF"> /bin/sh</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># コンテナが起動しない場合（終了後も確認）</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> --entrypoint</span><span style="color:#9ECBFF"> sh</span><span style="color:#9ECBFF"> myapp</span><span style="color:#79B8FF"> -c</span><span style="color:#9ECBFF"> "ls /app &amp;&amp; cat /app/config.json"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ログの確認</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> logs</span><span style="color:#9ECBFF"> myapp</span><span style="color:#79B8FF"> --tail=100</span><span style="color:#79B8FF"> --since=</span><span style="color:#9ECBFF">"1h"</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> logs</span><span style="color:#9ECBFF"> myapp</span><span style="color:#F97583"> 2&gt;&amp;1</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> ERROR</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># コンテナの差分確認（どのファイルが変更されたか）</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> diff</span><span style="color:#9ECBFF"> myapp</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/devops/docker/docker-compose%E9%AB%98%E5%BA%A6%E6%B4%BB%E7%94%A8/">02_Docker_Compose高度活用.md</a> — 本番環境向け設定</li>
+<li><a href="/learning/devops/kubernetes/k8s%E5%9F%BA%E7%A4%8E/">../Kubernetes/01_K8s基礎.md</a> — Docker の次はK8s</li>
+<li><a href="/learning/cloud/aws/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/">../../03_Cloud/AWS/02_コンテナサービス.md</a> — ECS/EKS でコンテナを動かす</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

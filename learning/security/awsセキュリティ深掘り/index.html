@@ -1,0 +1,204 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「AWS セキュリティ深掘り — Security Hub・GuardDuty・Well-Architected」。セキュリティについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/security/aws%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E6%B7%B1%E6%8E%98%E3%82%8A/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="AWS セキュリティ深掘り — Security Hub・GuardDuty・Well-Architected — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「AWS セキュリティ深掘り — Security Hub・GuardDuty・Well-Architected」。セキュリティについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/security/aws%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E6%B7%B1%E6%8E%98%E3%82%8A/"><meta name="theme-color" content="#c8ff4a"><title>AWS セキュリティ深掘り — Security Hub・GuardDuty・Well-Architected — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-security">セキュリティ</a>  </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">SECURITY</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-セキュリティの階層defence-in-depth">1. セキュリティの階層（Defence in Depth）</a> </li><li> <a href="#2-iam-ベストプラクティス再掲深掘り">2. IAM ベストプラクティス（再掲・深掘り）</a> </li><li> <a href="#3-guardduty--脅威検知の仕組み">3. GuardDuty — 脅威検知の仕組み</a> </li><li> <a href="#4-security-hub--統合ダッシュボード">4. Security Hub — 統合ダッシュボード</a> </li><li> <a href="#5-aws-config--設定の継続的な監査">5. AWS Config — 設定の継続的な監査</a> </li><li> <a href="#6-well-architected-セキュリティの柱">6. Well-Architected セキュリティの柱</a> </li><li> <a href="#7-インシデント対応フロー">7. インシデント対応フロー</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="aws-セキュリティ深掘り--security-hubguarddutywell-architected">AWS セキュリティ深掘り — Security Hub・GuardDuty・Well-Architected</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+AWS SAA 取得済み。<strong>本番環境の継続的なセキュリティ監視と Well-Architected レビュー</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-セキュリティの階層defence-in-depth">1. セキュリティの階層（Defence in Depth）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>インターネット</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>[AWS WAF + Shield]   ← DDoS・SQLi・XSS のブロック</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>[CloudFront]         ← エッジでのキャッシュ・フィルタリング</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>[ALB + Security Group] ← L4/L7 のフィルタリング</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>[EC2/ECS/Lambda]     ← アプリケーション層</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>[RDS/DynamoDB]       ← データ層（暗号化・VPC 内）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>監視:</span></span>
+<span class="line"><span>  [CloudTrail] ← 全 API 呼び出しのログ（誰が・何を・いつ）</span></span>
+<span class="line"><span>  [GuardDuty]  ← 脅威検知（機械学習ベース）</span></span>
+<span class="line"><span>  [Security Hub] ← 複数サービスの結果を集約</span></span>
+<span class="line"><span>  [Config]     ← リソース設定の継続的な監査</span></span></code></pre>
+<hr>
+<h2 id="2-iam-ベストプラクティス再掲深掘り">2. IAM ベストプラクティス（再掲・深掘り）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#6A737D">// ❌ 広すぎる権限（本番では絶対NG）</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "Effect"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Allow"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "Action"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"*"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "Resource"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"*"</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// ✅ 最小権限（必要な S3 バケット・操作のみ）</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "Effect"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Allow"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "Action"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"s3:GetObject"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"s3:PutObject"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#79B8FF">  "Resource"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"arn:aws:s3:::myapp-uploads/*"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "Condition"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "StringEquals"</span><span style="color:#E1E4E8">: {</span><span style="color:#79B8FF">"aws:RequestedRegion"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ap-northeast-1"</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#79B8FF">    "IpAddress"</span><span style="color:#E1E4E8">: {</span><span style="color:#79B8FF">"aws:SourceIp"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"10.0.0.0/8"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># IAM Access Analyzer — 外部からアクセス可能なリソースを検出</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> accessanalyzer</span><span style="color:#9ECBFF"> list-findings</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --analyzer-name</span><span style="color:#9ECBFF"> production-analyzer</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --filter</span><span style="color:#9ECBFF"> '{"status": {"eq": ["ACTIVE"]}}'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 未使用の権限を特定（IAM Access Analyzer の推奨事項）</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> accessanalyzer</span><span style="color:#9ECBFF"> list-access-preview-findings</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --access-preview-id</span><span style="color:#9ECBFF"> xxx</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># SCPs（Service Control Policies）— 組織全体のガードレール</span></span>
+<span class="line"><span style="color:#6A737D"># 特定リージョン以外での操作を禁止</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#B392F0">  "Effect"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> "Deny",</span></span>
+<span class="line"><span style="color:#B392F0">  "Action"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> "*",</span></span>
+<span class="line"><span style="color:#B392F0">  "Resource"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> "*",</span></span>
+<span class="line"><span style="color:#B392F0">  "Condition"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> {</span></span>
+<span class="line"><span style="color:#B392F0">    "StringNotEquals"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> {</span></span>
+<span class="line"><span style="color:#B392F0">      "aws:RequestedRegion"</span><span style="color:#79B8FF">:</span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">"ap-northeast-1"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"us-east-1"]</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#B392F0">    "ArnNotLike"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> {</span></span>
+<span class="line"><span style="color:#B392F0">      "aws:PrincipalARN"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> "arn:aws:iam::*:role/NetworkAdmin"</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="3-guardduty--脅威検知の仕組み">3. GuardDuty — 脅威検知の仕組み</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>GuardDuty が監視するデータソース:</span></span>
+<span class="line"><span>  - CloudTrail（API 呼び出しの異常）</span></span>
+<span class="line"><span>  - VPC Flow Logs（ネットワークトラフィックの異常）</span></span>
+<span class="line"><span>  - DNS ログ（悪意のあるドメインへのアクセス）</span></span>
+<span class="line"><span>  - EKS Audit Logs（K8s の異常動作）</span></span>
+<span class="line"><span>  - S3 データイベント（機密データへの不審アクセス）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>主要な検知結果（Findings）の例:</span></span>
+<span class="line"><span>  UnauthorizedAccess:IAMUser/ConsoleLoginSuccess.B（普段と異なる地域からのログイン）</span></span>
+<span class="line"><span>  Behavior:IAMUser/InstanceCredentialExfiltration（EC2 のクレデンシャルを外部から使用）</span></span>
+<span class="line"><span>  CryptoCurrency:EC2/BitcoinTool.B（マイニングツールの検出）</span></span>
+<span class="line"><span>  Backdoor:EC2/C&amp;CActivity.B（C2 サーバーへの通信）</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># GuardDuty の検知結果を EventBridge → Lambda → Slack に通知</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> boto3</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> json</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> os</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> urllib.request</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> handler</span><span style="color:#E1E4E8">(event, context):</span></span>
+<span class="line"><span style="color:#E1E4E8">    detail </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> event[</span><span style="color:#9ECBFF">"detail"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">    finding_type </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> detail[</span><span style="color:#9ECBFF">"type"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">    severity </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> detail[</span><span style="color:#9ECBFF">"severity"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # 重要度 HIGH 以上のみ通知</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> severity </span><span style="color:#F97583">&lt;</span><span style="color:#79B8FF"> 7.0</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        return</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    message </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">        "blocks"</span><span style="color:#E1E4E8">: [{</span></span>
+<span class="line"><span style="color:#9ECBFF">            "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"section"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "text"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">                "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"mrkdwn"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "text"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"🚨 *GuardDuty Alert*</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">*Type:* </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">finding_type</span><span style="color:#79B8FF">}\n</span><span style="color:#9ECBFF">*Severity:* </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">severity</span><span style="color:#79B8FF">}\n</span><span style="color:#9ECBFF">*Account:* </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">detail[</span><span style="color:#9ECBFF">'accountId'</span><span style="color:#E1E4E8">]</span><span style="color:#79B8FF">}\n</span><span style="color:#9ECBFF">*Region:* </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">detail[</span><span style="color:#9ECBFF">'region'</span><span style="color:#E1E4E8">]</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        }]</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    req </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> urllib.request.Request(</span></span>
+<span class="line"><span style="color:#E1E4E8">        os.environ[</span><span style="color:#9ECBFF">"SLACK_WEBHOOK"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#FFAB70">        data</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">json.dumps(message).encode(),</span></span>
+<span class="line"><span style="color:#FFAB70">        headers</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span><span style="color:#9ECBFF">"Content-Type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"application/json"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#E1E4E8">    urllib.request.urlopen(req)</span></span></code></pre>
+<hr>
+<h2 id="4-security-hub--統合ダッシュボード">4. Security Hub — 統合ダッシュボード</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Security Hub が集約する情報:</span></span>
+<span class="line"><span>  - GuardDuty の検知結果</span></span>
+<span class="line"><span>  - AWS Config ルールの違反</span></span>
+<span class="line"><span>  - Inspector（脆弱性スキャン）</span></span>
+<span class="line"><span>  - IAM Access Analyzer の結果</span></span>
+<span class="line"><span>  - 独自のカスタムルール</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>準拠フレームワーク:</span></span>
+<span class="line"><span>  - AWS Foundational Security Best Practices</span></span>
+<span class="line"><span>  - CIS AWS Foundations Benchmark</span></span>
+<span class="line"><span>  - PCI DSS（クレジットカード業界標準）</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Security Hub の有効化</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> securityhub</span><span style="color:#9ECBFF"> enable-security-hub</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --enable-default-standards</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 検知結果の一覧（HIGH/CRITICAL のみ）</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> securityhub</span><span style="color:#9ECBFF"> get-findings</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --filters</span><span style="color:#9ECBFF"> '{</span></span>
+<span class="line"><span style="color:#9ECBFF">    "SeverityLabel": [{"Value": "CRITICAL", "Comparison": "EQUALS"},</span></span>
+<span class="line"><span style="color:#9ECBFF">                      {"Value": "HIGH", "Comparison": "EQUALS"}],</span></span>
+<span class="line"><span style="color:#9ECBFF">    "RecordState": [{"Value": "ACTIVE", "Comparison": "EQUALS"}]</span></span>
+<span class="line"><span style="color:#9ECBFF">  }'</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --query</span><span style="color:#9ECBFF"> 'Findings[].{Title: Title, Severity: Severity.Label, Resource: Resources[0].Id}'</span></span></code></pre>
+<hr>
+<h2 id="5-aws-config--設定の継続的な監査">5. AWS Config — 設定の継続的な監査</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 有効化されていないマネージドルールの例</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> configservice</span><span style="color:#9ECBFF"> describe-compliance-by-config-rule</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --config-rule-names</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#9ECBFF">    s3-bucket-public-read-prohibited</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#9ECBFF">    ec2-security-group-attached-to-eni</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#9ECBFF">    iam-password-policy</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#9ECBFF">    mfa-enabled-for-iam-console-access</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --compliance-types</span><span style="color:#9ECBFF"> NON_COMPLIANT</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># カスタムルール（Lambda で自前チェック）</span></span>
+<span class="line"><span style="color:#6A737D"># 例: EBS ボリュームが全て暗号化されているか確認</span></span>
+<span class="line"><span style="color:#B392F0">def</span><span style="color:#9ECBFF"> evaluate_compliance</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">event</span><span style="color:#E1E4E8">)</span><span style="color:#9ECBFF">:</span></span>
+<span class="line"><span style="color:#B392F0">    ec2</span><span style="color:#9ECBFF"> =</span><span style="color:#9ECBFF"> boto3.client</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">"ec2"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">    volumes</span><span style="color:#9ECBFF"> =</span><span style="color:#9ECBFF"> ec2.describe_volumes</span><span style="color:#E1E4E8">()</span><span style="color:#9ECBFF">["Volumes"]</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#B392F0">    results</span><span style="color:#9ECBFF"> =</span><span style="color:#E1E4E8"> []</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> vol </span><span style="color:#F97583">in</span><span style="color:#9ECBFF"> volumes:</span></span>
+<span class="line"><span style="color:#B392F0">        results.append(</span><span style="color:#9ECBFF">{</span></span>
+<span class="line"><span style="color:#B392F0">            "ComplianceResourceId"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> vol["VolumeId"],</span></span>
+<span class="line"><span style="color:#B392F0">            "ComplianceResourceType"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> "AWS::EC2::Volume",</span></span>
+<span class="line"><span style="color:#B392F0">            "ComplianceType"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> "COMPLIANT"</span><span style="color:#9ECBFF"> if</span><span style="color:#9ECBFF"> vol.get</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">"Encrypted"</span><span style="color:#E1E4E8">) </span><span style="color:#9ECBFF">else</span><span style="color:#9ECBFF"> "NON_COMPLIANT"</span></span>
+<span class="line"><span style="color:#E1E4E8">        })</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#9ECBFF"> results</span></span></code></pre>
+<hr>
+<h2 id="6-well-architected-セキュリティの柱">6. Well-Architected セキュリティの柱</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>AWS Well-Architected Framework — セキュリティの柱（6設計原則）:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>1. 強力なアイデンティティ基盤の実装</span></span>
+<span class="line"><span>   → ルートアカウント不使用・MFA 必須・IAM ロールで最小権限</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. トレーサビリティの実現</span></span>
+<span class="line"><span>   → CloudTrail・VPC Flow Logs・CloudWatch Logs を全て有効化</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>3. 全レイヤーでのセキュリティ適用</span></span>
+<span class="line"><span>   → Defence in Depth（多層防御）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>4. セキュリティのベストプラクティスを自動化</span></span>
+<span class="line"><span>   → Config ルール・Lambda による自動修正・Security Hub</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>5. 転送中および保管中のデータを保護</span></span>
+<span class="line"><span>   → TLS 1.2 以上の強制・KMS による暗号化</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>6. データに人を近づけない</span></span>
+<span class="line"><span>   → AWS Systems Manager Session Manager（SSH の廃止）</span></span>
+<span class="line"><span>   → Secrets Manager でのシークレット管理（環境変数に書かない）</span></span></code></pre>
+<hr>
+<h2 id="7-インシデント対応フロー">7. インシデント対応フロー</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>1. 検知: GuardDuty → EventBridge → Slack/PagerDuty</span></span>
+<span class="line"><span>2. 初動:</span></span>
+<span class="line"><span>   - 影響を受けた IAM ユーザー/ロールを即時無効化</span></span>
+<span class="line"><span>     aws iam put-user-policy --user-name xxx --policy-name deny-all --policy-document '{"Version":"2012-10-17","Statement":[{"Effect":"Deny","Action":"*","Resource":"*"}]}'</span></span>
+<span class="line"><span>   - 問題の EC2 インスタンスを隔離（Security Group で通信遮断）</span></span>
+<span class="line"><span>3. 調査:</span></span>
+<span class="line"><span>   - CloudTrail で直近の API 操作を確認</span></span>
+<span class="line"><span>   - GuardDuty の Finding の詳細を確認</span></span>
+<span class="line"><span>4. 復旧・再発防止:</span></span>
+<span class="line"><span>   - 原因となった設定を修正</span></span>
+<span class="line"><span>   - Config ルールに追加して継続監視</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/security/%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E5%AE%9F%E8%B7%B5/">01_セキュリティ実践.md</a> — STRIDE・暗号化・応用情報頻出</li>
+<li><a href="/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/">AWS設計・運用</a> — Well-Architected 全体像</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

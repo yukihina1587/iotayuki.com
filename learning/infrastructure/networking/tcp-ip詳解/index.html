@@ -1,0 +1,283 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「TCP/IP 詳解 — 応用情報・実務レベル」。インフラストラクチャについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/infrastructure/networking/tcp-ip%E8%A9%B3%E8%A7%A3/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="TCP/IP 詳解 — 応用情報・実務レベル — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「TCP/IP 詳解 — 応用情報・実務レベル」。インフラストラクチャについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/infrastructure/networking/tcp-ip%E8%A9%B3%E8%A7%A3/"><meta name="theme-color" content="#c8ff4a"><title>TCP/IP 詳解 — 応用情報・実務レベル — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-infrastructure">インフラストラクチャ</a> <span aria-hidden="true">/</span><span>networking</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">INFRASTRUCTURE</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-tcp-の状態遷移応用情報頻出">1. TCP の状態遷移（応用情報頻出）</a> </li><li class="learning-toc-subitem"> <a href="#time_wait-が重要な理由">TIME_WAIT が重要な理由</a> </li><li> <a href="#2-tcp-ヘッダーの重要フィールド応用情報で問われる">2. TCP ヘッダーの重要フィールド（応用情報で問われる）</a> </li><li class="learning-toc-subitem"> <a href="#ウィンドウサイズとスループット">ウィンドウサイズとスループット</a> </li><li> <a href="#3-http11-vs-http2-vs-http3">3. HTTP/1.1 vs HTTP/2 vs HTTP/3</a> </li><li class="learning-toc-subitem"> <a href="#http2-のストリームとフレーム">HTTP/2 のストリームとフレーム</a> </li><li> <a href="#4-tls-13-ハンドシェイク応用情報セキュリティで頻出">4. TLS 1.3 ハンドシェイク（応用情報・セキュリティで頻出）</a> </li><li> <a href="#5-dns-の仕組み応用情報必須">5. DNS の仕組み（応用情報必須）</a> </li><li class="learning-toc-subitem"> <a href="#名前解決の流れ">名前解決の流れ</a> </li><li class="learning-toc-subitem"> <a href="#重要なレコードタイプ">重要なレコードタイプ</a> </li><li class="learning-toc-subitem"> <a href="#dns-トラブルシューティング">DNS トラブルシューティング</a> </li><li> <a href="#6-natipマスカレード">6. NAT・IPマスカレード</a> </li><li> <a href="#7-応用情報-午後問題--ネットワーク頻出パターン">7. 応用情報 午後問題 — ネットワーク頻出パターン</a> </li><li class="learning-toc-subitem"> <a href="#サブネット計算確実に解けるようにする">サブネット計算（確実に解けるようにする）</a> </li><li class="learning-toc-subitem"> <a href="#vlan-と-トランク">VLAN と トランク</a> </li><li class="learning-toc-subitem"> <a href="#スパニングツリーstp">スパニングツリー（STP）</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="tcpip-詳解--応用情報実務レベル">TCP/IP 詳解 — 応用情報・実務レベル</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+OSI参照モデルの基礎は省略。<strong>応用情報午後問題レベルの詳細</strong>と<strong>実務でのトラブルシューティング</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-tcp-の状態遷移応用情報頻出">1. TCP の状態遷移（応用情報頻出）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>クライアント                    サーバー</span></span>
+<span class="line"><span>    |                              |</span></span>
+<span class="line"><span>    |──── SYN ─────────────────&gt;   | LISTEN</span></span>
+<span class="line"><span>    |                              | SYN_RCVD</span></span>
+<span class="line"><span>    |   &lt;──── SYN+ACK ──────────   |</span></span>
+<span class="line"><span>    | ESTABLISHED                  |</span></span>
+<span class="line"><span>    |──── ACK ─────────────────&gt;   | ESTABLISHED</span></span>
+<span class="line"><span>    |                              |</span></span>
+<span class="line"><span>    |  ← データ転送 →              |</span></span>
+<span class="line"><span>    |                              |</span></span>
+<span class="line"><span>    |──── FIN ─────────────────&gt;   | CLOSE_WAIT</span></span>
+<span class="line"><span>    | FIN_WAIT_1                   |</span></span>
+<span class="line"><span>    |   &lt;──── ACK ──────────────   |</span></span>
+<span class="line"><span>    | FIN_WAIT_2                   |</span></span>
+<span class="line"><span>    |   &lt;──── FIN ──────────────   | LAST_ACK</span></span>
+<span class="line"><span>    | TIME_WAIT                    |</span></span>
+<span class="line"><span>    |──── ACK ─────────────────&gt;   | CLOSED</span></span>
+<span class="line"><span>    | (2MSL待機後CLOSED)            |</span></span></code></pre>
+<h3 id="time_wait-が重要な理由">TIME_WAIT が重要な理由</h3>
+<ul>
+<li>最後の ACK がロストした場合にサーバーが FIN を再送できるようにする</li>
+<li>ネットワーク上に残った古いパケットが新しい接続に混入しないようにする</li>
+<li><strong>実務での問題</strong>: 短命な接続を大量に張ると TIME_WAIT が枯渇 → <code>net.ipv4.tcp_tw_reuse=1</code> で対処</li>
+</ul>
+<hr>
+<h2 id="2-tcp-ヘッダーの重要フィールド応用情報で問われる">2. TCP ヘッダーの重要フィールド（応用情報で問われる）</h2>
+<table>
+<thead>
+<tr>
+<th>フィールド</th>
+<th>ビット数</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>送信元ポート</td>
+<td>16</td>
+<td></td>
+</tr>
+<tr>
+<td>宛先ポート</td>
+<td>16</td>
+<td></td>
+</tr>
+<tr>
+<td>シーケンス番号</td>
+<td>32</td>
+<td>送信バイトの先頭番号</td>
+</tr>
+<tr>
+<td>確認応答番号</td>
+<td>32</td>
+<td>次に期待する受信バイト番号</td>
+</tr>
+<tr>
+<td>データオフセット</td>
+<td>4</td>
+<td>ヘッダー長（32bit単位）</td>
+</tr>
+<tr>
+<td>フラグ</td>
+<td>6</td>
+<td>URG/ACK/PSH/RST/SYN/FIN</td>
+</tr>
+<tr>
+<td>ウィンドウサイズ</td>
+<td>16</td>
+<td>受信バッファの残量（フロー制御）</td>
+</tr>
+<tr>
+<td>チェックサム</td>
+<td>16</td>
+<td>誤り検出</td>
+</tr>
+<tr>
+<td>緊急ポインタ</td>
+<td>16</td>
+<td>URGフラグ時のみ有効</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ウィンドウサイズとスループット">ウィンドウサイズとスループット</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>スループット上限 = ウィンドウサイズ / RTT</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>例: ウィンドウサイズ 64KB、RTT 100ms</span></span>
+<span class="line"><span>  = 65536 bytes / 0.1s = 655,360 bytes/s ≒ 5.2 Mbps</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>→ 回線が1Gbpsでも、RTTが大きければウィンドウサイズがボトルネックになる</span></span>
+<span class="line"><span>→ TCP Window Scaling（RFC 7323）で最大1GB まで拡張可能</span></span></code></pre>
+<hr>
+<h2 id="3-http11-vs-http2-vs-http3">3. HTTP/1.1 vs HTTP/2 vs HTTP/3</h2>
+<table>
+<thead>
+<tr>
+<th>機能</th>
+<th>HTTP/1.1</th>
+<th>HTTP/2</th>
+<th>HTTP/3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>多重化</td>
+<td>❌（1接続1リクエスト）</td>
+<td>✅（ストリーム）</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>ヘッダー圧縮</td>
+<td>❌</td>
+<td>✅（HPACK）</td>
+<td>✅（QPACK）</td>
+</tr>
+<tr>
+<td>サーバープッシュ</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>トランスポート</td>
+<td>TCP</td>
+<td>TCP</td>
+<td><strong>QUIC（UDP）</strong></td>
+</tr>
+<tr>
+<td>HoL ブロッキング</td>
+<td>あり</td>
+<td>TCP層ではあり</td>
+<td><strong>なし</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="http2-のストリームとフレーム">HTTP/2 のストリームとフレーム</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>1本のTCP接続</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Stream 1 ──[HEADERS][DATA][DATA]──────────────&gt;</span></span>
+<span class="line"><span>Stream 3 ───────[HEADERS][DATA]────────────&gt;</span></span>
+<span class="line"><span>Stream 5 ────────────[HEADERS][DATA][DATA]─&gt;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>↑ 多重化：複数リクエストを並列で処理</span></span></code></pre>
+<hr>
+<h2 id="4-tls-13-ハンドシェイク応用情報セキュリティで頻出">4. TLS 1.3 ハンドシェイク（応用情報・セキュリティで頻出）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>クライアント                    サーバー</span></span>
+<span class="line"><span>    |                              |</span></span>
+<span class="line"><span>    |── ClientHello ─────────────&gt; | （サポートするCipher Suite、乱数）</span></span>
+<span class="line"><span>    |   &lt;── ServerHello ─────────  | （選択したCipher Suite、証明書、公開鍵）</span></span>
+<span class="line"><span>    |                              |</span></span>
+<span class="line"><span>    | 証明書検証（CAの公開鍵で署名確認）</span></span>
+<span class="line"><span>    |                              |</span></span>
+<span class="line"><span>    |── Finished ────────────────&gt; | （共有鍵で暗号化）</span></span>
+<span class="line"><span>    |   &lt;── Finished ────────────  |</span></span>
+<span class="line"><span>    |                              |</span></span>
+<span class="line"><span>    |  ← 暗号化通信開始 →          |</span></span></code></pre>
+<p><strong>TLS 1.3 の改善点（vs TLS 1.2）:</strong></p>
+<ul>
+<li>ハンドシェイクが 1-RTT（1.2は2-RTT）</li>
+<li>脆弱な暗号スイート（RSA鍵交換等）を廃止</li>
+<li>前方秘匿性（PFS）を必須化 — 秘密鍵が漏洩しても過去の通信は守られる</li>
+</ul>
+<hr>
+<h2 id="5-dns-の仕組み応用情報必須">5. DNS の仕組み（応用情報必須）</h2>
+<h3 id="名前解決の流れ">名前解決の流れ</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>ブラウザ → OSキャッシュ → スタブリゾルバ（/etc/resolv.conf）</span></span>
+<span class="line"><span>  → フルサービスリゾルバ（例: 8.8.8.8）</span></span>
+<span class="line"><span>      → ルートDNSサーバー（.）</span></span>
+<span class="line"><span>      → TLDサーバー（.jp, .com）</span></span>
+<span class="line"><span>      → 権威DNSサーバー（example.com）</span></span>
+<span class="line"><span>  → 回答をキャッシュ（TTL秒間）</span></span></code></pre>
+<h3 id="重要なレコードタイプ">重要なレコードタイプ</h3>
+<table>
+<thead>
+<tr>
+<th>レコード</th>
+<th>意味</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>IPv4アドレス</td>
+<td>example.com → 1.2.3.4</td>
+</tr>
+<tr>
+<td>AAAA</td>
+<td>IPv6アドレス</td>
+<td></td>
+</tr>
+<tr>
+<td>CNAME</td>
+<td>別名</td>
+<td>www → example.com</td>
+</tr>
+<tr>
+<td>MX</td>
+<td>メールサーバー</td>
+<td>優先度付き</td>
+</tr>
+<tr>
+<td>TXT</td>
+<td>テキスト</td>
+<td>SPF・DKIMなど</td>
+</tr>
+<tr>
+<td>NS</td>
+<td>ネームサーバー</td>
+<td></td>
+</tr>
+<tr>
+<td>SOA</td>
+<td>ゾーン情報</td>
+<td>TTL・管理者等</td>
+</tr>
+<tr>
+<td>PTR</td>
+<td>逆引き</td>
+<td>1.2.3.4 → example.com</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dns-トラブルシューティング">DNS トラブルシューティング</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 権威DNSに直接問い合わせ（キャッシュを経由しない）</span></span>
+<span class="line"><span style="color:#B392F0">dig</span><span style="color:#9ECBFF"> +trace</span><span style="color:#9ECBFF"> example.com</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># TTL確認</span></span>
+<span class="line"><span style="color:#B392F0">dig</span><span style="color:#9ECBFF"> example.com</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -A1</span><span style="color:#9ECBFF"> "ANSWER SECTION"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 逆引き</span></span>
+<span class="line"><span style="color:#B392F0">dig</span><span style="color:#79B8FF"> -x</span><span style="color:#79B8FF"> 8.8.8.8</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># DNSサーバーの指定</span></span>
+<span class="line"><span style="color:#B392F0">dig</span><span style="color:#9ECBFF"> @1.1.1.1</span><span style="color:#9ECBFF"> example.com</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 特定レコードタイプ</span></span>
+<span class="line"><span style="color:#B392F0">dig</span><span style="color:#9ECBFF"> example.com</span><span style="color:#9ECBFF"> MX</span></span>
+<span class="line"><span style="color:#B392F0">dig</span><span style="color:#9ECBFF"> example.com</span><span style="color:#9ECBFF"> TXT</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> spf</span></span></code></pre>
+<hr>
+<h2 id="6-natipマスカレード">6. NAT・IPマスカレード</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>[Private: 192.168.1.10:50000] → [NAT変換] → [Public: 203.0.113.1:60001]</span></span>
+<span class="line"><span>                                                         ↓</span></span>
+<span class="line"><span>                                              [Internet Server: 8.8.8.8:80]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>NATテーブル:</span></span>
+<span class="line"><span>192.168.1.10:50000 ↔ 203.0.113.1:60001</span></span>
+<span class="line"><span>192.168.1.11:50001 ↔ 203.0.113.1:60002</span></span></code></pre>
+<p><strong>NAPT（IPマスカレード）:</strong> 複数のプライベートIPを1つのグローバルIPに変換<br>
+<strong>AWS の場合:</strong> NATゲートウェイがこの役割 → プライベートサブネットからのアウトバウンドを可能にする</p>
+<hr>
+<h2 id="7-応用情報-午後問題--ネットワーク頻出パターン">7. 応用情報 午後問題 — ネットワーク頻出パターン</h2>
+<h3 id="サブネット計算確実に解けるようにする">サブネット計算（確実に解けるようにする）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>問題: 172.16.0.0/20 のネットワーク</span></span>
+<span class="line"><span>  → サブネットマスク: 255.255.240.0</span></span>
+<span class="line"><span>  → ホストアドレス数: 2^12 - 2 = 4094台</span></span>
+<span class="line"><span>  → ネットワークアドレス: 172.16.0.0</span></span>
+<span class="line"><span>  → ブロードキャスト: 172.16.15.255</span></span>
+<span class="line"><span>  → 使用可能範囲: 172.16.0.1 ～ 172.16.15.254</span></span></code></pre>
+<h3 id="vlan-と-トランク">VLAN と トランク</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>アクセスポート: 1つのVLANのみ（エンドデバイス接続）</span></span>
+<span class="line"><span>トランクポート: 複数VLANを束ねる（スイッチ間・スイッチ-ルーター間）</span></span>
+<span class="line"><span>タグなしVLAN（ネイティブVLAN）: タグなしフレームが属するVLAN</span></span></code></pre>
+<h3 id="スパニングツリーstp">スパニングツリー（STP）</h3>
+<ul>
+<li>ループ防止プロトコル（L2ネットワークでのブロードキャストストームを防ぐ）</li>
+<li>ルートブリッジ選出 → 最小コストのパスを有効化 → 冗長パスをブロック</li>
+<li><strong>RSTP（Rapid STP）:</strong> STPの高速版（収束時間を数秒に短縮）</li>
+</ul>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li>DNS・TLS・HTTP詳解 — アプリ層プロトコル深掘り（今後追加予定）</li>
+<li>ネットワークセキュリティ — TLSとセキュリティ（今後追加予定）</li>
+<li>AWSネットワーク設計 — AWSでのネットワーク応用（今後追加予定）</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

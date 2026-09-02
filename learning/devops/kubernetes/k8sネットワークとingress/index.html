@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「K8s ネットワークと Ingress」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/devops/kubernetes/k8s%E3%83%8D%E3%83%83%E3%83%88%E3%83%AF%E3%83%BC%E3%82%AF%E3%81%A8ingress/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="K8s ネットワークと Ingress — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「K8s ネットワークと Ingress」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/devops/kubernetes/k8s%E3%83%8D%E3%83%83%E3%83%88%E3%83%AF%E3%83%BC%E3%82%AF%E3%81%A8ingress/"><meta name="theme-color" content="#c8ff4a"><title>K8s ネットワークと Ingress — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-devops">DevOps・自動化</a> <span aria-hidden="true">/</span><span>kubernetes</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">DEVOPS</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-k8s-ネットワークの仕組み">1. K8s ネットワークの仕組み</a> </li><li> <a href="#2-service-の種類">2. Service の種類</a> </li><li> <a href="#3-ingress--l7-ルーティングのベストプラクティス">3. Ingress — L7 ルーティングのベストプラクティス</a> </li><li> <a href="#4-networkpolicy--pod-間の通信制限">4. NetworkPolicy — Pod 間の通信制限</a> </li><li> <a href="#5-dns-と-service-discovery">5. DNS と Service Discovery</a> </li><li> <a href="#6-トラブルシューティング">6. トラブルシューティング</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="k8s-ネットワークと-ingress">K8s ネットワークと Ingress</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+K8s 基礎（Pod/Service/Deployment）は前提。<strong>実際のトラフィックフローと Ingress 設計</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-k8s-ネットワークの仕組み">1. K8s ネットワークの仕組み</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>K8s のネットワークモデル（基本原則）:</span></span>
+<span class="line"><span>  1. すべての Pod は固有の IP を持つ</span></span>
+<span class="line"><span>  2. Pod 間通信は NAT なしで直接可能</span></span>
+<span class="line"><span>  3. Node から Pod へも NAT なしで通信可能</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>実装（クラスター構築時に選ぶ CNI プラグイン）:</span></span>
+<span class="line"><span>  Calico   → 高機能（NetworkPolicy が強力）、EKS で推奨</span></span>
+<span class="line"><span>  Flannel  → シンプル・軽量</span></span>
+<span class="line"><span>  Cilium   → eBPF ベース・高パフォーマンス・可視化機能付き（最近人気）</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>EKS のデフォルト: AWS VPC CNI</span></span>
+<span class="line"><span>  → Pod に VPC の IP アドレスが直接割り当てられる</span></span>
+<span class="line"><span>  → Pod から VPC 内のリソース（RDS 等）に直接通信可能</span></span></code></pre>
+<hr>
+<h2 id="2-service-の種類">2. Service の種類</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># ClusterIP（デフォルト）— クラスター内部のみ</span></span>
+<span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Service</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp-service</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  selector</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    app</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp</span></span>
+<span class="line"><span style="color:#85E89D">  ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">port</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">80</span></span>
+<span class="line"><span style="color:#85E89D">      targetPort</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">8080</span></span>
+<span class="line"><span style="color:#85E89D">  type</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ClusterIP</span><span style="color:#6A737D">  # クラスター内の DNS で myapp-service.default.svc.cluster.local</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">---</span></span>
+<span class="line"><span style="color:#6A737D"># NodePort — 各ノードのポートを開放（開発・テスト向け）</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  type</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">NodePort</span></span>
+<span class="line"><span style="color:#85E89D">  ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">port</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">80</span></span>
+<span class="line"><span style="color:#85E89D">      targetPort</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">8080</span></span>
+<span class="line"><span style="color:#85E89D">      nodePort</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">30080</span><span style="color:#6A737D">  # 30000-32767 の範囲</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">---</span></span>
+<span class="line"><span style="color:#6A737D"># LoadBalancer — クラウドの LB を自動プロビジョニング</span></span>
+<span class="line"><span style="color:#6A737D"># EKS では AWS NLB/ALB が作られる</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  type</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">LoadBalancer</span></span>
+<span class="line"><span style="color:#6A737D">  # EKS で ALB を使う場合は Ingress を使う方が推奨（後述）</span></span></code></pre>
+<hr>
+<h2 id="3-ingress--l7-ルーティングのベストプラクティス">3. Ingress — L7 ルーティングのベストプラクティス</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Service type=LoadBalancer の問題:</span></span>
+<span class="line"><span>  サービスごとに AWS NLB が1台作られる → コスト増</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Ingress の利点:</span></span>
+<span class="line"><span>  1台の ALB でパス・ホストベースの振り分けが可能</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># EKS で AWS Load Balancer Controller を使った Ingress</span></span>
+<span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">networking.k8s.io/v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Ingress</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp-ingress</span></span>
+<span class="line"><span style="color:#85E89D">  annotations</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#6A737D">    # EKS: AWS Load Balancer Controller が ALB を自動作成</span></span>
+<span class="line"><span style="color:#85E89D">    kubernetes.io/ingress.class</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"alb"</span></span>
+<span class="line"><span style="color:#85E89D">    alb.ingress.kubernetes.io/scheme</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"internet-facing"</span></span>
+<span class="line"><span style="color:#85E89D">    alb.ingress.kubernetes.io/target-type</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ip"</span></span>
+<span class="line"><span style="color:#85E89D">    alb.ingress.kubernetes.io/certificate-arn</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"arn:aws:acm:ap-northeast-1:xxx:certificate/yyy"</span></span>
+<span class="line"><span style="color:#85E89D">    alb.ingress.kubernetes.io/ssl-redirect</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"443"</span></span>
+<span class="line"><span style="color:#6A737D">    # WAF と連携</span></span>
+<span class="line"><span style="color:#85E89D">    alb.ingress.kubernetes.io/wafv2-acl-arn</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"arn:aws:wafv2:..."</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  rules</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">host</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">api.myapp.com</span></span>
+<span class="line"><span style="color:#85E89D">      http</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        paths</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">          - </span><span style="color:#85E89D">path</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">/api/v1</span></span>
+<span class="line"><span style="color:#85E89D">            pathType</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Prefix</span></span>
+<span class="line"><span style="color:#85E89D">            backend</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">              service</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">                name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">api-service</span></span>
+<span class="line"><span style="color:#85E89D">                port</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">                  number</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">80</span></span>
+<span class="line"><span style="color:#E1E4E8">          - </span><span style="color:#85E89D">path</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">/api/v2</span></span>
+<span class="line"><span style="color:#85E89D">            pathType</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Prefix</span></span>
+<span class="line"><span style="color:#85E89D">            backend</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">              service</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">                name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">api-v2-service</span></span>
+<span class="line"><span style="color:#85E89D">                port</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">                  number</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">80</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">host</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">admin.myapp.com</span></span>
+<span class="line"><span style="color:#85E89D">      http</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        paths</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">          - </span><span style="color:#85E89D">path</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">/</span></span>
+<span class="line"><span style="color:#85E89D">            pathType</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Prefix</span></span>
+<span class="line"><span style="color:#85E89D">            backend</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">              service</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">                name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">admin-service</span></span>
+<span class="line"><span style="color:#85E89D">                port</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">                  number</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">80</span></span></code></pre>
+<hr>
+<h2 id="4-networkpolicy--pod-間の通信制限">4. NetworkPolicy — Pod 間の通信制限</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># デフォルト: 全ての Pod 間通信が許可（セキュリティリスク）</span></span>
+<span class="line"><span style="color:#6A737D"># NetworkPolicy でホワイトリスト方式に変更</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># まず全ての Ingress を拒否</span></span>
+<span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">networking.k8s.io/v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">NetworkPolicy</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">default-deny-all</span></span>
+<span class="line"><span style="color:#85E89D">  namespace</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  podSelector</span><span style="color:#E1E4E8">: {}  </span><span style="color:#6A737D"># 全 Pod に適用</span></span>
+<span class="line"><span style="color:#85E89D">  policyTypes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#9ECBFF">Ingress</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#9ECBFF">Egress</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">---</span></span>
+<span class="line"><span style="color:#6A737D"># API Pod への接続を Front Pod からのみ許可</span></span>
+<span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">networking.k8s.io/v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">NetworkPolicy</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">allow-frontend-to-api</span></span>
+<span class="line"><span style="color:#85E89D">  namespace</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  podSelector</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    matchLabels</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      app</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">api</span></span>
+<span class="line"><span style="color:#85E89D">  policyTypes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#9ECBFF">Ingress</span></span>
+<span class="line"><span style="color:#85E89D">  ingress</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">from</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        - </span><span style="color:#85E89D">podSelector</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">            matchLabels</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">              app</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">frontend</span></span>
+<span class="line"><span style="color:#85E89D">      ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        - </span><span style="color:#85E89D">protocol</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">TCP</span></span>
+<span class="line"><span style="color:#85E89D">          port</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">8080</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">---</span></span>
+<span class="line"><span style="color:#6A737D"># DB への接続を API からのみ許可</span></span>
+<span class="line"><span style="color:#85E89D">apiVersion</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">networking.k8s.io/v1</span></span>
+<span class="line"><span style="color:#85E89D">kind</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">NetworkPolicy</span></span>
+<span class="line"><span style="color:#85E89D">metadata</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">allow-api-to-db</span></span>
+<span class="line"><span style="color:#85E89D">  namespace</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production</span></span>
+<span class="line"><span style="color:#85E89D">spec</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  podSelector</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    matchLabels</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      app</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">database</span></span>
+<span class="line"><span style="color:#85E89D">  ingress</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">from</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        - </span><span style="color:#85E89D">podSelector</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">            matchLabels</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">              app</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">api</span></span>
+<span class="line"><span style="color:#85E89D">      ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        - </span><span style="color:#85E89D">port</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5432</span></span></code></pre>
+<hr>
+<h2 id="5-dns-と-service-discovery">5. DNS と Service Discovery</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># K8s 内の DNS 解決（CoreDNS）</span></span>
+<span class="line"><span style="color:#6A737D"># Service 名で別の Pod から接続できる</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 同じ Namespace</span></span>
+<span class="line"><span style="color:#B392F0">curl</span><span style="color:#9ECBFF"> http://myapp-service/api/health</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 別の Namespace</span></span>
+<span class="line"><span style="color:#B392F0">curl</span><span style="color:#9ECBFF"> http://myapp-service.production.svc.cluster.local/api/health</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 外部 DNS への解決</span></span>
+<span class="line"><span style="color:#6A737D"># Pod から RDS エンドポイントへ → VPC DNS で解決</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># DNS の動作確認</span></span>
+<span class="line"><span style="color:#B392F0">kubectl</span><span style="color:#9ECBFF"> run</span><span style="color:#9ECBFF"> test-pod</span><span style="color:#79B8FF"> --image=nicolaka/netshoot</span><span style="color:#79B8FF"> -it</span><span style="color:#79B8FF"> --rm</span><span style="color:#79B8FF"> --</span><span style="color:#9ECBFF"> bash</span></span>
+<span class="line"><span style="color:#6A737D"># Pod 内から:</span></span>
+<span class="line"><span style="color:#B392F0">nslookup</span><span style="color:#9ECBFF"> myapp-service.production.svc.cluster.local</span></span>
+<span class="line"><span style="color:#B392F0">curl</span><span style="color:#9ECBFF"> http://myapp-service.production/health</span></span></code></pre>
+<hr>
+<h2 id="6-トラブルシューティング">6. トラブルシューティング</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Pod の通信テスト</span></span>
+<span class="line"><span style="color:#B392F0">kubectl</span><span style="color:#9ECBFF"> exec</span><span style="color:#79B8FF"> -it</span><span style="color:#9ECBFF"> mypod</span><span style="color:#79B8FF"> --</span><span style="color:#9ECBFF"> curl</span><span style="color:#9ECBFF"> http://other-service/health</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># NetworkPolicy が原因で繋がらない場合</span></span>
+<span class="line"><span style="color:#6A737D"># Cilium Hubble（可視化）やシンプルなデバッグ Pod で確認</span></span>
+<span class="line"><span style="color:#B392F0">kubectl</span><span style="color:#9ECBFF"> run</span><span style="color:#9ECBFF"> netshoot</span><span style="color:#79B8FF"> --image=nicolaka/netshoot</span><span style="color:#79B8FF"> --rm</span><span style="color:#79B8FF"> -it</span><span style="color:#79B8FF"> --</span><span style="color:#9ECBFF"> bash</span></span>
+<span class="line"><span style="color:#6A737D"># → tcpdump, curl, nslookup 等が使える</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Service のエンドポイントが正しいか確認</span></span>
+<span class="line"><span style="color:#B392F0">kubectl</span><span style="color:#9ECBFF"> get</span><span style="color:#9ECBFF"> endpoints</span><span style="color:#9ECBFF"> myapp-service</span></span>
+<span class="line"><span style="color:#6A737D"># → Pods の IP が表示されなければ selector のラベルが合っていない</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Ingress の状態確認</span></span>
+<span class="line"><span style="color:#B392F0">kubectl</span><span style="color:#9ECBFF"> describe</span><span style="color:#9ECBFF"> ingress</span><span style="color:#9ECBFF"> myapp-ingress</span></span>
+<span class="line"><span style="color:#6A737D"># → Events 欄にエラーがあれば ALB Controller の設定問題</span></span>
+<span class="line"><span style="color:#B392F0">kubectl</span><span style="color:#9ECBFF"> logs</span><span style="color:#79B8FF"> -n</span><span style="color:#9ECBFF"> kube-system</span><span style="color:#9ECBFF"> deployment/aws-load-balancer-controller</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/devops/kubernetes/k8s%E5%9F%BA%E7%A4%8E/">01_K8s基礎.md</a> — Deployment・Service・HPA の基礎</li>
+<li><a href="/learning/cloud/aws/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/">../../03_Cloud/AWS/02_コンテナサービス.md</a> — EKS の AWS 設計</li>
+<li><a href="/learning/infrastructure/networking/%E3%83%AD%E3%83%BC%E3%83%89%E3%83%90%E3%83%A9%E3%83%B3%E3%82%B5%E3%83%BC%E3%81%A8%E3%83%97%E3%83%AD%E3%82%AD%E3%82%B7/">../../02_Infrastructure/Networking/02_ロードバランサーとプロキシ.md</a> — ALB・Nginx の仕組み</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「プロンプトエンジニアリング深掘り」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/ai/claude/%E3%83%97%E3%83%AD%E3%83%B3%E3%83%97%E3%83%88%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="プロンプトエンジニアリング深掘り — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「プロンプトエンジニアリング深掘り」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/ai/claude/%E3%83%97%E3%83%AD%E3%83%B3%E3%83%97%E3%83%88%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0/"><meta name="theme-color" content="#c8ff4a"><title>プロンプトエンジニアリング深掘り — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-ai">AI・LLM</a> <span aria-hidden="true">/</span><span>claude</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">AI</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-明確で直接的な指示being-clear-and-direct">1. 明確で直接的な指示（Being Clear and Direct）</a> </li><li> <a href="#2-xml-タグで構造化する">2. XML タグで構造化する</a> </li><li> <a href="#3-few-shot-プロンプト例を与える">3. Few-shot プロンプト（例を与える）</a> </li><li> <a href="#4-chain-of-thought段階的推論">4. Chain of Thought（段階的推論）</a> </li><li> <a href="#5-長いコンテキストの活用claude-の強み">5. 長いコンテキストの活用（Claude の強み）</a> </li><li> <a href="#6-プロンプト評価evals">6. プロンプト評価（Evals）</a> </li><li> <a href="#7-インフラ業務向けプロンプトテンプレート集">7. インフラ業務向けプロンプトテンプレート集</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="プロンプトエンジニアリング深掘り">プロンプトエンジニアリング深掘り</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+参照コース: <a href="https://anthropic.skilljar.com/claude-with-the-anthropic-api%EF%BC%88Prompt">https://anthropic.skilljar.com/claude-with-the-anthropic-api（Prompt</a> Engineering セクション）</p>
+</blockquote>
+<hr>
+<h2 id="1-明確で直接的な指示being-clear-and-direct">1. 明確で直接的な指示（Being Clear and Direct）</h2>
+<p>Claude は<strong>指示通りに動く</strong>が、曖昧だと平均的な回答になる。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>❌ 曖昧: 「このコードをレビューして」</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>✅ 具体的:</span></span>
+<span class="line"><span>「以下の Python コードを以下の観点でレビューしてください：</span></span>
+<span class="line"><span>1. セキュリティ上の問題（特に入力バリデーション・SQLインジェクション）</span></span>
+<span class="line"><span>2. パフォーマンス上の問題</span></span>
+<span class="line"><span>3. Python らしくない書き方（より Pythonic にできる箇所）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>問題がない観点はスキップして、問題がある箇所のみ指摘してください。」</span></span></code></pre>
+<hr>
+<h2 id="2-xml-タグで構造化する">2. XML タグで構造化する</h2>
+<p>Claude は XML タグで区切られた入力を正確に解釈できる：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>&lt;system_context&gt;</span></span>
+<span class="line"><span>  本番 AWS 環境（東京リージョン）</span></span>
+<span class="line"><span>  ECS Fargate + RDS Aurora PostgreSQL 構成</span></span>
+<span class="line"><span>  現在障害対応中</span></span>
+<span class="line"><span>&lt;/system_context&gt;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>&lt;error_logs&gt;</span></span>
+<span class="line"><span>[2026-03-06 15:00:01] ERROR: Connection pool exhausted (max=20)</span></span>
+<span class="line"><span>[2026-03-06 15:00:03] ERROR: Timeout waiting for connection (30s)</span></span>
+<span class="line"><span>&lt;/error_logs&gt;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>&lt;constraints&gt;</span></span>
+<span class="line"><span>- データベースの再起動は不可（業務時間中）</span></span>
+<span class="line"><span>- 変更は最小限にする</span></span>
+<span class="line"><span>&lt;/constraints&gt;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>&lt;task&gt;</span></span>
+<span class="line"><span>原因分析と、データベース再起動なしで即時適用できる対処法を3つ提示してください。</span></span>
+<span class="line"><span>優先度順に並べてください。</span></span>
+<span class="line"><span>&lt;/task&gt;</span></span></code></pre>
+<hr>
+<h2 id="3-few-shot-プロンプト例を与える">3. Few-shot プロンプト（例を与える）</h2>
+<p>Claude は例から学ぶ。複雑なフォーマットを指定する時に有効：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>以下のフォーマットで Terraform の変数ブロックを書いてください。</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>【例1】</span></span>
+<span class="line"><span>入力: EC2のインスタンスタイプ（デフォルト: t3.medium、本番: m5.large）</span></span>
+<span class="line"><span>出力:</span></span>
+<span class="line"><span>variable "instance_type" {</span></span>
+<span class="line"><span>  description = "EC2のインスタンスタイプ"</span></span>
+<span class="line"><span>  type        = string</span></span>
+<span class="line"><span>  default     = "t3.medium"</span></span>
+<span class="line"><span>  validation {</span></span>
+<span class="line"><span>    condition     = can(regex("^[a-z][0-9][a-z]?\\.[a-z0-9]+$", var.instance_type))</span></span>
+<span class="line"><span>    error_message = "有効なEC2インスタンスタイプを指定してください"</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>【例2】</span></span>
+<span class="line"><span>入力: RDSのストレージ容量（GB、最小20・最大1000）</span></span>
+<span class="line"><span>出力:</span></span>
+<span class="line"><span>variable "rds_storage_gb" {</span></span>
+<span class="line"><span>  description = "RDSのストレージ容量（GB）"</span></span>
+<span class="line"><span>  type        = number</span></span>
+<span class="line"><span>  default     = 20</span></span>
+<span class="line"><span>  validation {</span></span>
+<span class="line"><span>    condition     = var.rds_storage_gb &gt;= 20 &amp;&amp; var.rds_storage_gb &lt;= 1000</span></span>
+<span class="line"><span>    error_message = "ストレージは20GB以上1000GB以下で指定してください"</span></span>
+<span class="line"><span>  }</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>では以下を書いてください：</span></span>
+<span class="line"><span>入力: 環境名（prod/stg/dev の3択、必須）</span></span></code></pre>
+<hr>
+<h2 id="4-chain-of-thought段階的推論">4. Chain of Thought（段階的推論）</h2>
+<p>複雑な問題には「考えてから答えさせる」：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>以下のアーキテクチャ変更を検討しています。</span></span>
+<span class="line"><span>実施する前に、段階的に考えてください。</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>変更内容: RDS シングルAZをMulti-AZに変更</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Step 1: この変更による影響範囲を洗い出してください</span></span>
+<span class="line"><span>Step 2: 実施中のダウンタイムを見積もってください</span></span>
+<span class="line"><span>Step 3: ロールバック手順を考えてください</span></span>
+<span class="line"><span>Step 4: 変更後の確認項目をリストアップしてください</span></span>
+<span class="line"><span>Step 5: 最終的な推奨実施手順をまとめてください</span></span></code></pre>
+<hr>
+<h2 id="5-長いコンテキストの活用claude-の強み">5. 長いコンテキストの活用（Claude の強み）</h2>
+<p>Claude は最大200K トークン（約15万語）のコンテキストを持てる：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Terraform ディレクトリ全体を渡して分析</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> os</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> pathlib </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Path</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> anthropic</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> read_terraform_files</span><span style="color:#E1E4E8">(directory: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#9ECBFF">    """Terraform ファイルを全て読み込む"""</span></span>
+<span class="line"><span style="color:#E1E4E8">    content </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> []</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> path </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> Path(directory).rglob(</span><span style="color:#9ECBFF">"*.tf"</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#E1E4E8">        content.append(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"# </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">path</span><span style="color:#79B8FF">}\n{</span><span style="color:#E1E4E8">path.read_text()</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#9ECBFF"> "</span><span style="color:#79B8FF">\n\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">.join(content)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">client </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> anthropic.Anthropic()</span></span>
+<span class="line"><span style="color:#E1E4E8">tf_content </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> read_terraform_files(</span><span style="color:#9ECBFF">"./terraform"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> client.messages.create(</span></span>
+<span class="line"><span style="color:#FFAB70">    model</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"claude-opus-4-5"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    max_tokens</span><span style="color:#F97583">=</span><span style="color:#79B8FF">4096</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[{</span></span>
+<span class="line"><span style="color:#9ECBFF">        "role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "content"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"""以下の Terraform コード全体をレビューしてください。</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">tf_content</span><span style="color:#79B8FF">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9ECBFF">確認してほしいこと:</span></span>
+<span class="line"><span style="color:#9ECBFF">1. セキュリティ上の問題（過剰な権限・パブリックアクセス等）</span></span>
+<span class="line"><span style="color:#9ECBFF">2. コスト最適化の機会</span></span>
+<span class="line"><span style="color:#9ECBFF">3. 高可用性の観点で不足している設定</span></span>
+<span class="line"><span style="color:#9ECBFF">4. Terraform のベストプラクティス違反"""</span></span>
+<span class="line"><span style="color:#E1E4E8">    }]</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="6-プロンプト評価evals">6. プロンプト評価（Evals）</h2>
+<p>プロンプトを改善する前に評価基準を作る：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> anthropic</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> json</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">client </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> anthropic.Anthropic()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># テストケースの定義</span></span>
+<span class="line"><span style="color:#E1E4E8">test_cases </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">    {</span></span>
+<span class="line"><span style="color:#9ECBFF">        "input"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"S3のアクセスログを有効化する Terraform コードを書いて"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "criteria"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#9ECBFF">            "target_bucket が指定されている"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "target_prefix が設定されている"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "KMS暗号化について言及している"</span></span>
+<span class="line"><span style="color:#E1E4E8">        ]</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#6A737D">    # ... 他のテストケース</span></span>
+<span class="line"><span style="color:#E1E4E8">]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> evaluate_response</span><span style="color:#E1E4E8">(response: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">, criteria: list[</span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">]) -&gt; </span><span style="color:#79B8FF">dict</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#9ECBFF">    """Claude に採点させる"""</span></span>
+<span class="line"><span style="color:#E1E4E8">    result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> client.messages.create(</span></span>
+<span class="line"><span style="color:#FFAB70">        model</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"claude-haiku-4-5"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">        max_tokens</span><span style="color:#F97583">=</span><span style="color:#79B8FF">512</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">        messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[{</span></span>
+<span class="line"><span style="color:#9ECBFF">            "role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "content"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"""以下の回答が各基準を満たしているか評価してください。</span></span>
+<span class="line"><span style="color:#9ECBFF">各基準に対して true/false で回答してください。</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9ECBFF">回答:</span></span>
+<span class="line"><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">response</span><span style="color:#79B8FF">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9ECBFF">基準:</span></span>
+<span class="line"><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">json.dumps(criteria, </span><span style="color:#FFAB70">ensure_ascii</span><span style="color:#F97583">=</span><span style="color:#79B8FF">False</span><span style="color:#E1E4E8">)</span><span style="color:#79B8FF">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9ECBFF">JSON形式で返してください: </span><span style="color:#79B8FF">{{</span><span style="color:#9ECBFF">"results": [true/false, ...]</span><span style="color:#79B8FF">}}</span><span style="color:#9ECBFF">"""</span></span>
+<span class="line"><span style="color:#E1E4E8">        }]</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> json.loads(result.content[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">].text)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># プロンプトのスコアを計算</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> score_prompt</span><span style="color:#E1E4E8">(system_prompt: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">, test_cases: </span><span style="color:#79B8FF">list</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">float</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    total, passed </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">0</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> case </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> test_cases:</span></span>
+<span class="line"><span style="color:#E1E4E8">        response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> client.messages.create(</span></span>
+<span class="line"><span style="color:#FFAB70">            model</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"claude-opus-4-5"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            max_tokens</span><span style="color:#F97583">=</span><span style="color:#79B8FF">1024</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            system</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">system_prompt,</span></span>
+<span class="line"><span style="color:#FFAB70">            messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[{</span><span style="color:#9ECBFF">"role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"content"</span><span style="color:#E1E4E8">: case[</span><span style="color:#9ECBFF">"input"</span><span style="color:#E1E4E8">]}]</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#E1E4E8">        eval_result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> evaluate_response(response.content[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">].text, case[</span><span style="color:#9ECBFF">"criteria"</span><span style="color:#E1E4E8">])</span></span>
+<span class="line"><span style="color:#E1E4E8">        passed </span><span style="color:#F97583">+=</span><span style="color:#79B8FF"> sum</span><span style="color:#E1E4E8">(eval_result[</span><span style="color:#9ECBFF">"results"</span><span style="color:#E1E4E8">])</span></span>
+<span class="line"><span style="color:#E1E4E8">        total </span><span style="color:#F97583">+=</span><span style="color:#79B8FF"> len</span><span style="color:#E1E4E8">(case[</span><span style="color:#9ECBFF">"criteria"</span><span style="color:#E1E4E8">])</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> passed </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> total</span></span></code></pre>
+<hr>
+<h2 id="7-インフラ業務向けプロンプトテンプレート集">7. インフラ業務向けプロンプトテンプレート集</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#79B8FF;font-weight:bold"># 障害調査</span></span>
+<span class="line"><span style="color:#E1E4E8">あなたはシニアSREエンジニアです。</span></span>
+<span class="line"><span style="color:#E1E4E8">以下の情報から障害の根本原因を特定し、対処法を優先度順に提示してください。</span></span>
+<span class="line"><span style="color:#E1E4E8">発生時刻・影響範囲・変更履歴・ログを含めて提示します。</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold"># アーキテクチャレビュー</span></span>
+<span class="line"><span style="color:#E1E4E8">AWS Well-Architected Framework の5つの柱（運用上の優秀性・セキュリティ・信頼性・パフォーマンス効率・コスト最適化）の観点でレビューしてください。</span></span>
+<span class="line"><span style="color:#E1E4E8">各柱について「現状の問題点」と「改善提案」を具体的に記載してください。</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold"># コード生成</span></span>
+<span class="line"><span style="color:#E1E4E8">以下の要件でコードを生成してください。</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#E1E4E8"> セキュリティのベストプラクティスを必ず守る</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#E1E4E8"> エラーハンドリングを含める</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#E1E4E8"> 本番環境での使用を想定する</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#E1E4E8"> コメントは必要な箇所のみ（自明な処理にコメント不要）</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/ai/claude/api%E6%B4%BB%E7%94%A8/">03_API活用.md</a> — Tool Use・RAG の実装</li>
+<li><a href="/learning/ai/mcp/mcp%E5%85%A5%E9%96%80/">../MCP/01_MCP入門.md</a> — MCP でプロンプトをテンプレート化</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

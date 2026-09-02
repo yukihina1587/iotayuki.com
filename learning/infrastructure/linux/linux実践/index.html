@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Linux 実践 — インフラエンジニアの日常操作」。インフラストラクチャについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/infrastructure/linux/linux%E5%AE%9F%E8%B7%B5/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Linux 実践 — インフラエンジニアの日常操作 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Linux 実践 — インフラエンジニアの日常操作」。インフラストラクチャについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/infrastructure/linux/linux%E5%AE%9F%E8%B7%B5/"><meta name="theme-color" content="#c8ff4a"><title>Linux 実践 — インフラエンジニアの日常操作 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-infrastructure">インフラストラクチャ</a> <span aria-hidden="true">/</span><span>linux</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">INFRASTRUCTURE</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-プロセスシステム調査">1. プロセス・システム調査</a> </li><li class="learning-toc-subitem"> <a href="#top-より強力な-htop--ps-の使い方">top より強力な htop / ps の使い方</a> </li><li class="learning-toc-subitem"> <a href="#システムリソース確認">システムリソース確認</a> </li><li> <a href="#2-ログ解析パターン">2. ログ解析パターン</a> </li><li> <a href="#3-systemd--サービス管理">3. systemd — サービス管理</a> </li><li class="learning-toc-subitem"> <a href="#カスタム-systemd-サービスの作成">カスタム systemd サービスの作成</a> </li><li> <a href="#4-ネットワークトラブルシューティング">4. ネットワークトラブルシューティング</a> </li><li> <a href="#5-ファイルシステムディスク">5. ファイルシステム・ディスク</a> </li><li> <a href="#6-ユーザー権限管理">6. ユーザー・権限管理</a> </li><li> <a href="#7-カーネルパラメータsysctl">7. カーネルパラメータ（sysctl）</a> </li><li class="learning-toc-subitem"> <a href="#よく変更するパラメータ">よく変更するパラメータ</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="linux-実践--インフラエンジニアの日常操作">Linux 実践 — インフラエンジニアの日常操作</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+基本コマンド（ls/cd/grep等）は既知として省略。<strong>実務で使うトラブルシューティング・チューニング</strong>に集中。</p>
+</blockquote>
+<hr>
+<h2 id="1-プロセスシステム調査">1. プロセス・システム調査</h2>
+<h3 id="top-より強力な-htop--ps-の使い方">top より強力な htop / ps の使い方</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># CPU使用率上位10プロセス</span></span>
+<span class="line"><span style="color:#B392F0">ps</span><span style="color:#9ECBFF"> aux</span><span style="color:#79B8FF"> --sort=-%cpu</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> head</span><span style="color:#79B8FF"> -11</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># メモリ使用率上位</span></span>
+<span class="line"><span style="color:#B392F0">ps</span><span style="color:#9ECBFF"> aux</span><span style="color:#79B8FF"> --sort=-%mem</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> head</span><span style="color:#79B8FF"> -11</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 特定プロセスのスレッド確認</span></span>
+<span class="line"><span style="color:#B392F0">ps</span><span style="color:#79B8FF"> -eLf</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> nginx</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># プロセスツリー（親子関係を可視化）</span></span>
+<span class="line"><span style="color:#B392F0">pstree</span><span style="color:#79B8FF"> -p</span><span style="color:#E1E4E8"> $(</span><span style="color:#B392F0">pgrep</span><span style="color:#9ECBFF"> nginx</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># プロセスのオープンファイル数（FD枯渇調査）</span></span>
+<span class="line"><span style="color:#B392F0">ls</span><span style="color:#9ECBFF"> /proc/</span><span style="color:#E1E4E8">$(</span><span style="color:#B392F0">pgrep</span><span style="color:#79B8FF"> -f</span><span style="color:#9ECBFF"> myapp</span><span style="color:#E1E4E8">)</span><span style="color:#9ECBFF">/fd</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> wc</span><span style="color:#79B8FF"> -l</span></span></code></pre>
+<h3 id="システムリソース確認">システムリソース確認</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># CPU・メモリ・ディスクの一括確認</span></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "=== CPU ==="</span><span style="color:#E1E4E8"> &amp;&amp; </span><span style="color:#B392F0">lscpu</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -E</span><span style="color:#9ECBFF"> "^CPU\(s\)|Model name|Socket"</span></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "=== Memory ==="</span><span style="color:#E1E4E8"> &amp;&amp; </span><span style="color:#B392F0">free</span><span style="color:#79B8FF"> -h</span></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "=== Disk ==="</span><span style="color:#E1E4E8"> &amp;&amp; </span><span style="color:#B392F0">df</span><span style="color:#79B8FF"> -h</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -v</span><span style="color:#9ECBFF"> tmpfs</span></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "=== Load ==="</span><span style="color:#E1E4E8"> &amp;&amp; </span><span style="color:#B392F0">uptime</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ディスクI/O調査（ iostat は sysstat パッケージ）</span></span>
+<span class="line"><span style="color:#B392F0">iostat</span><span style="color:#79B8FF"> -x</span><span style="color:#79B8FF"> 1</span><span style="color:#79B8FF"> 5</span><span style="color:#6A737D">  # 1秒間隔で5回</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ネットワーク帯域確認</span></span>
+<span class="line"><span style="color:#B392F0">ss</span><span style="color:#79B8FF"> -s</span><span style="color:#6A737D">  # ソケット統計</span></span>
+<span class="line"><span style="color:#B392F0">cat</span><span style="color:#9ECBFF"> /proc/net/dev</span><span style="color:#6A737D">  # インターフェース別送受信バイト数</span></span></code></pre>
+<hr>
+<h2 id="2-ログ解析パターン">2. ログ解析パターン</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Nginx アクセスログから5xxエラーを集計</span></span>
+<span class="line"><span style="color:#B392F0">awk</span><span style="color:#9ECBFF"> '$9 ~ /^5/'</span><span style="color:#9ECBFF"> /var/log/nginx/access.log</span><span style="color:#F97583"> |</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#B392F0">    awk</span><span style="color:#9ECBFF"> '{print $9}'</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> sort</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> uniq</span><span style="color:#79B8FF"> -c</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> sort</span><span style="color:#79B8FF"> -rn</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 直近1時間のエラーログ</span></span>
+<span class="line"><span style="color:#B392F0">awk</span><span style="color:#79B8FF"> -v</span><span style="color:#9ECBFF"> d="$(</span><span style="color:#B392F0">date</span><span style="color:#79B8FF"> -d</span><span style="color:#9ECBFF"> '1 hour ago' '+%d/%b/%Y:%H')"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#9ECBFF">    '$0 ~ d'</span><span style="color:#9ECBFF"> /var/log/nginx/access.log</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -E</span><span style="color:#9ECBFF"> " [45][0-9]{2} "</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># journald（systemd のログ）</span></span>
+<span class="line"><span style="color:#B392F0">journalctl</span><span style="color:#79B8FF"> -u</span><span style="color:#9ECBFF"> nginx</span><span style="color:#79B8FF"> --since</span><span style="color:#9ECBFF"> "1 hour ago"</span><span style="color:#79B8FF"> --no-pager</span></span>
+<span class="line"><span style="color:#B392F0">journalctl</span><span style="color:#79B8FF"> -p</span><span style="color:#9ECBFF"> err</span><span style="color:#79B8FF"> --since</span><span style="color:#9ECBFF"> today</span><span style="color:#6A737D">  # エラー以上のみ</span></span>
+<span class="line"><span style="color:#B392F0">journalctl</span><span style="color:#79B8FF"> -f</span><span style="color:#6A737D">  # リアルタイム追跡</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ログのリアルタイム監視＋フィルタ</span></span>
+<span class="line"><span style="color:#B392F0">tail</span><span style="color:#79B8FF"> -f</span><span style="color:#9ECBFF"> /var/log/app/error.log</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> --line-buffered</span><span style="color:#9ECBFF"> "CRITICAL\|ERROR"</span></span></code></pre>
+<hr>
+<h2 id="3-systemd--サービス管理">3. systemd — サービス管理</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># サービスの基本操作</span></span>
+<span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#9ECBFF"> status</span><span style="color:#9ECBFF"> nginx</span></span>
+<span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#9ECBFF"> start/stop/restart/reload</span><span style="color:#9ECBFF"> nginx</span></span>
+<span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#9ECBFF"> enable/disable</span><span style="color:#9ECBFF"> nginx</span><span style="color:#6A737D">  # 自動起動の有効化</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># サービスの状態確認（障害調査）</span></span>
+<span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#9ECBFF"> is-active</span><span style="color:#9ECBFF"> nginx</span><span style="color:#6A737D">   # active/inactive</span></span>
+<span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#9ECBFF"> is-failed</span><span style="color:#9ECBFF"> nginx</span><span style="color:#6A737D">   # failed かどうか</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 全サービスの起動失敗を確認</span></span>
+<span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#79B8FF"> --failed</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># サービスファイルの確認</span></span>
+<span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#9ECBFF"> cat</span><span style="color:#9ECBFF"> nginx</span></span></code></pre>
+<h3 id="カスタム-systemd-サービスの作成">カスタム systemd サービスの作成</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="ini"><code><span class="line"><span style="color:#6A737D"># /etc/systemd/system/myapp.service</span></span>
+<span class="line"><span style="color:#B392F0">[Unit]</span></span>
+<span class="line"><span style="color:#F97583">Description</span><span style="color:#E1E4E8">=My Application</span></span>
+<span class="line"><span style="color:#F97583">After</span><span style="color:#E1E4E8">=network.target</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">[Service]</span></span>
+<span class="line"><span style="color:#F97583">Type</span><span style="color:#E1E4E8">=simple</span></span>
+<span class="line"><span style="color:#F97583">User</span><span style="color:#E1E4E8">=myapp</span></span>
+<span class="line"><span style="color:#F97583">WorkingDirectory</span><span style="color:#E1E4E8">=/opt/myapp</span></span>
+<span class="line"><span style="color:#F97583">ExecStart</span><span style="color:#E1E4E8">=/usr/bin/python3 /opt/myapp/main.py</span></span>
+<span class="line"><span style="color:#F97583">Restart</span><span style="color:#E1E4E8">=on-failure</span></span>
+<span class="line"><span style="color:#F97583">RestartSec</span><span style="color:#E1E4E8">=5</span></span>
+<span class="line"><span style="color:#F97583">StandardOutput</span><span style="color:#E1E4E8">=journal</span></span>
+<span class="line"><span style="color:#F97583">StandardError</span><span style="color:#E1E4E8">=journal</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># リソース制限</span></span>
+<span class="line"><span style="color:#F97583">LimitNOFILE</span><span style="color:#E1E4E8">=65536</span></span>
+<span class="line"><span style="color:#F97583">MemoryMax</span><span style="color:#E1E4E8">=512M</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">[Install]</span></span>
+<span class="line"><span style="color:#F97583">WantedBy</span><span style="color:#E1E4E8">=multi-user.target</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#9ECBFF"> daemon-reload</span><span style="color:#6A737D">  # ファイル変更後に必要</span></span>
+<span class="line"><span style="color:#B392F0">systemctl</span><span style="color:#9ECBFF"> enable</span><span style="color:#79B8FF"> --now</span><span style="color:#9ECBFF"> myapp</span></span></code></pre>
+<hr>
+<h2 id="4-ネットワークトラブルシューティング">4. ネットワークトラブルシューティング</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># ポートのリッスン確認</span></span>
+<span class="line"><span style="color:#B392F0">ss</span><span style="color:#79B8FF"> -tlnp</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> :8080</span><span style="color:#6A737D">          # TCP リッスンポート</span></span>
+<span class="line"><span style="color:#B392F0">ss</span><span style="color:#79B8FF"> -tlnp</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> ESTABLISHED</span><span style="color:#6A737D">    # 確立済み接続</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 接続先への疎通確認（traceroute より詳細）</span></span>
+<span class="line"><span style="color:#B392F0">mtr</span><span style="color:#79B8FF"> --report</span><span style="color:#9ECBFF"> google.com</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># DNS 解決の確認</span></span>
+<span class="line"><span style="color:#B392F0">dig</span><span style="color:#9ECBFF"> @8.8.8.8</span><span style="color:#9ECBFF"> example.com</span><span style="color:#9ECBFF"> A</span><span style="color:#6A737D">     # 外部DNSで確認</span></span>
+<span class="line"><span style="color:#B392F0">resolvectl</span><span style="color:#9ECBFF"> query</span><span style="color:#9ECBFF"> example.com</span><span style="color:#6A737D">   # systemd-resolved 経由</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># TCPダンプ（パケットレベルの確認）</span></span>
+<span class="line"><span style="color:#B392F0">tcpdump</span><span style="color:#79B8FF"> -i</span><span style="color:#9ECBFF"> eth0</span><span style="color:#79B8FF"> -n</span><span style="color:#9ECBFF"> port</span><span style="color:#79B8FF"> 80</span><span style="color:#79B8FF"> -w</span><span style="color:#9ECBFF"> /tmp/capture.pcap</span></span>
+<span class="line"><span style="color:#B392F0">tcpdump</span><span style="color:#79B8FF"> -r</span><span style="color:#9ECBFF"> /tmp/capture.pcap</span><span style="color:#79B8FF"> -A</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> head</span><span style="color:#79B8FF"> -50</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ファイアウォール確認（nftables/iptables）</span></span>
+<span class="line"><span style="color:#B392F0">iptables</span><span style="color:#79B8FF"> -L</span><span style="color:#79B8FF"> -n</span><span style="color:#79B8FF"> -v</span></span>
+<span class="line"><span style="color:#B392F0">nft</span><span style="color:#9ECBFF"> list</span><span style="color:#9ECBFF"> ruleset</span></span></code></pre>
+<hr>
+<h2 id="5-ファイルシステムディスク">5. ファイルシステム・ディスク</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># ディスク使用量の調査（大きいディレクトリを特定）</span></span>
+<span class="line"><span style="color:#B392F0">du</span><span style="color:#79B8FF"> -sh</span><span style="color:#9ECBFF"> /</span><span style="color:#79B8FF">*</span><span style="color:#F97583"> 2&gt;</span><span style="color:#9ECBFF">/dev/null</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> sort</span><span style="color:#79B8FF"> -rh</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> head</span><span style="color:#79B8FF"> -10</span></span>
+<span class="line"><span style="color:#B392F0">du</span><span style="color:#79B8FF"> -sh</span><span style="color:#9ECBFF"> /var/log/</span><span style="color:#79B8FF">*</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> sort</span><span style="color:#79B8FF"> -rh</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> head</span><span style="color:#79B8FF"> -10</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># inode 枯渇確認（ファイル数が多すぎる問題）</span></span>
+<span class="line"><span style="color:#B392F0">df</span><span style="color:#79B8FF"> -i</span><span style="color:#6A737D">  # inode 使用率</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ファイルを開いているプロセスを確認（削除後もディスクを占有する問題）</span></span>
+<span class="line"><span style="color:#B392F0">lsof</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> deleted</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> awk</span><span style="color:#9ECBFF"> '{print $1, $2, $7/1024/1024 "MB"}'</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> sort</span><span style="color:#79B8FF"> -k3</span><span style="color:#79B8FF"> -rn</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ディスクI/Oが高いファイルを特定</span></span>
+<span class="line"><span style="color:#B392F0">iotop</span><span style="color:#79B8FF"> -ao</span><span style="color:#6A737D">  # -a: 累積、-o: 実際にI/Oしているもののみ</span></span></code></pre>
+<hr>
+<h2 id="6-ユーザー権限管理">6. ユーザー・権限管理</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># sudoers の設定（visudo で編集）</span></span>
+<span class="line"><span style="color:#6A737D"># 特定コマンドのみ sudo 許可</span></span>
+<span class="line"><span style="color:#B392F0">deploy</span><span style="color:#9ECBFF"> ALL=</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">ALL</span><span style="color:#E1E4E8">) </span><span style="color:#9ECBFF">NOPASSWD:</span><span style="color:#9ECBFF"> /bin/systemctl</span><span style="color:#9ECBFF"> restart</span><span style="color:#9ECBFF"> myapp,</span><span style="color:#9ECBFF"> /bin/systemctl</span><span style="color:#9ECBFF"> status</span><span style="color:#9ECBFF"> myapp</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ファイル権限の確認</span></span>
+<span class="line"><span style="color:#79B8FF">stat</span><span style="color:#9ECBFF"> /etc/passwd</span><span style="color:#6A737D">  # 詳細な権限情報</span></span>
+<span class="line"><span style="color:#B392F0">getfacl</span><span style="color:#9ECBFF"> /path/to/file</span><span style="color:#6A737D">  # ACL確認</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># setuid/setgid ファイルの検索（セキュリティ監査）</span></span>
+<span class="line"><span style="color:#B392F0">find</span><span style="color:#9ECBFF"> /</span><span style="color:#79B8FF"> -perm</span><span style="color:#79B8FF"> -4000</span><span style="color:#79B8FF"> -type</span><span style="color:#9ECBFF"> f</span><span style="color:#F97583"> 2&gt;</span><span style="color:#9ECBFF">/dev/null</span><span style="color:#6A737D">  # setuid</span></span>
+<span class="line"><span style="color:#B392F0">find</span><span style="color:#9ECBFF"> /</span><span style="color:#79B8FF"> -perm</span><span style="color:#79B8FF"> -2000</span><span style="color:#79B8FF"> -type</span><span style="color:#9ECBFF"> f</span><span style="color:#F97583"> 2&gt;</span><span style="color:#9ECBFF">/dev/null</span><span style="color:#6A737D">  # setgid</span></span></code></pre>
+<hr>
+<h2 id="7-カーネルパラメータsysctl">7. カーネルパラメータ（sysctl）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 現在の設定確認</span></span>
+<span class="line"><span style="color:#B392F0">sysctl</span><span style="color:#79B8FF"> -a</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> net.core</span></span>
+<span class="line"><span style="color:#B392F0">sysctl</span><span style="color:#9ECBFF"> vm.swappiness</span><span style="color:#6A737D">  # スワップ使用傾向（デフォルト60）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 一時的な変更</span></span>
+<span class="line"><span style="color:#B392F0">sysctl</span><span style="color:#79B8FF"> -w</span><span style="color:#9ECBFF"> net.core.somaxconn=</span><span style="color:#79B8FF">65535</span></span>
+<span class="line"><span style="color:#B392F0">sysctl</span><span style="color:#79B8FF"> -w</span><span style="color:#9ECBFF"> vm.swappiness=</span><span style="color:#79B8FF">10</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 永続化</span></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "net.core.somaxconn = 65535"</span><span style="color:#F97583"> &gt;&gt;</span><span style="color:#9ECBFF"> /etc/sysctl.d/99-custom.conf</span></span>
+<span class="line"><span style="color:#B392F0">sysctl</span><span style="color:#79B8FF"> --system</span><span style="color:#6A737D">  # 再読み込み</span></span></code></pre>
+<h3 id="よく変更するパラメータ">よく変更するパラメータ</h3>
+<table>
+<thead>
+<tr>
+<th>パラメータ</th>
+<th>デフォルト</th>
+<th>推奨値（Webサーバー）</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>net.core.somaxconn</code></td>
+<td>128</td>
+<td>65535</td>
+<td>TCPバックログキュー</td>
+</tr>
+<tr>
+<td><code>net.ipv4.tcp_tw_reuse</code></td>
+<td>0</td>
+<td>1</td>
+<td>TIME_WAIT再利用</td>
+</tr>
+<tr>
+<td><code>vm.swappiness</code></td>
+<td>60</td>
+<td>10</td>
+<td>スワップ使用頻度</td>
+</tr>
+<tr>
+<td><code>fs.file-max</code></td>
+<td>可変</td>
+<td>1000000</td>
+<td>システム全体のFD上限</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/infrastructure/linux/%E3%83%91%E3%83%95%E3%82%A9%E3%83%BC%E3%83%9E%E3%83%B3%E3%82%B9%E3%83%81%E3%83%A5%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0/">02_パフォーマンスチューニング.md</a> — CPU・メモリ・IO の深掘り</li>
+<li><a href="/learning/infrastructure/networking/tcp-ip%E8%A9%B3%E8%A7%A3/">../Networking/01_TCP_IP詳解.md</a> — ネットワーク層の理解</li>
+<li><a href="/learning/devops/docker/docker%E5%AE%9F%E8%B7%B5/">../../06_DevOps/Docker/01_Docker実践.md</a> — コンテナでの Linux 活用</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

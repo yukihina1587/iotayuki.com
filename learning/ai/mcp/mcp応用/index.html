@@ -1,0 +1,230 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「MCP 応用 — サンプリング・通知・本番運用」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/ai/mcp/mcp%E5%BF%9C%E7%94%A8/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="MCP 応用 — サンプリング・通知・本番運用 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「MCP 応用 — サンプリング・通知・本番運用」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/ai/mcp/mcp%E5%BF%9C%E7%94%A8/"><meta name="theme-color" content="#c8ff4a"><title>MCP 応用 — サンプリング・通知・本番運用 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-ai">AI・LLM</a> <span aria-hidden="true">/</span><span>mcp</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">AI</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-sampling--モデルへの問い合わせをサーバーが要求する">1. Sampling — モデルへの問い合わせをサーバーが要求する</a> </li><li> <a href="#2-notifications--長時間処理の進捗通知">2. Notifications — 長時間処理の進捗通知</a> </li><li> <a href="#3-resources--動的コンテンツの提供">3. Resources — 動的コンテンツの提供</a> </li><li> <a href="#4-本番-mcp-サーバーの構成">4. 本番 MCP サーバーの構成</a> </li><li> <a href="#5-claude_desktop_configjson-への登録">5. claude_desktop_config.json への登録</a> </li><li> <a href="#6-デバッグとテスト">6. デバッグとテスト</a> </li><li> <a href="#-関連リソース">🔗 関連リソース</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="mcp-応用--サンプリング通知本番運用">MCP 応用 — サンプリング・通知・本番運用</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+MCP 入門の続き。<strong>本番サーバー実装・Sampling・Notifications の高度な機能</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="1-sampling--モデルへの問い合わせをサーバーが要求する">1. Sampling — モデルへの問い合わせをサーバーが要求する</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>通常の MCP フロー（Tool Use）:</span></span>
+<span class="line"><span>  ホスト（Claude） → [call_tool] → MCP サーバー → ツール実行 → 結果を返す</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Sampling:</span></span>
+<span class="line"><span>  MCP サーバー → [create_message リクエスト] → ホスト → Claude に問い合わせ → 結果をサーバーに返す</span></span>
+<span class="line"><span>  ↑ サーバー側が「Claude に判断させたい」ときに使う</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>用途:</span></span>
+<span class="line"><span>  - 取得したデータの要約を Claude に作らせる</span></span>
+<span class="line"><span>  - 複数の選択肢から Claude に最適なものを選ばせる</span></span>
+<span class="line"><span>  - エラーの原因を Claude に分析させる</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> mcp.server </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Server</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> mcp.types </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#E1E4E8">    CreateMessageRequest,</span></span>
+<span class="line"><span style="color:#E1E4E8">    CreateMessageResult,</span></span>
+<span class="line"><span style="color:#E1E4E8">    TextContent,</span></span>
+<span class="line"><span style="color:#E1E4E8">    SamplingMessage,</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">server </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> Server(</span><span style="color:#9ECBFF">"intelligent-analyzer"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@server.call_tool</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> analyze_logs</span><span style="color:#E1E4E8">(arguments: </span><span style="color:#79B8FF">dict</span><span style="color:#E1E4E8">) -&gt; list[TextContent]:</span></span>
+<span class="line"><span style="color:#9ECBFF">    """ログを取得し、Claude に分析させる"""</span></span>
+<span class="line"><span style="color:#6A737D">    # 1. ログデータを取得</span></span>
+<span class="line"><span style="color:#E1E4E8">    raw_logs </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> fetch_cloudwatch_logs(</span></span>
+<span class="line"><span style="color:#FFAB70">        log_group</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">arguments[</span><span style="color:#9ECBFF">"log_group"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#FFAB70">        hours</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">arguments.get(</span><span style="color:#9ECBFF">"hours"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # 2. Sampling で Claude に分析を依頼</span></span>
+<span class="line"><span style="color:#E1E4E8">    result: CreateMessageResult </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> server.request_context.session.create_message(</span></span>
+<span class="line"><span style="color:#E1E4E8">        CreateMessageRequest(</span></span>
+<span class="line"><span style="color:#FFAB70">            messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span></span>
+<span class="line"><span style="color:#E1E4E8">                SamplingMessage(</span></span>
+<span class="line"><span style="color:#FFAB70">                    role</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">                    content</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">TextContent(</span></span>
+<span class="line"><span style="color:#FFAB70">                        type</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"text"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">                        text</span><span style="color:#F97583">=</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"""以下のログを分析してエラーパターンと原因を特定してください:</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">raw_logs[:</span><span style="color:#79B8FF">5000</span><span style="color:#E1E4E8">]</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">  # 長すぎる場合は切り詰め</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9ECBFF">出力形式:</span></span>
+<span class="line"><span style="color:#9ECBFF">1. 発見されたエラー（件数付き）</span></span>
+<span class="line"><span style="color:#9ECBFF">2. 推定される根本原因</span></span>
+<span class="line"><span style="color:#9ECBFF">3. 対処の優先順位"""</span></span>
+<span class="line"><span style="color:#E1E4E8">                    )</span></span>
+<span class="line"><span style="color:#E1E4E8">                )</span></span>
+<span class="line"><span style="color:#E1E4E8">            ],</span></span>
+<span class="line"><span style="color:#FFAB70">            maxTokens</span><span style="color:#F97583">=</span><span style="color:#79B8FF">1024</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            system</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"あなたはSREエンジニアです。ログを分析し、簡潔かつ実用的な回答をしてください。"</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # 3. Claude の分析結果を返す</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> [TextContent(</span><span style="color:#FFAB70">type</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"text"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">text</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">result.content.text)]</span></span></code></pre>
+<hr>
+<h2 id="2-notifications--長時間処理の進捗通知">2. Notifications — 長時間処理の進捗通知</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> mcp.types </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> ProgressNotification</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@server.call_tool</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> run_deployment</span><span style="color:#E1E4E8">(arguments: </span><span style="color:#79B8FF">dict</span><span style="color:#E1E4E8">) -&gt; list[TextContent]:</span></span>
+<span class="line"><span style="color:#9ECBFF">    """デプロイ処理（長時間）の進捗を通知しながら実行"""</span></span>
+<span class="line"><span style="color:#E1E4E8">    steps </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">        (</span><span style="color:#9ECBFF">"ビルド中"</span><span style="color:#E1E4E8">, build_image),</span></span>
+<span class="line"><span style="color:#E1E4E8">        (</span><span style="color:#9ECBFF">"テスト中"</span><span style="color:#E1E4E8">, run_tests),</span></span>
+<span class="line"><span style="color:#E1E4E8">        (</span><span style="color:#9ECBFF">"ECR プッシュ中"</span><span style="color:#E1E4E8">, push_to_ecr),</span></span>
+<span class="line"><span style="color:#E1E4E8">        (</span><span style="color:#9ECBFF">"ECS デプロイ中"</span><span style="color:#E1E4E8">, deploy_to_ecs),</span></span>
+<span class="line"><span style="color:#E1E4E8">        (</span><span style="color:#9ECBFF">"ヘルスチェック"</span><span style="color:#E1E4E8">, verify_health),</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> i, (description, func) </span><span style="color:#F97583">in</span><span style="color:#79B8FF"> enumerate</span><span style="color:#E1E4E8">(steps):</span></span>
+<span class="line"><span style="color:#6A737D">        # クライアント（Claude）に進捗を通知</span></span>
+<span class="line"><span style="color:#F97583">        await</span><span style="color:#E1E4E8"> server.request_context.session.send_notification(</span></span>
+<span class="line"><span style="color:#E1E4E8">            ProgressNotification(</span></span>
+<span class="line"><span style="color:#FFAB70">                method</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"notifications/progress"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">                params</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#9ECBFF">                    "progressToken"</span><span style="color:#E1E4E8">: arguments.get(</span><span style="color:#9ECBFF">"progressToken"</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#9ECBFF">                    "progress"</span><span style="color:#E1E4E8">: i </span><span style="color:#F97583">/</span><span style="color:#79B8FF"> len</span><span style="color:#E1E4E8">(steps),</span></span>
+<span class="line"><span style="color:#9ECBFF">                    "total"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1.0</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                    "message"</span><span style="color:#E1E4E8">: description</span></span>
+<span class="line"><span style="color:#E1E4E8">                }</span></span>
+<span class="line"><span style="color:#E1E4E8">            )</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#E1E4E8">        </span></span>
+<span class="line"><span style="color:#F97583">        await</span><span style="color:#E1E4E8"> func(arguments)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> [TextContent(</span><span style="color:#FFAB70">type</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"text"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">text</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"デプロイ完了"</span><span style="color:#E1E4E8">)]</span></span></code></pre>
+<hr>
+<h2 id="3-resources--動的コンテンツの提供">3. Resources — 動的コンテンツの提供</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> mcp.types </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Resource, ReadResourceResult</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@server.list_resources</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> list_resources</span><span style="color:#E1E4E8">() -&gt; list[Resource]:</span></span>
+<span class="line"><span style="color:#9ECBFF">    """利用可能なリソースの一覧を返す"""</span></span>
+<span class="line"><span style="color:#6A737D">    # 動的に生成（例: S3 バケット内のファイル一覧）</span></span>
+<span class="line"><span style="color:#E1E4E8">    files </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> list_s3_files(</span><span style="color:#9ECBFF">"my-config-bucket"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">        Resource(</span></span>
+<span class="line"><span style="color:#FFAB70">            uri</span><span style="color:#F97583">=</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"s3://my-config-bucket/</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">f</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            name</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">f,</span></span>
+<span class="line"><span style="color:#FFAB70">            mimeType</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"application/json"</span><span style="color:#F97583"> if</span><span style="color:#E1E4E8"> f.endswith(</span><span style="color:#9ECBFF">".json"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">else</span><span style="color:#9ECBFF"> "text/plain"</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> f </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> files</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@server.read_resource</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> read_resource</span><span style="color:#E1E4E8">(uri: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; ReadResourceResult:</span></span>
+<span class="line"><span style="color:#9ECBFF">    """リソースの内容を返す"""</span></span>
+<span class="line"><span style="color:#6A737D">    # URI からバケット・キーを解析</span></span>
+<span class="line"><span style="color:#E1E4E8">    parts </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> uri.replace(</span><span style="color:#9ECBFF">"s3://"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">""</span><span style="color:#E1E4E8">).split(</span><span style="color:#9ECBFF">"/"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    bucket, key </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> parts[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">], parts[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    content </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> get_s3_object(bucket, key)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> ReadResourceResult(</span></span>
+<span class="line"><span style="color:#FFAB70">        contents</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span></span>
+<span class="line"><span style="color:#E1E4E8">            TextContent(</span><span style="color:#FFAB70">type</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"text"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">text</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">content)</span></span>
+<span class="line"><span style="color:#E1E4E8">        ]</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span></code></pre>
+<hr>
+<h2 id="4-本番-mcp-サーバーの構成">4. 本番 MCP サーバーの構成</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>開発:</span></span>
+<span class="line"><span>  claude &lt;--(stdio)--&gt; mcp-server.py</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>本番（ネットワーク越し）:</span></span>
+<span class="line"><span>  Claude Desktop ──(HTTP/SSE)──&gt; MCP サーバー (FastAPI) ──&gt; AWS</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>セキュリティ考慮:</span></span>
+<span class="line"><span>  - 認証: API キー / mTLS</span></span>
+<span class="line"><span>  - 権限: 最小権限の IAM ロール</span></span>
+<span class="line"><span>  - ログ: 全 tool call を CloudWatch に記録</span></span>
+<span class="line"><span>  - レート制限: 1ユーザーあたりの呼び出し数制限</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># HTTP/SSE トランスポートを使った本番 MCP サーバー</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> mcp.server.sse </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> SseServerTransport</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> fastapi </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> FastAPI, Request, Depends, HTTPException</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> fastapi.middleware.cors </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> CORSMiddleware</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> uvicorn</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">app </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> FastAPI()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># CORS 設定（Claude Desktop からのアクセスを許可）</span></span>
+<span class="line"><span style="color:#E1E4E8">app.add_middleware(</span></span>
+<span class="line"><span style="color:#E1E4E8">    CORSMiddleware,</span></span>
+<span class="line"><span style="color:#FFAB70">    allow_origins</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span><span style="color:#9ECBFF">"https://claude.ai"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#FFAB70">    allow_credentials</span><span style="color:#F97583">=</span><span style="color:#79B8FF">True</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    allow_methods</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span><span style="color:#9ECBFF">"*"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#FFAB70">    allow_headers</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span><span style="color:#9ECBFF">"*"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># API キー認証</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> verify_api_key</span><span style="color:#E1E4E8">(request: Request):</span></span>
+<span class="line"><span style="color:#E1E4E8">    api_key </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> request.headers.get(</span><span style="color:#9ECBFF">"X-API-Key"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> api_key </span><span style="color:#F97583">!=</span><span style="color:#E1E4E8"> os.environ[</span><span style="color:#9ECBFF">"MCP_API_KEY"</span><span style="color:#E1E4E8">]:</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#E1E4E8"> HTTPException(</span><span style="color:#FFAB70">status_code</span><span style="color:#F97583">=</span><span style="color:#79B8FF">401</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">detail</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"Invalid API key"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@app.get</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"/sse"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">dependencies</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[Depends(verify_api_key)])</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> sse_endpoint</span><span style="color:#E1E4E8">(request: Request):</span></span>
+<span class="line"><span style="color:#E1E4E8">    transport </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> SseServerTransport(</span><span style="color:#9ECBFF">"/messages"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    await</span><span style="color:#E1E4E8"> server.run(</span></span>
+<span class="line"><span style="color:#E1E4E8">        transport.connect_sse(request),</span></span>
+<span class="line"><span style="color:#E1E4E8">        InitializationOptions(</span><span style="color:#FFAB70">server_name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"infra-tools"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">server_version</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"1.0.0"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@app.post</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"/messages"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">dependencies</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[Depends(verify_api_key)])</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> message_endpoint</span><span style="color:#E1E4E8">(request: Request):</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> transport.handle_post_message(request)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#79B8FF"> __name__</span><span style="color:#F97583"> ==</span><span style="color:#9ECBFF"> "__main__"</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    uvicorn.run(app, </span><span style="color:#FFAB70">host</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"0.0.0.0"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">port</span><span style="color:#F97583">=</span><span style="color:#79B8FF">8080</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="5-claude_desktop_configjson-への登録">5. claude_desktop_config.json への登録</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "mcpServers"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "infra-tools-local"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "command"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"python"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "args"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"/path/to/mcp_server.py"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#79B8FF">      "env"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">        "AWS_PROFILE"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"default"</span></span>
+<span class="line"><span style="color:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#79B8FF">    "infra-tools-remote"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "url"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"https://mcp.example.com/sse"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "headers"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">        "X-API-Key"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"your-secret-key"</span></span>
+<span class="line"><span style="color:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="6-デバッグとテスト">6. デバッグとテスト</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># MCP Inspector でサーバーをテスト</span></span>
+<span class="line"><span style="color:#B392F0">npx</span><span style="color:#9ECBFF"> @modelcontextprotocol/inspector</span><span style="color:#9ECBFF"> python</span><span style="color:#9ECBFF"> mcp_server.py</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ログ出力（stderr に書く）</span></span>
+<span class="line"><span style="color:#B392F0">import</span><span style="color:#9ECBFF"> sys</span></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">"デバッグメッセージ"</span><span style="color:#B392F0">,</span><span style="color:#9ECBFF"> file=sys.stderr</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ユニットテスト</span></span>
+<span class="line"><span style="color:#B392F0">from</span><span style="color:#9ECBFF"> mcp.client.session</span><span style="color:#9ECBFF"> import</span><span style="color:#9ECBFF"> ClientSession</span></span>
+<span class="line"><span style="color:#B392F0">from</span><span style="color:#9ECBFF"> mcp.client.stdio</span><span style="color:#9ECBFF"> import</span><span style="color:#9ECBFF"> stdio_client</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">async</span><span style="color:#9ECBFF"> def</span><span style="color:#9ECBFF"> test_tool</span><span style="color:#E1E4E8">()</span><span style="color:#9ECBFF">:</span></span>
+<span class="line"><span style="color:#B392F0">    async</span><span style="color:#9ECBFF"> with</span><span style="color:#9ECBFF"> stdio_client</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">        server_params</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">StdioServerParameters</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">            command</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"python",</span><span style="color:#E1E4E8"> args</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">["mcp_server.py"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#E1E4E8">    ) </span><span style="color:#9ECBFF">as</span><span style="color:#E1E4E8"> (read, </span><span style="color:#9ECBFF">write</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#B392F0">        async</span><span style="color:#9ECBFF"> with</span><span style="color:#9ECBFF"> ClientSession</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">read</span><span style="color:#9ECBFF">,</span><span style="color:#9ECBFF"> write</span><span style="color:#E1E4E8">) </span><span style="color:#9ECBFF">as</span><span style="color:#9ECBFF"> session:</span></span>
+<span class="line"><span style="color:#B392F0">            await</span><span style="color:#9ECBFF"> session.initialize</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#B392F0">            result</span><span style="color:#9ECBFF"> =</span><span style="color:#9ECBFF"> await</span><span style="color:#9ECBFF"> session.call_tool</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#B392F0">                "analyze_logs"</span><span style="color:#B392F0">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                {</span><span style="color:#B392F0">"log_group"</span><span style="color:#79B8FF">:</span><span style="color:#9ECBFF"> "/aws/lambda/test"}</span></span>
+<span class="line"><span style="color:#E1E4E8">            )</span></span>
+<span class="line"><span style="color:#B392F0">            assert</span><span style="color:#9ECBFF"> result.content[0].text</span><span style="color:#6A737D">  # レスポンスがあることを確認</span></span></code></pre>
+<hr>
+<h2 id="-関連リソース">🔗 関連リソース</h2>
+<ul>
+<li><a href="/learning/ai/mcp/mcp%E5%85%A5%E9%96%80/">01_MCP入門.md</a> — 基礎から始める</li>
+<li><a href="https://docs.anthropic.com/ja/docs/mcp">Anthropic MCP ドキュメント</a></li>
+<li><a href="https://anthropic.skilljar.com/">MCP Skilljar: MCP Advanced Topics</a></li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

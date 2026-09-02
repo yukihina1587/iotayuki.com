@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Linux パフォーマンスチューニング」。インフラストラクチャについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/infrastructure/linux/%E3%83%91%E3%83%95%E3%82%A9%E3%83%BC%E3%83%9E%E3%83%B3%E3%82%B9%E3%83%81%E3%83%A5%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Linux パフォーマンスチューニング — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Linux パフォーマンスチューニング」。インフラストラクチャについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/infrastructure/linux/%E3%83%91%E3%83%95%E3%82%A9%E3%83%BC%E3%83%9E%E3%83%B3%E3%82%B9%E3%83%81%E3%83%A5%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0/"><meta name="theme-color" content="#c8ff4a"><title>Linux パフォーマンスチューニング — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-infrastructure">インフラストラクチャ</a> <span aria-hidden="true">/</span><span>linux</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">INFRASTRUCTURE</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-パフォーマンス調査の進め方use-メソッド">1. パフォーマンス調査の進め方（USE メソッド）</a> </li><li> <a href="#2-cpu-ボトルネックの特定">2. CPU ボトルネックの特定</a> </li><li> <a href="#3-メモリ不足の特定">3. メモリ不足の特定</a> </li><li> <a href="#4-ディスク-io-ボトルネック">4. ディスク I/O ボトルネック</a> </li><li> <a href="#5-ネットワーク-io-ボトルネック">5. ネットワーク I/O ボトルネック</a> </li><li> <a href="#6-プロファイリングツール">6. プロファイリングツール</a> </li><li> <a href="#7-チューニングのまとめ設定値一覧">7. チューニングのまとめ（設定値一覧）</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="linux-パフォーマンスチューニング">Linux パフォーマンスチューニング</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+基本コマンドは前提。<strong>ボトルネックの特定手順と対策</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-パフォーマンス調査の進め方use-メソッド">1. パフォーマンス調査の進め方（USE メソッド）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>USE（Utilization・Saturation・Errors）メソッド</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>各リソースについて:</span></span>
+<span class="line"><span>  U: 使用率（何%使っているか）</span></span>
+<span class="line"><span>  S: 飽和度（キューや待ちが発生しているか）</span></span>
+<span class="line"><span>  E: エラー数（エラーが発生しているか）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>対象リソース:</span></span>
+<span class="line"><span>  ├── CPU</span></span>
+<span class="line"><span>  ├── メモリ</span></span>
+<span class="line"><span>  ├── ディスク I/O</span></span>
+<span class="line"><span>  └── ネットワーク</span></span></code></pre>
+<hr>
+<h2 id="2-cpu-ボトルネックの特定">2. CPU ボトルネックの特定</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># CPU 使用率の確認</span></span>
+<span class="line"><span style="color:#B392F0">top</span><span style="color:#79B8FF"> -bn1</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> "Cpu(s)"</span></span>
+<span class="line"><span style="color:#6A737D"># %us=ユーザー, %sy=カーネル, %wa=I/O待ち, %si=ソフト割り込み</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># I/O 待ちが高い（%wa &gt; 10%）→ ディスク/ネットワーク I/O が問題</span></span>
+<span class="line"><span style="color:#6A737D"># %sy が高い → カーネル処理が多い（コンテキストスイッチ等）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ロードアベレージ確認</span></span>
+<span class="line"><span style="color:#B392F0">uptime</span></span>
+<span class="line"><span style="color:#6A737D"># 例: load average: 4.0, 3.5, 3.0</span></span>
+<span class="line"><span style="color:#6A737D"># → CPU コア数を超えていると飽和状態</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># コンテキストスイッチ数（高すぎると問題）</span></span>
+<span class="line"><span style="color:#B392F0">vmstat</span><span style="color:#79B8FF"> 1</span><span style="color:#79B8FF"> 10</span></span>
+<span class="line"><span style="color:#6A737D"># cs（context switches）列を確認</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># CPU プロファイリング（どの関数が重いか）</span></span>
+<span class="line"><span style="color:#B392F0">perf</span><span style="color:#9ECBFF"> top</span><span style="color:#79B8FF"> -p</span><span style="color:#E1E4E8"> $(</span><span style="color:#B392F0">pgrep</span><span style="color:#9ECBFF"> myapp</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="3-メモリ不足の特定">3. メモリ不足の特定</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># メモリ使用状況</span></span>
+<span class="line"><span style="color:#B392F0">free</span><span style="color:#79B8FF"> -h</span></span>
+<span class="line"><span style="color:#6A737D"># available が少ない（全体の10%以下）→ 危険</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># プロセス別メモリ使用量</span></span>
+<span class="line"><span style="color:#B392F0">ps</span><span style="color:#9ECBFF"> aux</span><span style="color:#79B8FF"> --sort=-%rss</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> head</span><span style="color:#79B8FF"> -11</span></span>
+<span class="line"><span style="color:#6A737D"># RSS（実メモリ使用量）, VSZ（仮想メモリ）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># OOM Killer の発動確認</span></span>
+<span class="line"><span style="color:#B392F0">dmesg</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -i</span><span style="color:#9ECBFF"> "oom\|killed"</span></span>
+<span class="line"><span style="color:#B392F0">journalctl</span><span style="color:#79B8FF"> -k</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -i</span><span style="color:#9ECBFF"> oom</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># メモリリーク調査（時系列で増加しているプロセス）</span></span>
+<span class="line"><span style="color:#B392F0">watch</span><span style="color:#79B8FF"> -n</span><span style="color:#79B8FF"> 5</span><span style="color:#9ECBFF"> 'ps aux --sort=-%mem | head -5'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># スワップの使用状況</span></span>
+<span class="line"><span style="color:#B392F0">vmstat</span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> awk</span><span style="color:#9ECBFF"> '{print $7, $8}'</span><span style="color:#6A737D">  # si=スワップイン, so=スワップアウト</span></span>
+<span class="line"><span style="color:#6A737D"># so &gt; 0 が続く → メモリ不足でスワップ中</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 大量のメモリを消費しているページキャッシュを確認</span></span>
+<span class="line"><span style="color:#B392F0">cat</span><span style="color:#9ECBFF"> /proc/meminfo</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -E</span><span style="color:#9ECBFF"> "Buffers|Cached|SwapTotal|SwapFree"</span></span></code></pre>
+<hr>
+<h2 id="4-ディスク-io-ボトルネック">4. ディスク I/O ボトルネック</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># I/O 統計（iostat）</span></span>
+<span class="line"><span style="color:#B392F0">iostat</span><span style="color:#79B8FF"> -x</span><span style="color:#79B8FF"> 1</span><span style="color:#79B8FF"> 5</span></span>
+<span class="line"><span style="color:#6A737D"># 重要な列:</span></span>
+<span class="line"><span style="color:#6A737D">#   %util: ディスク使用率（100%→飽和）</span></span>
+<span class="line"><span style="color:#6A737D">#   await: I/O待ち時間（ミリ秒）</span></span>
+<span class="line"><span style="color:#6A737D">#   r/s, w/s: 読み書き回数/秒</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># I/O を発生させているプロセスを特定</span></span>
+<span class="line"><span style="color:#B392F0">iotop</span><span style="color:#79B8FF"> -ao</span><span style="color:#79B8FF"> -n</span><span style="color:#79B8FF"> 10</span></span>
+<span class="line"><span style="color:#6A737D"># -a: 累積、-o: I/O 発生中のプロセスのみ、-n 10: 10回サンプル</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ファイルシステム別の I/O</span></span>
+<span class="line"><span style="color:#B392F0">df</span><span style="color:#79B8FF"> -h</span><span style="color:#E1E4E8"> &amp;&amp; </span><span style="color:#B392F0">iostat</span><span style="color:#79B8FF"> -xz</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ファイルに対するアクセスを監視</span></span>
+<span class="line"><span style="color:#B392F0">inotifywait</span><span style="color:#79B8FF"> -m</span><span style="color:#9ECBFF"> /var/log/app/</span><span style="color:#79B8FF"> -e</span><span style="color:#9ECBFF"> modify,create</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ディスクの read/write 速度計測（ベースライン確認）</span></span>
+<span class="line"><span style="color:#B392F0">dd</span><span style="color:#9ECBFF"> if=/dev/zero</span><span style="color:#9ECBFF"> of=/tmp/test</span><span style="color:#9ECBFF"> bs=1M</span><span style="color:#9ECBFF"> count=</span><span style="color:#79B8FF">1024</span><span style="color:#9ECBFF"> oflag=direct</span></span>
+<span class="line"><span style="color:#B392F0">dd</span><span style="color:#9ECBFF"> if=/tmp/test</span><span style="color:#9ECBFF"> of=/dev/null</span><span style="color:#9ECBFF"> bs=1M</span><span style="color:#9ECBFF"> iflag=direct</span></span>
+<span class="line"><span style="color:#B392F0">rm</span><span style="color:#9ECBFF"> /tmp/test</span></span></code></pre>
+<hr>
+<h2 id="5-ネットワーク-io-ボトルネック">5. ネットワーク I/O ボトルネック</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 帯域使用量（iftop or nethogs）</span></span>
+<span class="line"><span style="color:#B392F0">iftop</span><span style="color:#79B8FF"> -n</span><span style="color:#79B8FF"> -N</span><span style="color:#79B8FF"> -i</span><span style="color:#9ECBFF"> eth0</span><span style="color:#6A737D">   # インターフェース別</span></span>
+<span class="line"><span style="color:#B392F0">nethogs</span><span style="color:#9ECBFF"> eth0</span><span style="color:#6A737D">          # プロセス別</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ネットワーク統計</span></span>
+<span class="line"><span style="color:#B392F0">ss</span><span style="color:#79B8FF"> -s</span><span style="color:#6A737D">         # ソケット統計サマリ</span></span>
+<span class="line"><span style="color:#B392F0">ss</span><span style="color:#79B8FF"> -tn</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> awk</span><span style="color:#9ECBFF"> '{print $1}'</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> sort</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> uniq</span><span style="color:#79B8FF"> -c</span><span style="color:#6A737D">  # ステータス別カウント</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># TCP 再送信（ネットワーク品質の問題）</span></span>
+<span class="line"><span style="color:#B392F0">ss</span><span style="color:#79B8FF"> -tin</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> retrans</span></span>
+<span class="line"><span style="color:#B392F0">netstat</span><span style="color:#79B8FF"> -s</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -i</span><span style="color:#9ECBFF"> retransmit</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 接続数が上限に達していないか</span></span>
+<span class="line"><span style="color:#B392F0">cat</span><span style="color:#9ECBFF"> /proc/sys/net/core/somaxconn</span></span>
+<span class="line"><span style="color:#B392F0">ss</span><span style="color:#79B8FF"> -tnlp</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#9ECBFF"> :8080</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> awk</span><span style="color:#9ECBFF"> '{print $2}'</span><span style="color:#6A737D">  # Recv-Q が多い → バックログ溢れ</span></span></code></pre>
+<hr>
+<h2 id="6-プロファイリングツール">6. プロファイリングツール</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># strace — システムコールのトレース（本番では慎重に）</span></span>
+<span class="line"><span style="color:#B392F0">strace</span><span style="color:#79B8FF"> -p</span><span style="color:#E1E4E8"> $(</span><span style="color:#B392F0">pgrep</span><span style="color:#9ECBFF"> myapp</span><span style="color:#E1E4E8">) </span><span style="color:#79B8FF">-c</span><span style="color:#6A737D">  # サマリモード（-c）は比較的安全</span></span>
+<span class="line"><span style="color:#B392F0">strace</span><span style="color:#79B8FF"> -p</span><span style="color:#E1E4E8"> $(</span><span style="color:#B392F0">pgrep</span><span style="color:#9ECBFF"> myapp</span><span style="color:#E1E4E8">) </span><span style="color:#79B8FF">-e</span><span style="color:#9ECBFF"> trace=network</span><span style="color:#6A737D">  # ネットワーク系のみ</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># lsof — プロセスが開いているファイル・ソケット</span></span>
+<span class="line"><span style="color:#B392F0">lsof</span><span style="color:#79B8FF"> -p</span><span style="color:#E1E4E8"> $(</span><span style="color:#B392F0">pgrep</span><span style="color:#9ECBFF"> myapp</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">|</span><span style="color:#B392F0"> wc</span><span style="color:#79B8FF"> -l</span><span style="color:#6A737D">  # FD 数の確認</span></span>
+<span class="line"><span style="color:#B392F0">lsof</span><span style="color:#79B8FF"> -p</span><span style="color:#E1E4E8"> $(</span><span style="color:#B392F0">pgrep</span><span style="color:#9ECBFF"> myapp</span><span style="color:#E1E4E8">) </span><span style="color:#79B8FF">-i</span><span style="color:#6A737D">       # ネットワーク接続のみ</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># tcpdump — パケットキャプチャ</span></span>
+<span class="line"><span style="color:#B392F0">tcpdump</span><span style="color:#79B8FF"> -i</span><span style="color:#9ECBFF"> eth0</span><span style="color:#79B8FF"> -n</span><span style="color:#9ECBFF"> "host 10.0.1.100 and port 5432"</span><span style="color:#79B8FF"> -w</span><span style="color:#9ECBFF"> /tmp/db.pcap</span></span>
+<span class="line"><span style="color:#6A737D"># → Wireshark で解析</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># BPF/eBPF（Linux 5.x 以降、本番でも安全）</span></span>
+<span class="line"><span style="color:#B392F0">bpftrace</span><span style="color:#79B8FF"> -e</span><span style="color:#9ECBFF"> 'tracepoint:syscalls:sys_enter_read { @[comm] = count(); }'</span></span></code></pre>
+<hr>
+<h2 id="7-チューニングのまとめ設定値一覧">7. チューニングのまとめ（設定値一覧）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 確認・変更するカーネルパラメータ</span></span>
+<span class="line"><span style="color:#B392F0">sysctl</span><span style="color:#79B8FF"> -a</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -E</span><span style="color:#9ECBFF"> "</span></span>
+<span class="line"><span style="color:#9ECBFF">net.core.somaxconn|        # TCPバックログキュー</span></span>
+<span class="line"><span style="color:#9ECBFF">net.ipv4.tcp_max_syn_backlog|  # SYNバックログ</span></span>
+<span class="line"><span style="color:#9ECBFF">net.core.netdev_max_backlog|   # パケットキュー</span></span>
+<span class="line"><span style="color:#9ECBFF">vm.swappiness|              # スワップ閾値（10推奨）</span></span>
+<span class="line"><span style="color:#9ECBFF">vm.dirty_ratio|             # メモリへの書き込みキャッシュ上限</span></span>
+<span class="line"><span style="color:#9ECBFF">fs.file-max"</span><span style="color:#6A737D">                # システム全体のFD上限</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># プロセスのファイルディスクリプタ上限</span></span>
+<span class="line"><span style="color:#79B8FF">ulimit</span><span style="color:#79B8FF"> -n</span><span style="color:#6A737D">  # 現在のプロセスの上限（通常1024）</span></span>
+<span class="line"><span style="color:#6A737D"># /etc/security/limits.conf で永続化</span></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "myapp soft nofile 65536"</span><span style="color:#F97583"> &gt;&gt;</span><span style="color:#9ECBFF"> /etc/security/limits.conf</span></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "myapp hard nofile 65536"</span><span style="color:#F97583"> &gt;&gt;</span><span style="color:#9ECBFF"> /etc/security/limits.conf</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/infrastructure/networking/tcp-ip%E8%A9%B3%E8%A7%A3/">../Networking/01_TCP_IP詳解.md</a> — ネットワーク調査の詳細</li>
+<li><a href="/learning/devops/docker/docker%E5%AE%9F%E8%B7%B5/">../../06_DevOps/Docker/01_Docker実践.md</a> — コンテナでのリソース制限（cgroup）</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

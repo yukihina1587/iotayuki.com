@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「RDB 設計パターン — インデックス設計・クエリ最適化」。データベースについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/databases/rdb%E8%A8%AD%E8%A8%88%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="RDB 設計パターン — インデックス設計・クエリ最適化 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「RDB 設計パターン — インデックス設計・クエリ最適化」。データベースについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/databases/rdb%E8%A8%AD%E8%A8%88%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3/"><meta name="theme-color" content="#c8ff4a"><title>RDB 設計パターン — インデックス設計・クエリ最適化 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-databases">データベース</a>  </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">DATABASES</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-インデックスの仕組みb-treeを理解する">1. インデックスの仕組み（B-Treeを理解する）</a> </li><li> <a href="#2-インデックスの種類と使い分け">2. インデックスの種類と使い分け</a> </li><li> <a href="#3-explain-analyze-で実行計画を読む">3. EXPLAIN ANALYZE で実行計画を読む</a> </li><li> <a href="#4-n1-問題rdb-版">4. N+1 問題（RDB 版）</a> </li><li> <a href="#5-パーティショニング大規模テーブル">5. パーティショニング（大規模テーブル）</a> </li><li> <a href="#6-接続プーリングと-n-接続問題">6. 接続プーリングと N 接続問題</a> </li><li> <a href="#7-実運用でのモニタリング">7. 実運用でのモニタリング</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="rdb-設計パターン--インデックス設計クエリ最適化">RDB 設計パターン — インデックス設計・クエリ最適化</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+Room の <code>@Index</code> は使用経験あり。<strong>PostgreSQL での本番チューニングと設計パターン</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-インデックスの仕組みb-treeを理解する">1. インデックスの仕組み（B-Treeを理解する）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>インデックスなしの検索:</span></span>
+<span class="line"><span>  フルスキャン → 全行を読む → O(n)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>B-Tree インデックスの検索:</span></span>
+<span class="line"><span>  ツリーをたどって目的のページへ → O(log n)</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>インデックスの実体:</span></span>
+<span class="line"><span>  元テーブル(heap): 行データがページ(8KB)に格納</span></span>
+<span class="line"><span>  インデックス:     (キー値 → ページアドレス) のB-Treeが別ファイルに</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>コスト:</span></span>
+<span class="line"><span>  読み取り: 劇的に速くなる</span></span>
+<span class="line"><span>  書き込み: INSERT/UPDATE/DELETE のたびにインデックスも更新 → 若干遅くなる</span></span></code></pre>
+<hr>
+<h2 id="2-インデックスの種類と使い分け">2. インデックスの種類と使い分け</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- B-Tree インデックス（デフォルト）— 等値・範囲検索</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> INDEX</span><span style="color:#B392F0"> idx_orders_user_created</span></span>
+<span class="line"><span style="color:#F97583">  ON</span><span style="color:#E1E4E8"> orders(user_id, created_at </span><span style="color:#F97583">DESC</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#6A737D">-- → WHERE user_id = ? ORDER BY created_at DESC に有効</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 複合インデックス: 左端一致の原則</span></span>
+<span class="line"><span style="color:#6A737D">-- (user_id, created_at) のインデックスが有効なケース:</span></span>
+<span class="line"><span style="color:#6A737D">--   ✅ WHERE user_id = 100</span></span>
+<span class="line"><span style="color:#6A737D">--   ✅ WHERE user_id = 100 AND created_at &gt; '2024-01-01'</span></span>
+<span class="line"><span style="color:#6A737D">--   ❌ WHERE created_at &gt; '2024-01-01' のみ（左端の user_id を飛ばした）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 部分インデックス — 条件付きインデックス（テーブルの一部のみ）</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> INDEX</span><span style="color:#B392F0"> idx_orders_pending</span></span>
+<span class="line"><span style="color:#F97583">  ON</span><span style="color:#E1E4E8"> orders(created_at)</span></span>
+<span class="line"><span style="color:#F97583">  WHERE</span><span style="color:#F97583"> status</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> 'pending'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6A737D">-- → 'pending' の注文だけを検索するクエリに特化・サイズ小</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- GIN インデックス — 全文検索・配列・JSONB</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> INDEX</span><span style="color:#B392F0"> idx_posts_search</span></span>
+<span class="line"><span style="color:#F97583">  ON</span><span style="color:#E1E4E8"> posts </span><span style="color:#F97583">USING</span><span style="color:#E1E4E8"> GIN(to_tsvector(</span><span style="color:#9ECBFF">'japanese'</span><span style="color:#E1E4E8">, title </span><span style="color:#F97583">||</span><span style="color:#9ECBFF"> ' '</span><span style="color:#F97583"> ||</span><span style="color:#E1E4E8"> body));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 全文検索クエリ</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> *</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> posts</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> to_tsvector(</span><span style="color:#9ECBFF">'japanese'</span><span style="color:#E1E4E8">, title </span><span style="color:#F97583">||</span><span style="color:#9ECBFF"> ' '</span><span style="color:#F97583"> ||</span><span style="color:#E1E4E8"> body)</span></span>
+<span class="line"><span style="color:#E1E4E8">      @@ to_tsquery(</span><span style="color:#9ECBFF">'japanese'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'Kubernetes &amp; AWS'</span><span style="color:#E1E4E8">);</span></span></code></pre>
+<hr>
+<h2 id="3-explain-analyze-で実行計画を読む">3. EXPLAIN ANALYZE で実行計画を読む</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#E1E4E8">EXPLAIN (ANALYZE, BUFFERS, FORMAT </span><span style="color:#F97583">TEXT</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#79B8FF"> o</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">u</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">name</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">p</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">name</span><span style="color:#F97583"> as</span><span style="color:#E1E4E8"> product</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> orders o</span></span>
+<span class="line"><span style="color:#F97583">JOIN</span><span style="color:#E1E4E8"> users u </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> u</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> o</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">user_id</span></span>
+<span class="line"><span style="color:#F97583">JOIN</span><span style="color:#E1E4E8"> order_items oi </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> oi</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">order_id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> o</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span></span>
+<span class="line"><span style="color:#F97583">JOIN</span><span style="color:#E1E4E8"> products p </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> p</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> oi</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">product_id</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#79B8FF"> o</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">created_at</span><span style="color:#F97583"> &gt;=</span><span style="color:#9ECBFF"> '2024-01-01'</span></span>
+<span class="line"><span style="color:#F97583">  AND</span><span style="color:#79B8FF"> o</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">status</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> 'shipped'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 出力例:</span></span>
+<span class="line"><span style="color:#6A737D">-- Hash Join  (cost=xxx..xxx rows=1234 width=80) (actual time=12.3..45.6 rows=1200 loops=1)</span></span>
+<span class="line"><span style="color:#6A737D">--   Hash Cond: (oi.order_id = o.id)</span></span>
+<span class="line"><span style="color:#6A737D">--   Buffers: shared hit=450 read=120   ← readが多い → I/Oボトルネック</span></span>
+<span class="line"><span style="color:#6A737D">--   -&gt;  Seq Scan on orders  (cost=...) (actual rows=1500 loops=1)</span></span>
+<span class="line"><span style="color:#6A737D">--         Filter: (created_at &gt;= '2024-01-01' AND status = 'shipped')</span></span>
+<span class="line"><span style="color:#6A737D">--         Rows Removed by Filter: 48500  ← 大量のフィルタ → インデックス不足</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>読み方のポイント:</span></span>
+<span class="line"><span>  Seq Scan → フルスキャン（行数が多い場合はインデックスが効いていない）</span></span>
+<span class="line"><span>  Index Scan → インデックスを使っている ✅</span></span>
+<span class="line"><span>  Index Only Scan → インデックスだけで解決（最速） ✅✅</span></span>
+<span class="line"><span>  Hash Join / Merge Join → JOINの方式</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  actual time &gt;&gt; estimated time → 統計情報が古い可能性</span></span>
+<span class="line"><span>  → ANALYZE テーブル名; で統計情報を更新</span></span></code></pre>
+<hr>
+<h2 id="4-n1-問題rdb-版">4. N+1 問題（RDB 版）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- ❌ N+1: アプリでループして個別クエリ（Room で経験したパターン）</span></span>
+<span class="line"><span style="color:#6A737D">-- for each user:</span></span>
+<span class="line"><span style="color:#6A737D">--   SELECT * FROM orders WHERE user_id = ?  ← N回発行</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- ✅ JOIN で一括取得</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#79B8FF"> u</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">u</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">name</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">       COUNT</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">o</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> order_count,</span></span>
+<span class="line"><span style="color:#79B8FF">       SUM</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">o</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">total_amount</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> total_spent</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> users u</span></span>
+<span class="line"><span style="color:#F97583">LEFT JOIN</span><span style="color:#E1E4E8"> orders o </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> o</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">user_id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> u</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span></span>
+<span class="line"><span style="color:#F97583">GROUP BY</span><span style="color:#79B8FF"> u</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">u</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">name</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- ✅ サブクエリ（相関サブクエリは N+1 になるので注意）</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> u.</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">       (</span><span style="color:#F97583">SELECT</span><span style="color:#79B8FF"> COUNT</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> orders </span><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> user_id </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> u</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> order_count</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> users u;</span></span>
+<span class="line"><span style="color:#6A737D">-- ↑ users 行数分サブクエリが走る → LEFT JOIN の方が速い場合が多い</span></span></code></pre>
+<hr>
+<h2 id="5-パーティショニング大規模テーブル">5. パーティショニング（大規模テーブル）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- 時系列データを月ごとにパーティション分割</span></span>
+<span class="line"><span style="color:#6A737D">-- ログ・イベント・注文履歴など数億行になるテーブルに有効</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> TABLE</span><span style="color:#B392F0"> events</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#E1E4E8">    id          </span><span style="color:#F97583">BIGSERIAL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    user_id     </span><span style="color:#F97583">BIGINT</span><span style="color:#F97583"> NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    event_type  </span><span style="color:#F97583">VARCHAR</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">50</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    occurred_at </span><span style="color:#F97583">TIMESTAMPTZ</span><span style="color:#F97583"> NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    payload     JSONB</span></span>
+<span class="line"><span style="color:#E1E4E8">) </span><span style="color:#F97583">PARTITION</span><span style="color:#F97583"> BY</span><span style="color:#F97583"> RANGE</span><span style="color:#E1E4E8"> (occurred_at);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- パーティションを月ごとに作成</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> TABLE</span><span style="color:#B392F0"> events_2024_01</span><span style="color:#F97583"> PARTITION</span><span style="color:#E1E4E8"> OF events</span></span>
+<span class="line"><span style="color:#F97583">    FOR</span><span style="color:#F97583"> VALUES</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> (</span><span style="color:#9ECBFF">'2024-01-01'</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">TO</span><span style="color:#E1E4E8"> (</span><span style="color:#9ECBFF">'2024-02-01'</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> TABLE</span><span style="color:#B392F0"> events_2024_02</span><span style="color:#F97583"> PARTITION</span><span style="color:#E1E4E8"> OF events</span></span>
+<span class="line"><span style="color:#F97583">    FOR</span><span style="color:#F97583"> VALUES</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> (</span><span style="color:#9ECBFF">'2024-02-01'</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">TO</span><span style="color:#E1E4E8"> (</span><span style="color:#9ECBFF">'2024-03-01'</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- パーティションプルーニング: WHERE 条件がパーティションキーに合致すれば</span></span>
+<span class="line"><span style="color:#6A737D">-- 関係ないパーティションを自動でスキップ</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> *</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> events</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> occurred_at </span><span style="color:#F97583">&gt;=</span><span style="color:#9ECBFF"> '2024-01-15'</span><span style="color:#F97583"> AND</span><span style="color:#E1E4E8"> occurred_at </span><span style="color:#F97583">&lt;</span><span style="color:#9ECBFF"> '2024-02-01'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6A737D">-- → events_2024_01 だけをスキャン</span></span></code></pre>
+<hr>
+<h2 id="6-接続プーリングと-n-接続問題">6. 接続プーリングと N 接続問題</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>問題: Lambda/ECS が直接 RDS に接続すると…</span></span>
+<span class="line"><span>  同時実行数 = DB 接続数</span></span>
+<span class="line"><span>  RDS max_connections = ~400（db.t3.medium）</span></span>
+<span class="line"><span>  Lambda 同時実行 &gt; 400 → 接続エラー</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>解決策:</span></span>
+<span class="line"><span>  RDS Proxy（マネージド接続プール）</span></span>
+<span class="line"><span>    Lambda → RDS Proxy → RDS</span></span>
+<span class="line"><span>    Proxy が実際の接続数を制御</span></span>
+<span class="line"><span>    フェイルオーバー時の接続維持も担当</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>PgBouncer（セルフホスト型）:</span></span>
+<span class="line"><span>  ECS/EC2 → PgBouncer → RDS</span></span>
+<span class="line"><span>  Transaction プーリング: 1トランザクション終了後に接続を返却</span></span>
+<span class="line"><span>  → 接続数を劇的に削減（100 プロセスが 5〜10 接続を共有）</span></span></code></pre>
+<hr>
+<h2 id="7-実運用でのモニタリング">7. 実運用でのモニタリング</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- 実行中のクエリ一覧（重いクエリを特定）</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> pid, </span><span style="color:#F97583">now</span><span style="color:#E1E4E8">() </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> query_start </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> duration, query, </span><span style="color:#F97583">state</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> pg_stat_activity</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#F97583"> state</span><span style="color:#F97583"> !=</span><span style="color:#9ECBFF"> 'idle'</span></span>
+<span class="line"><span style="color:#F97583">ORDER BY</span><span style="color:#E1E4E8"> duration </span><span style="color:#F97583">DESC</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 長時間実行クエリを強制終了</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> pg_cancel_backend(pid);  </span><span style="color:#6A737D">-- SIGINT（クエリのみキャンセル）</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> pg_terminate_backend(pid);  </span><span style="color:#6A737D">-- SIGTERM（接続を切断）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- テーブル別のシーケンシャルスキャン数（インデックス不足の兆候）</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> schemaname, relname, seq_scan, idx_scan,</span></span>
+<span class="line"><span style="color:#79B8FF">       round</span><span style="color:#E1E4E8">(idx_scan </span><span style="color:#F97583">*</span><span style="color:#79B8FF"> 100</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">0</span><span style="color:#F97583"> /</span><span style="color:#79B8FF"> NULLIF</span><span style="color:#E1E4E8">(seq_scan </span><span style="color:#F97583">+</span><span style="color:#E1E4E8"> idx_scan, </span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">), </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> idx_ratio</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> pg_stat_user_tables</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> seq_scan </span><span style="color:#F97583">&gt;</span><span style="color:#79B8FF"> 1000</span></span>
+<span class="line"><span style="color:#F97583">ORDER BY</span><span style="color:#E1E4E8"> seq_scan </span><span style="color:#F97583">DESC</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- インデックス使用率</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> indexrelname, idx_scan, idx_tup_read</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> pg_stat_user_indexes</span></span>
+<span class="line"><span style="color:#F97583">ORDER BY</span><span style="color:#E1E4E8"> idx_scan </span><span style="color:#F97583">ASC</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6A737D">-- idx_scan = 0 → 一度も使われていないインデックス → 削除候補</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/databases/sql%E5%AE%9F%E8%B7%B5-%E5%BF%9C%E7%94%A8%E6%83%85%E5%A0%B1%E5%AF%BE%E7%AD%96/">01_SQL実践_応用情報対策.md</a> — JOIN・サブクエリ・CTE の基礎</li>
+<li><a href="/learning/databases/nosql/">03_NoSQL.md</a> — DynamoDB・Redis との使い分け</li>
+<li><a href="/learning/cloud/aws/%E3%83%87%E3%83%BC%E3%82%BF%E3%83%99%E3%83%BC%E3%82%B9%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/">AWSデータベースサービス</a> — RDS/Aurora/DynamoDB の AWS 設計</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「AWS データベースサービス — RDS・Aurora・DynamoDB・ElastiCache」。クラウドについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/aws/%E3%83%87%E3%83%BC%E3%82%BF%E3%83%99%E3%83%BC%E3%82%B9%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="AWS データベースサービス — RDS・Aurora・DynamoDB・ElastiCache — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「AWS データベースサービス — RDS・Aurora・DynamoDB・ElastiCache」。クラウドについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/cloud/aws/%E3%83%87%E3%83%BC%E3%82%BF%E3%83%99%E3%83%BC%E3%82%B9%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/"><meta name="theme-color" content="#c8ff4a"><title>AWS データベースサービス — RDS・Aurora・DynamoDB・ElastiCache — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-cloud">クラウド</a> <span aria-hidden="true">/</span><span>aws</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-どれを選ぶか意思決定ツリー">1. どれを選ぶか（意思決定ツリー）</a> </li><li> <a href="#2-rds--基本設計">2. RDS — 基本設計</a> </li><li> <a href="#3-aurora--rds-との違い">3. Aurora — RDS との違い</a> </li><li> <a href="#4-dynamodb--キー設計が全て">4. DynamoDB — キー設計が全て</a> </li><li class="learning-toc-subitem"> <a href="#アクセスパターン駆動設計dynamodb-はこれが全て">アクセスパターン駆動設計（DynamoDB はこれが全て）</a> </li><li> <a href="#5-dynamodb--本番設計のポイント">5. DynamoDB — 本番設計のポイント</a> </li><li> <a href="#6-elasticache-redis--キャッシュパターン">6. ElastiCache Redis — キャッシュパターン</a> </li><li> <a href="#7-コスト最適化まとめ">7. コスト最適化まとめ</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="aws-データベースサービス--rdsauroradynamodbelasticache">AWS データベースサービス — RDS・Aurora・DynamoDB・ElastiCache</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+Room でのデータ永続化経験あり。<strong>クラウドDB の選択・設計・運用</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-どれを選ぶか意思決定ツリー">1. どれを選ぶか（意思決定ツリー）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>トランザクション・複雑な結合が必要?</span></span>
+<span class="line"><span>  YES → RDS / Aurora（リレーショナル）</span></span>
+<span class="line"><span>    高可用性・大規模?</span></span>
+<span class="line"><span>      YES → Aurora（MySQL/PostgreSQL 互換）</span></span>
+<span class="line"><span>      NO  → RDS（シンプルなワークロード）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>  NO → 超高速・無制限スケール・スキーマレス?</span></span>
+<span class="line"><span>    YES → DynamoDB（キー・バリュー / ドキュメント）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>セッション・キャッシュ・リーダーボード?</span></span>
+<span class="line"><span>  → ElastiCache（Redis / Memcached）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>全文検索?</span></span>
+<span class="line"><span>  → OpenSearch Service</span></span></code></pre>
+<hr>
+<h2 id="2-rds--基本設計">2. RDS — 基本設計</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Multi-AZ（高可用性）の仕組み</span></span>
+<span class="line"><span style="color:#B392F0">Primary</span><span style="color:#9ECBFF"> DB</span><span style="color:#E1E4E8"> (ap-northeast-1a) ←→ Standby DB (</span><span style="color:#B392F0">ap-northeast-1c</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">         ↑同期レプリケーション</span></span>
+<span class="line"><span style="color:#B392F0">フェイルオーバー時間:</span><span style="color:#9ECBFF"> 60〜120秒</span></span>
+<span class="line"><span style="color:#B392F0">エンドポイントは変わらない（DNS</span><span style="color:#9ECBFF"> が切り替わる）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Read Replica（読み取りスケール）</span></span>
+<span class="line"><span style="color:#B392F0">Primary</span><span style="color:#9ECBFF"> →</span><span style="color:#9ECBFF"> Read</span><span style="color:#9ECBFF"> Replica</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8"> (同リージョン)</span></span>
+<span class="line"><span style="color:#B392F0">        →</span><span style="color:#9ECBFF"> Read</span><span style="color:#9ECBFF"> Replica</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8"> (別リージョン </span><span style="color:#9ECBFF">/</span><span style="color:#9ECBFF"> DR</span><span style="color:#9ECBFF"> 用</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">非同期レプリケーション</span><span style="color:#9ECBFF"> →</span><span style="color:#9ECBFF"> ラグが発生することがある</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># 接続ポーリング（RDS Proxy 経由）</span></span>
+<span class="line"><span style="color:#6A737D"># Lambda から直接 RDS に接続すると接続数を使い果たす問題</span></span>
+<span class="line"><span style="color:#6A737D"># RDS Proxy がプーリングを担当</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> os</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> psycopg2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Lambda からは RDS Proxy エンドポイントに接続</span></span>
+<span class="line"><span style="color:#E1E4E8">conn </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> psycopg2.connect(</span></span>
+<span class="line"><span style="color:#FFAB70">    host</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">os.environ[</span><span style="color:#9ECBFF">"RDS_PROXY_ENDPOINT"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#FFAB70">    database</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"myapp"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    user</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"myapp_user"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    password</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">os.environ[</span><span style="color:#9ECBFF">"DB_PASSWORD"</span><span style="color:#E1E4E8">],  </span><span style="color:#6A737D"># Secrets Manager から取得</span></span>
+<span class="line"><span style="color:#FFAB70">    connect_timeout</span><span style="color:#F97583">=</span><span style="color:#79B8FF">5</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="3-aurora--rds-との違い">3. Aurora — RDS との違い</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Aurora の特徴:</span></span>
+<span class="line"><span>  ストレージ: 自動拡張（最大128TB）、6コピー（3AZ × 2）</span></span>
+<span class="line"><span>  読み取り: 最大15台の Read Replica（Writer と共有ストレージ）</span></span>
+<span class="line"><span>  フェイルオーバー: 30秒以内（RDS は 60-120秒）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Aurora Serverless v2:</span></span>
+<span class="line"><span>  最小 0.5 ACU（Aurora Capacity Unit）から自動スケール</span></span>
+<span class="line"><span>  → 開発環境・アクセスが不規則なワークロードに最適</span></span>
+<span class="line"><span>  → コールドスタートに注意（数秒かかることがある）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>コスト: RDS より高い（ただし Read Replica は共有ストレージなので追加コスト小）</span></span></code></pre>
+<hr>
+<h2 id="4-dynamodb--キー設計が全て">4. DynamoDB — キー設計が全て</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>DynamoDB のアーキテクチャ:</span></span>
+<span class="line"><span>  テーブル = パーティション集合</span></span>
+<span class="line"><span>  パーティションキー（PK）でデータの置き場所（パーティション）が決まる</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  同じ PK を持つアイテムは同じパーティションに入る</span></span>
+<span class="line"><span>  → PK が偏ると「ホットパーティション」になりスロットリング発生</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>パーティションキーの選び方:</span></span>
+<span class="line"><span>  ❌ ステータス（active/inactive）→ 偏る</span></span>
+<span class="line"><span>  ❌ 日付（2024-01）→ 偏る</span></span>
+<span class="line"><span>  ✅ ユーザーID → 分散しやすい</span></span>
+<span class="line"><span>  ✅ UUID → ランダムに分散</span></span></code></pre>
+<h3 id="アクセスパターン駆動設計dynamodb-はこれが全て">アクセスパターン駆動設計（DynamoDB はこれが全て）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> boto3</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> boto3.dynamodb.conditions </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Key, Attr</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">dynamodb </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> boto3.resource(</span><span style="color:#9ECBFF">"dynamodb"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">table </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> dynamodb.Table(</span><span style="color:#9ECBFF">"Orders"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 設計前に「どんな問い合わせをするか」を列挙する</span></span>
+<span class="line"><span style="color:#6A737D"># アクセスパターン例:</span></span>
+<span class="line"><span style="color:#6A737D">#   1. ユーザー </span><span style="color:#F97583">XXX</span><span style="color:#6A737D"> の注文一覧を取得（日時降順）</span></span>
+<span class="line"><span style="color:#6A737D">#   2. 注文 ID で1件取得</span></span>
+<span class="line"><span style="color:#6A737D">#   3. ユーザー </span><span style="color:#F97583">XXX</span><span style="color:#6A737D"> のステータス「shipped」の注文一覧</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># テーブル設計:</span></span>
+<span class="line"><span style="color:#6A737D">#   PK: USER#userId</span></span>
+<span class="line"><span style="color:#6A737D">#   SK: ORDER#timestamp#orderId</span></span>
+<span class="line"><span style="color:#6A737D">#   GSI: status-index (PK=status, SK=createdAt)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 1. ユーザーの注文一覧</span></span>
+<span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> table.query(</span></span>
+<span class="line"><span style="color:#FFAB70">    KeyConditionExpression</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">Key(</span><span style="color:#9ECBFF">"PK"</span><span style="color:#E1E4E8">).eq(</span><span style="color:#9ECBFF">"USER#user001"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">&amp;</span></span>
+<span class="line"><span style="color:#E1E4E8">                           Key(</span><span style="color:#9ECBFF">"SK"</span><span style="color:#E1E4E8">).begins_with(</span><span style="color:#9ECBFF">"ORDER#"</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#FFAB70">    ScanIndexForward</span><span style="color:#F97583">=</span><span style="color:#79B8FF">False</span><span style="color:#6A737D">  # 降順</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 2. 注文 ID で取得</span></span>
+<span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> table.get_item(</span></span>
+<span class="line"><span style="color:#FFAB70">    Key</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span><span style="color:#9ECBFF">"PK"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"USER#user001"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"SK"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ORDER#2024-01-15T10:00:00#order001"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 3. ステータスでフィルタ（GSI 使用）</span></span>
+<span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> table.query(</span></span>
+<span class="line"><span style="color:#FFAB70">    IndexName</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"status-index"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    KeyConditionExpression</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">Key(</span><span style="color:#9ECBFF">"status"</span><span style="color:#E1E4E8">).eq(</span><span style="color:#9ECBFF">"shipped"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">&amp;</span></span>
+<span class="line"><span style="color:#E1E4E8">                           Key(</span><span style="color:#9ECBFF">"createdAt"</span><span style="color:#E1E4E8">).begins_with(</span><span style="color:#9ECBFF">"2024-01"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="5-dynamodb--本番設計のポイント">5. DynamoDB — 本番設計のポイント</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># トランザクション（2テーブルをまとめて更新）</span></span>
+<span class="line"><span style="color:#E1E4E8">dynamodb.meta.client.transact_write(</span></span>
+<span class="line"><span style="color:#FFAB70">    TransactItems</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span></span>
+<span class="line"><span style="color:#E1E4E8">        {</span></span>
+<span class="line"><span style="color:#9ECBFF">            "Update"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">                "TableName"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Orders"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "Key"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"PK"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ORDER#001"</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#9ECBFF">                "UpdateExpression"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"SET #status = :status"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "ExpressionAttributeNames"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"#status"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"status"</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#9ECBFF">                "ExpressionAttributeValues"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">":status"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"shipped"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        },</span></span>
+<span class="line"><span style="color:#E1E4E8">        {</span></span>
+<span class="line"><span style="color:#9ECBFF">            "Update"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">                "TableName"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Inventory"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "Key"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"PK"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"PRODUCT#001"</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#9ECBFF">                "UpdateExpression"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"SET stock = stock - :qty"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "ConditionExpression"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"stock &gt;= :qty"</span><span style="color:#E1E4E8">,  </span><span style="color:#6A737D"># 在庫チェック</span></span>
+<span class="line"><span style="color:#9ECBFF">                "ExpressionAttributeValues"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">":qty"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># DynamoDB Streams → Lambda でのイベント駆動</span></span>
+<span class="line"><span style="color:#6A737D"># テーブルの変更をリアルタイムにキャプチャ → Lambda で処理</span></span>
+<span class="line"><span style="color:#6A737D"># 用途: 集計テーブル更新・Elasticsearch 同期・監査ログ</span></span></code></pre>
+<hr>
+<h2 id="6-elasticache-redis--キャッシュパターン">6. ElastiCache Redis — キャッシュパターン</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> redis</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> json</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> hashlib</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">r </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> redis.Redis(</span><span style="color:#FFAB70">host</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">os.environ[</span><span style="color:#9ECBFF">"REDIS_HOST"</span><span style="color:#E1E4E8">], </span><span style="color:#FFAB70">port</span><span style="color:#F97583">=</span><span style="color:#79B8FF">6379</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">decode_responses</span><span style="color:#F97583">=</span><span style="color:#79B8FF">True</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Cache-Aside パターン（最も一般的）</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> get_user</span><span style="color:#E1E4E8">(user_id: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">dict</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    cache_key </span><span style="color:#F97583">=</span><span style="color:#F97583"> f</span><span style="color:#9ECBFF">"user:</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">user_id</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # 1. キャッシュから取得</span></span>
+<span class="line"><span style="color:#E1E4E8">    cached </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> r.get(cache_key)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> cached:</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> json.loads(cached)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # 2. DB から取得</span></span>
+<span class="line"><span style="color:#E1E4E8">    user </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> db.query(</span><span style="color:#9ECBFF">"SELECT * FROM users WHERE id = </span><span style="color:#79B8FF">%s</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, user_id)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # 3. キャッシュに書き込み（TTL: 300秒）</span></span>
+<span class="line"><span style="color:#E1E4E8">    r.setex(cache_key, </span><span style="color:#79B8FF">300</span><span style="color:#E1E4E8">, json.dumps(user))</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> user</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># セッション管理</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> create_session</span><span style="color:#E1E4E8">(user_id: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">, token: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    r.setex(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"session:</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">token</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">3600</span><span style="color:#E1E4E8">, user_id)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> get_session</span><span style="color:#E1E4E8">(token: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">str</span><span style="color:#F97583"> |</span><span style="color:#79B8FF"> None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> r.get(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"session:</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">token</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># レート制限（スライディングウィンドウ）</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> check_rate_limit</span><span style="color:#E1E4E8">(user_id: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">, limit: </span><span style="color:#79B8FF">int</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> 100</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">bool</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    key </span><span style="color:#F97583">=</span><span style="color:#F97583"> f</span><span style="color:#9ECBFF">"rate:</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">user_id</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">:</span><span style="color:#79B8FF">{int</span><span style="color:#E1E4E8">(time.time()) </span><span style="color:#F97583">//</span><span style="color:#79B8FF"> 60}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">    count </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> r.incr(key)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> count </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        r.expire(key, </span><span style="color:#79B8FF">120</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> count </span><span style="color:#F97583">&lt;=</span><span style="color:#E1E4E8"> limit</span></span></code></pre>
+<hr>
+<h2 id="7-コスト最適化まとめ">7. コスト最適化まとめ</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>RDS/Aurora:</span></span>
+<span class="line"><span>  ✅ Reserved Instances（1年・3年契約）で最大60%削減</span></span>
+<span class="line"><span>  ✅ 開発環境は Aurora Serverless v2（使わない時間は課金なし）</span></span>
+<span class="line"><span>  ✅ Storage Autoscaling ON（過剰プロビジョニングを避ける）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>DynamoDB:</span></span>
+<span class="line"><span>  ✅ オンデマンド vs プロビジョニング済みの選択</span></span>
+<span class="line"><span>     → アクセス予測可能 → プロビジョニング済み（安い）</span></span>
+<span class="line"><span>     → 予測不能・スパイク → オンデマンド（安全）</span></span>
+<span class="line"><span>  ✅ DynamoDB Standard-IA → アクセス頻度が低いデータを自動移行</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>ElastiCache:</span></span>
+<span class="line"><span>  ✅ Reserved Nodes で最大55%削減</span></span>
+<span class="line"><span>  ✅ キャッシュヒット率を CloudWatch で監視（低い → キャッシュ設計を見直す）</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/databases/sql%E5%AE%9F%E8%B7%B5-%E5%BF%9C%E7%94%A8%E6%83%85%E5%A0%B1%E5%AF%BE%E7%AD%96/">../../07_Databases/01_SQL実践_応用情報対策.md</a> — SQL クエリ・正規化の基礎</li>
+<li><a href="/learning/databases/rdb%E8%A8%AD%E8%A8%88%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3/">../../07_Databases/02_RDB設計パターン.md</a> — インデックス設計・クエリ最適化</li>
+<li><a href="/learning/databases/nosql/">../../07_Databases/03_NoSQL.md</a> — DynamoDB 設計パターン詳細</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

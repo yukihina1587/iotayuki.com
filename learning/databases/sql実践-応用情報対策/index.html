@@ -1,0 +1,228 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「SQL 実践 + 応用情報午後対策」。データベースについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/databases/sql%E5%AE%9F%E8%B7%B5-%E5%BF%9C%E7%94%A8%E6%83%85%E5%A0%B1%E5%AF%BE%E7%AD%96/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="SQL 実践 + 応用情報午後対策 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「SQL 実践 + 応用情報午後対策」。データベースについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/databases/sql%E5%AE%9F%E8%B7%B5-%E5%BF%9C%E7%94%A8%E6%83%85%E5%A0%B1%E5%AF%BE%E7%AD%96/"><meta name="theme-color" content="#c8ff4a"><title>SQL 実践 + 応用情報午後対策 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-databases">データベース</a>  </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">DATABASES</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-room-の知識を生-sql-に対応させる">1. Room の知識を生 SQL に対応させる</a> </li><li> <a href="#2-応用情報頻出の-sql-パターン">2. 応用情報頻出の SQL パターン</a> </li><li class="learning-toc-subitem"> <a href="#group-by--集計関数">GROUP BY + 集計関数</a> </li><li class="learning-toc-subitem"> <a href="#join応用情報で最頻出">JOIN（応用情報で最頻出）</a> </li><li class="learning-toc-subitem"> <a href="#サブクエリ">サブクエリ</a> </li><li> <a href="#3-トランザクションと整合性">3. トランザクションと整合性</a> </li><li class="learning-toc-subitem"> <a href="#分離レベル応用情報頻出">分離レベル（応用情報頻出）</a> </li><li> <a href="#4-インデックス設計">4. インデックス設計</a> </li><li> <a href="#5-正規化応用情報必須">5. 正規化（応用情報必須）</a> </li><li class="learning-toc-subitem"> <a href="#第1第3正規形">第1〜第3正規形</a> </li><li> <a href="#6-応用情報-午後-db-問題の解き方">6. 応用情報 午後 DB 問題の解き方</a> </li><li class="learning-toc-subitem"> <a href="#よく出るパターン">よく出るパターン</a> </li><li class="learning-toc-subitem"> <a href="#練習問題例">練習問題例</a> </li><li> <a href="#7-postgresql--mysql-実践rdsで使う">7. PostgreSQL / MySQL 実践（RDSで使う）</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="sql-実践--応用情報午後対策">SQL 実践 + 応用情報午後対策</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+Room（Android）でORMは経験済み。<strong>生SQLの実践力</strong>と<strong>応用情報午後のDB問題</strong>を強化する。</p>
+</blockquote>
+<hr>
+<h2 id="1-room-の知識を生-sql-に対応させる">1. Room の知識を生 SQL に対応させる</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="kotlin"><code><span class="line"><span style="color:#6A737D">// Room（Kotlin）でやっていたこと</span></span>
+<span class="line"><span style="color:#B392F0">@Query</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"SELECT * FROM books WHERE status = :status ORDER BY updatedAt DESC"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">fun</span><span style="color:#B392F0"> getBooksByStatus</span><span style="color:#E1E4E8">(status: </span><span style="color:#B392F0">String</span><span style="color:#E1E4E8">): </span><span style="color:#B392F0">Flow</span><span style="color:#E1E4E8">&lt;</span><span style="color:#B392F0">List</span><span style="color:#E1E4E8">&lt;</span><span style="color:#B392F0">BookEntity</span><span style="color:#E1E4E8">&gt;&gt;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">// 生 SQL で書くと</span></span>
+<span class="line"><span style="color:#E1E4E8">SELECT </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> FROM books </span></span>
+<span class="line"><span style="color:#E1E4E8">WHERE status </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> 'reading'</span><span style="color:#E1E4E8"> </span></span>
+<span class="line"><span style="color:#E1E4E8">ORDER BY updated_at DESC;</span></span></code></pre>
+<hr>
+<h2 id="2-応用情報頻出の-sql-パターン">2. 応用情報頻出の SQL パターン</h2>
+<h3 id="group-by--集計関数">GROUP BY + 集計関数</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- 各ステータスの書籍数と平均評価を取得</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> </span></span>
+<span class="line"><span style="color:#F97583">    status</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    COUNT</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">)        </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> book_count,</span></span>
+<span class="line"><span style="color:#79B8FF">    AVG</span><span style="color:#E1E4E8">(rating)     </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> avg_rating,</span></span>
+<span class="line"><span style="color:#79B8FF">    MAX</span><span style="color:#E1E4E8">(updated_at) </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> last_updated</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> books</span></span>
+<span class="line"><span style="color:#F97583">GROUP BY</span><span style="color:#F97583"> status</span></span>
+<span class="line"><span style="color:#F97583">HAVING</span><span style="color:#79B8FF"> COUNT</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">&gt;=</span><span style="color:#79B8FF"> 5</span><span style="color:#6A737D">  -- HAVING: GROUP BY後のフィルタ（WHERE とは違う）</span></span>
+<span class="line"><span style="color:#F97583">ORDER BY</span><span style="color:#E1E4E8"> book_count </span><span style="color:#F97583">DESC</span><span style="color:#E1E4E8">;</span></span></code></pre>
+<h3 id="join応用情報で最頻出">JOIN（応用情報で最頻出）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- 本・棚・タグの関係（all-book の構造をSQLで表現）</span></span>
+<span class="line"><span style="color:#6A737D">-- BookShelfCrossRef, BookTagCrossRef は中間テーブル</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- INNER JOIN: 両方に存在するもの</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">title</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">s</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">shelf_name</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> books b</span></span>
+<span class="line"><span style="color:#F97583">INNER JOIN</span><span style="color:#E1E4E8"> book_shelf_cross_ref bsc </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> bsc</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">book_id</span></span>
+<span class="line"><span style="color:#F97583">INNER JOIN</span><span style="color:#E1E4E8"> shelves s                </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> bsc</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">shelf_id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> s</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- LEFT JOIN: 左テーブルは全件（棚未登録の本も表示）</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">title</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">s</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">shelf_name</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> books b</span></span>
+<span class="line"><span style="color:#F97583">LEFT JOIN</span><span style="color:#E1E4E8"> book_shelf_cross_ref bsc </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> bsc</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">book_id</span></span>
+<span class="line"><span style="color:#F97583">LEFT JOIN</span><span style="color:#E1E4E8"> shelves s                </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> bsc</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">shelf_id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> s</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 棚に登録されていない本を探す（NOT EXISTS）</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">title</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> books b</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#F97583"> NOT</span><span style="color:#F97583"> EXISTS</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#F97583">    SELECT</span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> book_shelf_cross_ref bsc </span></span>
+<span class="line"><span style="color:#F97583">    WHERE</span><span style="color:#79B8FF"> bsc</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">book_id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span></span>
+<span class="line"><span style="color:#E1E4E8">);</span></span></code></pre>
+<h3 id="サブクエリ">サブクエリ</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- 平均評価より高い本の一覧</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> title, rating</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> books</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> rating </span><span style="color:#F97583">&gt;</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">SELECT</span><span style="color:#79B8FF"> AVG</span><span style="color:#E1E4E8">(rating) </span><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> books)</span></span>
+<span class="line"><span style="color:#F97583">ORDER BY</span><span style="color:#E1E4E8"> rating </span><span style="color:#F97583">DESC</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 各プラットフォームで最も最近更新された本</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> b.</span><span style="color:#F97583">*</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> books b</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">updated_at</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#F97583">    SELECT</span><span style="color:#79B8FF"> MAX</span><span style="color:#E1E4E8">(updated_at) </span></span>
+<span class="line"><span style="color:#F97583">    FROM</span><span style="color:#E1E4E8"> books b2 </span></span>
+<span class="line"><span style="color:#F97583">    WHERE</span><span style="color:#79B8FF"> b2</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">platform</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">platform</span></span>
+<span class="line"><span style="color:#E1E4E8">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- WITH句（CTE）で可読性を高める</span></span>
+<span class="line"><span style="color:#F97583">WITH</span><span style="color:#E1E4E8"> monthly_stats </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#F97583">    SELECT</span><span style="color:#E1E4E8"> </span></span>
+<span class="line"><span style="color:#E1E4E8">        DATE_TRUNC(</span><span style="color:#9ECBFF">'month'</span><span style="color:#E1E4E8">, completed_at) </span><span style="color:#F97583">AS</span><span style="color:#F97583"> month</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        COUNT</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> completed_count</span></span>
+<span class="line"><span style="color:#F97583">    FROM</span><span style="color:#E1E4E8"> books</span></span>
+<span class="line"><span style="color:#F97583">    WHERE</span><span style="color:#F97583"> status</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> 'completed'</span></span>
+<span class="line"><span style="color:#F97583">    GROUP BY</span><span style="color:#E1E4E8"> DATE_TRUNC(</span><span style="color:#9ECBFF">'month'</span><span style="color:#E1E4E8">, completed_at)</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> month</span><span style="color:#E1E4E8">, completed_count,</span></span>
+<span class="line"><span style="color:#79B8FF">       SUM</span><span style="color:#E1E4E8">(completed_count) </span><span style="color:#F97583">OVER</span><span style="color:#E1E4E8"> (</span><span style="color:#F97583">ORDER BY</span><span style="color:#F97583"> month</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> cumulative  </span><span style="color:#6A737D">-- ウィンドウ関数</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> monthly_stats;</span></span></code></pre>
+<hr>
+<h2 id="3-トランザクションと整合性">3. トランザクションと整合性</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- ACID特性を保証するトランザクション</span></span>
+<span class="line"><span style="color:#F97583">BEGIN</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 本の移動（棚Aから棚Bへ）</span></span>
+<span class="line"><span style="color:#F97583">DELETE</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> book_shelf_cross_ref </span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> book_id </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1</span><span style="color:#F97583"> AND</span><span style="color:#E1E4E8"> shelf_id </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 10</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">INSERT INTO</span><span style="color:#E1E4E8"> book_shelf_cross_ref (book_id, shelf_id) </span></span>
+<span class="line"><span style="color:#F97583">VALUES</span><span style="color:#E1E4E8"> (</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">20</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- エラーがなければコミット</span></span>
+<span class="line"><span style="color:#F97583">COMMIT</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#6A737D">-- エラー時: ROLLBACK;</span></span></code></pre>
+<h3 id="分離レベル応用情報頻出">分離レベル（応用情報頻出）</h3>
+<table>
+<thead>
+<tr>
+<th>分離レベル</th>
+<th>ダーティリード</th>
+<th>反復不能読み取り</th>
+<th>ファントムリード</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>READ UNCOMMITTED</td>
+<td>発生</td>
+<td>発生</td>
+<td>発生</td>
+</tr>
+<tr>
+<td>READ COMMITTED</td>
+<td><strong>防止</strong></td>
+<td>発生</td>
+<td>発生</td>
+</tr>
+<tr>
+<td>REPEATABLE READ</td>
+<td><strong>防止</strong></td>
+<td><strong>防止</strong></td>
+<td>発生（MySQLは防止）</td>
+</tr>
+<tr>
+<td>SERIALIZABLE</td>
+<td><strong>防止</strong></td>
+<td><strong>防止</strong></td>
+<td><strong>防止</strong></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>ダーティリード</strong>: コミット前のデータを読む</li>
+<li><strong>反復不能読み取り</strong>: 同一トランザクション内で同じ行が変わる</li>
+<li><strong>ファントムリード</strong>: 同一トランザクション内で行数が変わる</li>
+</ul>
+<hr>
+<h2 id="4-インデックス設計">4. インデックス設計</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- 通常のBツリーインデックス</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> INDEX</span><span style="color:#B392F0"> idx_books_status</span><span style="color:#F97583"> ON</span><span style="color:#E1E4E8"> books(</span><span style="color:#F97583">status</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> INDEX</span><span style="color:#B392F0"> idx_books_platform_status</span><span style="color:#F97583"> ON</span><span style="color:#E1E4E8"> books(platform, </span><span style="color:#F97583">status</span><span style="color:#E1E4E8">);  </span><span style="color:#6A737D">-- 複合インデックス</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 検索がどのインデックスを使っているか確認</span></span>
+<span class="line"><span style="color:#E1E4E8">EXPLAIN ANALYZE</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> *</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> books </span><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> platform </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> 'kindle'</span><span style="color:#F97583"> AND</span><span style="color:#F97583"> status</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> 'reading'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- インデックスを使わない書き方（注意）</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> *</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> books </span><span style="color:#F97583">WHERE</span><span style="color:#79B8FF"> LOWER</span><span style="color:#E1E4E8">(title) </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> 'clean code'</span><span style="color:#E1E4E8">;  </span><span style="color:#6A737D">-- ❌ 関数でラップするとインデックス不使用</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> *</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> books </span><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> title </span><span style="color:#F97583">LIKE</span><span style="color:#9ECBFF"> '%clean%'</span><span style="color:#E1E4E8">;          </span><span style="color:#6A737D">-- ❌ 前方一致でないとBツリーは使えない</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> *</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> books </span><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> title </span><span style="color:#F97583">LIKE</span><span style="color:#9ECBFF"> 'Clean%'</span><span style="color:#E1E4E8">;           </span><span style="color:#6A737D">-- ✅ 前方一致はBツリー使用可能</span></span></code></pre>
+<hr>
+<h2 id="5-正規化応用情報必須">5. 正規化（応用情報必須）</h2>
+<h3 id="第1第3正規形">第1〜第3正規形</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>【非正規形（問題あり）】</span></span>
+<span class="line"><span>books: id, title, author1, author2, tag1, tag2, tag3  ← 繰り返しグループ</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>【第1正規形（繰り返しを排除）】</span></span>
+<span class="line"><span>books: id, title</span></span>
+<span class="line"><span>book_authors: book_id, author_name</span></span>
+<span class="line"><span>book_tags: book_id, tag_name</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>【第2正規形（部分関数従属を排除）】</span></span>
+<span class="line"><span>複合キー(book_id, tag_id) がある場合、</span></span>
+<span class="line"><span>tag_nameがtag_idのみに従属 → tagsテーブルに分離</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>【第3正規形（推移的関数従属を排除）】</span></span>
+<span class="line"><span>book_id → publisher_id → publisher_name の推移的従属</span></span>
+<span class="line"><span>→ publishersテーブルに分離</span></span></code></pre>
+<hr>
+<h2 id="6-応用情報-午後-db-問題の解き方">6. 応用情報 午後 DB 問題の解き方</h2>
+<h3 id="よく出るパターン">よく出るパターン</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>1. E-R図を読んでSQL を書く</span></span>
+<span class="line"><span>   → リレーションシップを JOIN 条件に変換する練習</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>2. 依存関係を見てテーブル設計の問題点を指摘する</span></span>
+<span class="line"><span>   → 正規化の第2・第3正規形の違いを即答できるようにする</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>3. トランザクションの問題（デッドロック等）</span></span>
+<span class="line"><span>   → ロック順序を統一することで防止できると答えられるようにする</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>4. インデックスの効果を答える</span></span>
+<span class="line"><span>   → ORDER BY, WHERE, JOIN の条件列にインデックスが効く</span></span></code></pre>
+<h3 id="練習問題例">練習問題例</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- 問: 以下のテーブルで「2026年に完読した本の著者ごとの冊数を多い順に表示」するSQL</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- テーブル: books(id, title, status, completed_at)</span></span>
+<span class="line"><span style="color:#6A737D">--           book_authors(book_id, author_id)  </span></span>
+<span class="line"><span style="color:#6A737D">--           authors(id, name)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#E1E4E8"> </span></span>
+<span class="line"><span style="color:#79B8FF">    a</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">name</span><span style="color:#F97583"> AS</span><span style="color:#E1E4E8"> author_name,</span></span>
+<span class="line"><span style="color:#79B8FF">    COUNT</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">*</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">AS</span><span style="color:#E1E4E8"> completed_count</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> books b</span></span>
+<span class="line"><span style="color:#F97583">INNER JOIN</span><span style="color:#E1E4E8"> book_authors ba </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> ba</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">book_id</span></span>
+<span class="line"><span style="color:#F97583">INNER JOIN</span><span style="color:#E1E4E8"> authors a </span><span style="color:#F97583">ON</span><span style="color:#79B8FF"> ba</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">author_id</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> a</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span></span>
+<span class="line"><span style="color:#F97583">WHERE</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">status</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> 'completed'</span></span>
+<span class="line"><span style="color:#F97583">  AND</span><span style="color:#E1E4E8"> EXTRACT(</span><span style="color:#F97583">YEAR</span><span style="color:#F97583"> FROM</span><span style="color:#79B8FF"> b</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">completed_at</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 2026</span></span>
+<span class="line"><span style="color:#F97583">GROUP BY</span><span style="color:#79B8FF"> a</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">id</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">a</span><span style="color:#E1E4E8">.</span><span style="color:#79B8FF">name</span></span>
+<span class="line"><span style="color:#F97583">ORDER BY</span><span style="color:#E1E4E8"> completed_count </span><span style="color:#F97583">DESC</span><span style="color:#E1E4E8">;</span></span></code></pre>
+<hr>
+<h2 id="7-postgresql--mysql-実践rdsで使う">7. PostgreSQL / MySQL 実践（RDSで使う）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="sql"><code><span class="line"><span style="color:#6A737D">-- PostgreSQL でよく使う機能</span></span>
+<span class="line"><span style="color:#6A737D">-- JSONB 型（半構造データ）</span></span>
+<span class="line"><span style="color:#F97583">ALTER</span><span style="color:#F97583"> TABLE</span><span style="color:#E1E4E8"> books </span><span style="color:#F97583">ADD</span><span style="color:#E1E4E8"> COLUMN metadata JSONB;</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> *</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> books </span><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> metadata</span><span style="color:#F97583">-&gt;&gt;</span><span style="color:#9ECBFF">'isbn'</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> '9784873115658'</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> INDEX</span><span style="color:#B392F0"> idx_metadata_isbn</span><span style="color:#F97583"> ON</span><span style="color:#E1E4E8"> books ((metadata</span><span style="color:#F97583">-&gt;&gt;</span><span style="color:#9ECBFF">'isbn'</span><span style="color:#E1E4E8">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- 全文検索</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> INDEX</span><span style="color:#B392F0"> idx_books_fts</span><span style="color:#F97583"> ON</span><span style="color:#E1E4E8"> books </span><span style="color:#F97583">USING</span><span style="color:#E1E4E8"> gin(to_tsvector(</span><span style="color:#9ECBFF">'japanese'</span><span style="color:#E1E4E8">, title));</span></span>
+<span class="line"><span style="color:#F97583">SELECT</span><span style="color:#F97583"> *</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> books </span><span style="color:#F97583">WHERE</span><span style="color:#E1E4E8"> to_tsvector(</span><span style="color:#9ECBFF">'japanese'</span><span style="color:#E1E4E8">, title) @@ to_tsquery(</span><span style="color:#9ECBFF">'japanese'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'クリーン'</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">-- パーティショニング（大規模テーブル）</span></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> TABLE</span><span style="color:#B392F0"> logs</span><span style="color:#E1E4E8"> (</span></span>
+<span class="line"><span style="color:#E1E4E8">    id </span><span style="color:#F97583">BIGSERIAL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">    created_at </span><span style="color:#F97583">TIMESTAMPTZ</span><span style="color:#F97583"> NOT NULL</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#F97583">    message</span><span style="color:#F97583"> TEXT</span></span>
+<span class="line"><span style="color:#E1E4E8">) </span><span style="color:#F97583">PARTITION</span><span style="color:#F97583"> BY</span><span style="color:#F97583"> RANGE</span><span style="color:#E1E4E8"> (created_at);</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">CREATE</span><span style="color:#F97583"> TABLE</span><span style="color:#B392F0"> logs_2026</span><span style="color:#F97583"> PARTITION</span><span style="color:#E1E4E8"> OF logs</span></span>
+<span class="line"><span style="color:#F97583">    FOR</span><span style="color:#F97583"> VALUES</span><span style="color:#F97583"> FROM</span><span style="color:#E1E4E8"> (</span><span style="color:#9ECBFF">'2026-01-01'</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">TO</span><span style="color:#E1E4E8"> (</span><span style="color:#9ECBFF">'2027-01-01'</span><span style="color:#E1E4E8">);</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/databases/rdb%E8%A8%AD%E8%A8%88%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3/">02_RDB設計パターン.md</a> — スキーマ設計・パフォーマンスチューニング</li>
+<li>DBセキュリティ — SQLインジェクション対策（今後追加予定）</li>
+<li><a href="/learning/cloud/aws/%E3%83%87%E3%83%BC%E3%82%BF%E3%83%99%E3%83%BC%E3%82%B9%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/">AWSデータベースサービス</a> — RDS・Aurora の運用</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

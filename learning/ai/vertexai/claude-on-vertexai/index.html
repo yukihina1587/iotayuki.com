@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Claude on Vertex AI — GCP 経由での Claude 活用」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/ai/vertexai/claude-on-vertexai/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Claude on Vertex AI — GCP 経由での Claude 活用 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Claude on Vertex AI — GCP 経由での Claude 活用」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/ai/vertexai/claude-on-vertexai/"><meta name="theme-color" content="#c8ff4a"><title>Claude on Vertex AI — GCP 経由での Claude 活用 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-ai">AI・LLM</a> <span aria-hidden="true">/</span><span>vertexai</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">AI</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-vertex-ai-vs-anthropic-api-vs-bedrock">1. Vertex AI vs Anthropic API vs Bedrock</a> </li><li> <a href="#2-セットアップ">2. セットアップ</a> </li><li> <a href="#3-基本的な使い方">3. 基本的な使い方</a> </li><li> <a href="#4-gcp-サービスアカウントでの認証">4. GCP サービスアカウントでの認証</a> </li><li> <a href="#5-vertex-ai-でのモデル管理">5. Vertex AI でのモデル管理</a> </li><li> <a href="#6-cloud-run--vertex-ai-の構成例">6. Cloud Run + Vertex AI の構成例</a> </li><li> <a href="#7-bedrock-との使い分け実践的な判断基準">7. Bedrock との使い分け（実践的な判断基準）</a> </li><li> <a href="#-関連資料">🔗 関連資料</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="claude-on-vertex-ai--gcp-経由での-claude-活用">Claude on Vertex AI — GCP 経由での Claude 活用</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+Anthropic API・Bedrock の基礎は前提。<strong>GCP 環境で Claude を使う場合の設定と使い分け</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-vertex-ai-vs-anthropic-api-vs-bedrock">1. Vertex AI vs Anthropic API vs Bedrock</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>                    Anthropic API    Bedrock          Vertex AI</span></span>
+<span class="line"><span>課金:               Anthropic        AWS              GCP</span></span>
+<span class="line"><span>データ所在地:        Anthropic        AWS リージョン    GCP リージョン</span></span>
+<span class="line"><span>既存インフラ:        なし             AWS 中心          GCP 中心</span></span>
+<span class="line"><span>IAM/VPC統合:        なし             AWS IAM/VPC       GCP IAM/VPC</span></span>
+<span class="line"><span>エンタープライズ契約: なし             AWS Organizations GCP Organizations</span></span>
+<span class="line"><span>モデルの可用性:      最新・全て        一部              一部</span></span></code></pre>
+<p><strong>選択基準</strong>:</p>
+<ul>
+<li>GCP をメインで使っている組織 → Vertex AI</li>
+<li>AWS をメインで使っている組織 → Bedrock</li>
+<li>スタートアップ・個人開発 → Anthropic API 直接</li>
+</ul>
+<hr>
+<h2 id="2-セットアップ">2. セットアップ</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># GCP 認証</span></span>
+<span class="line"><span style="color:#B392F0">gcloud</span><span style="color:#9ECBFF"> auth</span><span style="color:#9ECBFF"> login</span></span>
+<span class="line"><span style="color:#B392F0">gcloud</span><span style="color:#9ECBFF"> config</span><span style="color:#9ECBFF"> set</span><span style="color:#9ECBFF"> project</span><span style="color:#9ECBFF"> YOUR_PROJECT_ID</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Application Default Credentials の設定</span></span>
+<span class="line"><span style="color:#B392F0">gcloud</span><span style="color:#9ECBFF"> auth</span><span style="color:#9ECBFF"> application-default</span><span style="color:#9ECBFF"> login</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 必要な API の有効化</span></span>
+<span class="line"><span style="color:#B392F0">gcloud</span><span style="color:#9ECBFF"> services</span><span style="color:#9ECBFF"> enable</span><span style="color:#9ECBFF"> aiplatform.googleapis.com</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Python ライブラリのインストール</span></span>
+<span class="line"><span style="color:#B392F0">pip</span><span style="color:#9ECBFF"> install</span><span style="color:#9ECBFF"> anthropic[vertex]</span></span></code></pre>
+<hr>
+<h2 id="3-基本的な使い方">3. 基本的な使い方</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> anthropic</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Vertex AI 経由で Claude を使う</span></span>
+<span class="line"><span style="color:#6A737D"># Anthropic API とほぼ同じインターフェース</span></span>
+<span class="line"><span style="color:#E1E4E8">client </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> anthropic.AnthropicVertex(</span></span>
+<span class="line"><span style="color:#FFAB70">    project_id</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"my-gcp-project"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    region</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"us-east5"</span><span style="color:#E1E4E8">,  </span><span style="color:#6A737D"># Claude が利用可能なリージョン</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># モデル名が Vertex AI 形式</span></span>
+<span class="line"><span style="color:#E1E4E8">message </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> client.messages.create(</span></span>
+<span class="line"><span style="color:#FFAB70">    model</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"claude-opus-4-5"</span><span style="color:#E1E4E8">,  </span><span style="color:#6A737D"># Vertex AI でのモデル名</span></span>
+<span class="line"><span style="color:#FFAB70">    max_tokens</span><span style="color:#F97583">=</span><span style="color:#79B8FF">1024</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span></span>
+<span class="line"><span style="color:#E1E4E8">        {</span><span style="color:#9ECBFF">"role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"content"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"GCP の BigQuery で大規模データを集計するSQLを書いてください。"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(message.content[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">].text)</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># ストリーミング</span></span>
+<span class="line"><span style="color:#F97583">with</span><span style="color:#E1E4E8"> client.messages.stream(</span></span>
+<span class="line"><span style="color:#FFAB70">    model</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"claude-sonnet-4-5"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    max_tokens</span><span style="color:#F97583">=</span><span style="color:#79B8FF">1024</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[{</span><span style="color:#9ECBFF">"role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"content"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Cloud Run と GKE の使い分けを教えてください。"</span><span style="color:#E1E4E8">}]</span></span>
+<span class="line"><span style="color:#E1E4E8">) </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> stream:</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> text </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> stream.text_stream:</span></span>
+<span class="line"><span style="color:#79B8FF">        print</span><span style="color:#E1E4E8">(text, </span><span style="color:#FFAB70">end</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">""</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">flush</span><span style="color:#F97583">=</span><span style="color:#79B8FF">True</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="4-gcp-サービスアカウントでの認証">4. GCP サービスアカウントでの認証</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Cloud Run や GCE などの GCP サービスから使う場合</span></span>
+<span class="line"><span style="color:#6A737D"># → サービスアカウントにロールを付与するだけで認証不要</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 必要な IAM ロール:</span></span>
+<span class="line"><span style="color:#6A737D"># roles/aiplatform.user</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> google.oauth2 </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> service_account</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> anthropic</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ローカル開発時のみ（Cloud Run では不要）</span></span>
+<span class="line"><span style="color:#E1E4E8">credentials </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> service_account.Credentials.from_service_account_file(</span></span>
+<span class="line"><span style="color:#9ECBFF">    "service-account.json"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    scopes</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span><span style="color:#9ECBFF">"https://www.googleapis.com/auth/cloud-platform"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">client </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> anthropic.AnthropicVertex(</span></span>
+<span class="line"><span style="color:#FFAB70">    project_id</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"my-gcp-project"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    region</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"us-east5"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    credentials</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">credentials</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="5-vertex-ai-でのモデル管理">5. Vertex AI でのモデル管理</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># 利用可能なモデル（Vertex AI ではモデル ID が異なる場合がある）</span></span>
+<span class="line"><span style="color:#6A737D"># 最新情報は GCP コンソールで確認</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">VERTEX_MODELS</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">    "claude-opus-4-5"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"最高性能・複雑なタスク"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    "claude-sonnet-4-5"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"バランス型・推奨"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">    "claude-haiku-4-5"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"高速・軽量タスク"</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># モデルのフォールバック（利用不可の場合の切り替え）</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> create_message_with_fallback</span><span style="color:#E1E4E8">(prompt: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    models </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">"claude-sonnet-4-5"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"claude-haiku-4-5"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> model </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> models:</span></span>
+<span class="line"><span style="color:#F97583">        try</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">            response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> client.messages.create(</span></span>
+<span class="line"><span style="color:#FFAB70">                model</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">model,</span></span>
+<span class="line"><span style="color:#FFAB70">                max_tokens</span><span style="color:#F97583">=</span><span style="color:#79B8FF">1024</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">                messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[{</span><span style="color:#9ECBFF">"role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"content"</span><span style="color:#E1E4E8">: prompt}]</span></span>
+<span class="line"><span style="color:#E1E4E8">            )</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> response.content[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">].text</span></span>
+<span class="line"><span style="color:#F97583">        except</span><span style="color:#E1E4E8"> anthropic.APIStatusError </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> e:</span></span>
+<span class="line"><span style="color:#F97583">            if</span><span style="color:#9ECBFF"> "model"</span><span style="color:#F97583"> in</span><span style="color:#79B8FF"> str</span><span style="color:#E1E4E8">(e).lower():</span></span>
+<span class="line"><span style="color:#F97583">                continue</span><span style="color:#6A737D">  # 次のモデルを試す</span></span>
+<span class="line"><span style="color:#F97583">            raise</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    raise</span><span style="color:#79B8FF"> RuntimeError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"利用可能なモデルがありません"</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="6-cloud-run--vertex-ai-の構成例">6. Cloud Run + Vertex AI の構成例</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Cloud Run 上の FastAPI アプリから Vertex AI 経由で Claude を使う</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> fastapi </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> FastAPI</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> anthropic</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> os</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">app </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> FastAPI()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Cloud Run では GOOGLE_CLOUD_PROJECT が自動的に設定される</span></span>
+<span class="line"><span style="color:#E1E4E8">client </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> anthropic.AnthropicVertex(</span></span>
+<span class="line"><span style="color:#FFAB70">    project_id</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">os.environ[</span><span style="color:#9ECBFF">"GOOGLE_CLOUD_PROJECT"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#FFAB70">    region</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">os.environ.get(</span><span style="color:#9ECBFF">"VERTEX_AI_REGION"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"us-east5"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@app.post</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"/summarize"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> summarize</span><span style="color:#E1E4E8">(text: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#E1E4E8">    response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> client.messages.create(</span></span>
+<span class="line"><span style="color:#FFAB70">        model</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"claude-sonnet-4-5"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">        max_tokens</span><span style="color:#F97583">=</span><span style="color:#79B8FF">500</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">        messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[{</span></span>
+<span class="line"><span style="color:#9ECBFF">            "role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "content"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"以下のテキストを3行で要約してください:</span><span style="color:#79B8FF">\n\n{</span><span style="color:#E1E4E8">text</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">        }]</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> {</span><span style="color:#9ECBFF">"summary"</span><span style="color:#E1E4E8">: response.content[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">].text}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="dockerfile"><code><span class="line"><span style="color:#6A737D"># Cloud Run 用 Dockerfile</span></span>
+<span class="line"><span style="color:#F97583">FROM</span><span style="color:#E1E4E8"> python:3.12-slim</span></span>
+<span class="line"><span style="color:#F97583">WORKDIR</span><span style="color:#E1E4E8"> /app</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> requirements.txt .</span></span>
+<span class="line"><span style="color:#F97583">RUN</span><span style="color:#E1E4E8"> pip install -r requirements.txt</span></span>
+<span class="line"><span style="color:#F97583">COPY</span><span style="color:#E1E4E8"> . .</span></span>
+<span class="line"><span style="color:#F97583">CMD</span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">"uvicorn"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"main:app"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"--host"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"0.0.0.0"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"--port"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"8080"</span><span style="color:#E1E4E8">]</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Cloud Run にデプロイ（サービスアカウントの権限が自動適用される）</span></span>
+<span class="line"><span style="color:#B392F0">gcloud</span><span style="color:#9ECBFF"> run</span><span style="color:#9ECBFF"> deploy</span><span style="color:#9ECBFF"> claude-api</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --image</span><span style="color:#9ECBFF"> gcr.io/my-project/claude-api</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --region</span><span style="color:#9ECBFF"> asia-northeast1</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --service-account</span><span style="color:#9ECBFF"> claude-runner@my-project.iam.gserviceaccount.com</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --set-env-vars</span><span style="color:#9ECBFF"> VERTEX_AI_REGION=us-east5</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --no-allow-unauthenticated</span></span></code></pre>
+<hr>
+<h2 id="7-bedrock-との使い分け実践的な判断基準">7. Bedrock との使い分け（実践的な判断基準）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>GCP 側のリソースと Claude を連携したい:</span></span>
+<span class="line"><span>  ✅ BigQuery のデータを分析させる → Vertex AI</span></span>
+<span class="line"><span>  ✅ Cloud Storage のファイルを処理する → Vertex AI</span></span>
+<span class="line"><span>  ✅ Cloud Run でホストしている → Vertex AI</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>AWS 側のリソースと Claude を連携したい:</span></span>
+<span class="line"><span>  ✅ S3 データを処理する → Bedrock</span></span>
+<span class="line"><span>  ✅ Lambda で呼び出す → Bedrock</span></span>
+<span class="line"><span>  ✅ ECS でホストしている → Bedrock</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>既存の AWS/GCP インフラに合わせる:</span></span>
+<span class="line"><span>  → それぞれのクラウドの Claude を使う（IAM 設定が楽）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>コストと最新モデルを優先:</span></span>
+<span class="line"><span>  → Anthropic API 直接（最も早く新モデルが使える）</span></span></code></pre>
+<hr>
+<h2 id="-関連資料">🔗 関連資料</h2>
+<ul>
+<li><a href="/learning/ai/amazon-bedrock/claude-on-bedrock/">../Amazon_Bedrock/01_Claude_on_Bedrock.md</a> — AWS 版の構成</li>
+<li><a href="/learning/ai/claude/api%E6%B4%BB%E7%94%A8/">../Claude/03_API活用.md</a> — Tool Use・Batch API 等の共通機能</li>
+<li><a href="https://anthropic.skilljar.com/">Anthropic Skilljar: Claude with Google Cloud Vertex AI</a></li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Python 実践 — Kotlin エンジニアのための高速キャッチアップ」。プログラミングについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/python/python%E5%AE%9F%E8%B7%B5-kotlin%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E5%90%91%E3%81%91/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Python 実践 — Kotlin エンジニアのための高速キャッチアップ — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Python 実践 — Kotlin エンジニアのための高速キャッチアップ」。プログラミングについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/programming/python/python%E5%AE%9F%E8%B7%B5-kotlin%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E5%90%91%E3%81%91/"><meta name="theme-color" content="#c8ff4a"><title>Python 実践 — Kotlin エンジニアのための高速キャッチアップ — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-programming">プログラミング</a> <span aria-hidden="true">/</span><span>python</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#kotlin--python-対応表">Kotlin → Python 対応表</a> </li><li> <a href="#1-データクラスとバリデーション">1. データクラスとバリデーション</a> </li><li> <a href="#2-非同期処理coroutines--asyncio">2. 非同期処理（Coroutines → asyncio）</a> </li><li> <a href="#3-repository-パターンkotlin-の-room-経験を活かす">3. Repository パターン（Kotlin の Room 経験を活かす）</a> </li><li> <a href="#4-boto3--aws-操作lambda-経験の延長">4. boto3 — AWS 操作（Lambda 経験の延長）</a> </li><li> <a href="#5-型ヒント実践kotlin-の型安全に近づける">5. 型ヒント実践（Kotlin の型安全に近づける）</a> </li><li> <a href="#6-cli-ツール作成click">6. CLI ツール作成（click）</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="python-実践--kotlin-エンジニアのための高速キャッチアップ">Python 実践 — Kotlin エンジニアのための高速キャッチアップ</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+Kotlin（Clean Architecture・Coroutines・Flow）の経験がある前提。対比しながら Python の実践力をつける。</p>
+</blockquote>
+<hr>
+<h2 id="kotlin--python-対応表">Kotlin → Python 対応表</h2>
+<table>
+<thead>
+<tr>
+<th>Kotlin</th>
+<th>Python</th>
+<th>備考</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data class</code></td>
+<td><code>@dataclass</code> / <code>pydantic.BaseModel</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>suspend fun</code></td>
+<td><code>async def</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Flow&lt;T&gt;</code></td>
+<td><code>AsyncGenerator</code> / <code>asyncio.Queue</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>interface</code></td>
+<td><code>Protocol</code> / <code>ABC</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>@Inject</code> (Hilt)</td>
+<td>コンストラクタ注入 or <code>dependency-injector</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>sealed class</code></td>
+<td><code>Enum</code> + <code>Union</code> 型</td>
+<td></td>
+</tr>
+<tr>
+<td><code>?.</code> (null safe)</td>
+<td><code>Optional[T]</code> + <code>if x is not None</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Room @Dao</code></td>
+<td><code>SQLAlchemy</code> / <code>sqlite3</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>Retrofit</code></td>
+<td><code>httpx</code> / <code>requests</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>object</code> (singleton)</td>
+<td>モジュールレベル変数 or <code>@lru_cache</code></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="1-データクラスとバリデーション">1. データクラスとバリデーション</h2>
+<p>Kotlin の <code>data class</code> に慣れているなら <code>pydantic</code> が自然：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Kotlin:</span></span>
+<span class="line"><span style="color:#6A737D"># data class Book(val id: Long, val title: String, val status: ReadingStatus)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> pydantic </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> BaseModel</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> enum </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Enum</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> ReadingStatus</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">, </span><span style="color:#B392F0">Enum</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#79B8FF">    UNREAD</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "unread"</span></span>
+<span class="line"><span style="color:#79B8FF">    READING</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "reading"</span></span>
+<span class="line"><span style="color:#79B8FF">    COMPLETED</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "completed"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> Book</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">BaseModel</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#79B8FF">    id</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">int</span></span>
+<span class="line"><span style="color:#E1E4E8">    title: </span><span style="color:#79B8FF">str</span></span>
+<span class="line"><span style="color:#E1E4E8">    author: </span><span style="color:#79B8FF">str</span></span>
+<span class="line"><span style="color:#E1E4E8">    status: ReadingStatus </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ReadingStatus.</span><span style="color:#79B8FF">UNREAD</span></span>
+<span class="line"><span style="color:#E1E4E8">    isbn: </span><span style="color:#79B8FF">str</span><span style="color:#F97583"> |</span><span style="color:#79B8FF"> None</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> None</span><span style="color:#6A737D">  # nullable（Kotlinの String?）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># バリデーション付きで自動生成</span></span>
+<span class="line"><span style="color:#E1E4E8">book </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> Book(</span><span style="color:#FFAB70">id</span><span style="color:#F97583">=</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">title</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"Clean Architecture"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">author</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"Robert Martin"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">status</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"reading"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(book.model_dump())  </span><span style="color:#6A737D"># dictに変換</span></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(book.model_dump_json())  </span><span style="color:#6A737D"># JSONに変換</span></span></code></pre>
+<hr>
+<h2 id="2-非同期処理coroutines--asyncio">2. 非同期処理（Coroutines → asyncio）</h2>
+<p>Kotlin の <code>suspend fun</code> + <code>coroutineScope</code> とほぼ同じ概念：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Kotlin:</span></span>
+<span class="line"><span style="color:#6A737D"># suspend fun fetchBook(id: Long): Book = withContext(Dispatchers.IO) { api.getBook(id) }</span></span>
+<span class="line"><span style="color:#6A737D"># </span></span>
+<span class="line"><span style="color:#6A737D"># viewModelScope.launch {</span></span>
+<span class="line"><span style="color:#6A737D">#     val books = awaitAll(</span></span>
+<span class="line"><span style="color:#6A737D">#         async { fetchBook(1) },</span></span>
+<span class="line"><span style="color:#6A737D">#         async { fetchBook(2) }</span></span>
+<span class="line"><span style="color:#6A737D">#     )</span></span>
+<span class="line"><span style="color:#6A737D"># }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> asyncio</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> httpx</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> fetch_book</span><span style="color:#E1E4E8">(client: httpx.AsyncClient, book_id: </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">dict</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#9ECBFF">    """Kotlin の suspend fun に相当"""</span></span>
+<span class="line"><span style="color:#E1E4E8">    response </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> client.get(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"https://api.example.com/books/</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">book_id</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    response.raise_for_status()</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> response.json()</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">():</span></span>
+<span class="line"><span style="color:#F97583">    async</span><span style="color:#F97583"> with</span><span style="color:#E1E4E8"> httpx.AsyncClient() </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> client:</span></span>
+<span class="line"><span style="color:#6A737D">        # Kotlin の awaitAll に相当（並列実行）</span></span>
+<span class="line"><span style="color:#E1E4E8">        books </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> asyncio.gather(</span></span>
+<span class="line"><span style="color:#E1E4E8">            fetch_book(client, </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">            fetch_book(client, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">            fetch_book(client, </span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> books</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">asyncio.run(main())</span></span></code></pre>
+<hr>
+<h2 id="3-repository-パターンkotlin-の-room-経験を活かす">3. Repository パターン（Kotlin の Room 経験を活かす）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Kotlin:</span></span>
+<span class="line"><span style="color:#6A737D"># interface BookRepository {</span></span>
+<span class="line"><span style="color:#6A737D">#     fun getAllBooks(): Flow&lt;List&lt;Book&gt;&gt;</span></span>
+<span class="line"><span style="color:#6A737D">#     suspend fun insertBook(book: Book): Long</span></span>
+<span class="line"><span style="color:#6A737D"># }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> abc </span><span style="color:#F97583">import</span><span style="color:#79B8FF"> ABC</span><span style="color:#E1E4E8">, abstractmethod</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> typing </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Protocol</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Protocol = Kotlin の interface</span></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> BookRepository</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">Protocol</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> get_all_books</span><span style="color:#E1E4E8">(self) -&gt; list[Book]: </span><span style="color:#79B8FF">...</span></span>
+<span class="line"><span style="color:#F97583">    async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> insert_book</span><span style="color:#E1E4E8">(self, book: Book) -&gt; </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">...</span></span>
+<span class="line"><span style="color:#F97583">    async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> search_books</span><span style="color:#E1E4E8">(self, query: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; list[Book]: </span><span style="color:#79B8FF">...</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 実装クラス（Room の RepositoryImpl に相当）</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> aiosqlite</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> SQLiteBookRepository</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, db_path: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.db_path </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> db_path</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> get_all_books</span><span style="color:#E1E4E8">(self) -&gt; list[Book]:</span></span>
+<span class="line"><span style="color:#F97583">        async</span><span style="color:#F97583"> with</span><span style="color:#E1E4E8"> aiosqlite.connect(</span><span style="color:#79B8FF">self</span><span style="color:#E1E4E8">.db_path) </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> db:</span></span>
+<span class="line"><span style="color:#F97583">            async</span><span style="color:#F97583"> with</span><span style="color:#E1E4E8"> db.execute(</span><span style="color:#9ECBFF">"SELECT * FROM books ORDER BY updated_at DESC"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> cursor:</span></span>
+<span class="line"><span style="color:#E1E4E8">                rows </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> cursor.fetchall()</span></span>
+<span class="line"><span style="color:#F97583">                return</span><span style="color:#E1E4E8"> [Book(</span><span style="color:#FFAB70">id</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">r[</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">], </span><span style="color:#FFAB70">title</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">r[</span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">], </span><span style="color:#FFAB70">author</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">r[</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">], </span><span style="color:#FFAB70">status</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">r[</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">]) </span><span style="color:#F97583">for</span><span style="color:#E1E4E8"> r </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> rows]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> insert_book</span><span style="color:#E1E4E8">(self, book: Book) -&gt; </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        async</span><span style="color:#F97583"> with</span><span style="color:#E1E4E8"> aiosqlite.connect(</span><span style="color:#79B8FF">self</span><span style="color:#E1E4E8">.db_path) </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> db:</span></span>
+<span class="line"><span style="color:#E1E4E8">            cursor </span><span style="color:#F97583">=</span><span style="color:#F97583"> await</span><span style="color:#E1E4E8"> db.execute(</span></span>
+<span class="line"><span style="color:#9ECBFF">                "INSERT INTO books (title, author, status) VALUES (?, ?, ?)"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#E1E4E8">                (book.title, book.author, book.status.value)</span></span>
+<span class="line"><span style="color:#E1E4E8">            )</span></span>
+<span class="line"><span style="color:#F97583">            await</span><span style="color:#E1E4E8"> db.commit()</span></span>
+<span class="line"><span style="color:#F97583">            return</span><span style="color:#E1E4E8"> cursor.lastrowid</span></span></code></pre>
+<hr>
+<h2 id="4-boto3--aws-操作lambda-経験の延長">4. boto3 — AWS 操作（Lambda 経験の延長）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> boto3</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> botocore.exceptions </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> ClientError</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Lambda で使っている requests → boto3 に切り替え</span></span>
+<span class="line"><span style="color:#E1E4E8">ec2 </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> boto3.client(</span><span style="color:#9ECBFF">'ec2'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">region_name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'ap-northeast-1'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> get_running_instances</span><span style="color:#E1E4E8">() -&gt; list[</span><span style="color:#79B8FF">dict</span><span style="color:#E1E4E8">]:</span></span>
+<span class="line"><span style="color:#9ECBFF">    """実行中のEC2一覧を取得"""</span></span>
+<span class="line"><span style="color:#E1E4E8">    paginator </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ec2.get_paginator(</span><span style="color:#9ECBFF">'describe_instances'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    instances </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> []</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> page </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> paginator.paginate(</span></span>
+<span class="line"><span style="color:#FFAB70">        Filters</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[{</span><span style="color:#9ECBFF">'Name'</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'instance-state-name'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'Values'</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">'running'</span><span style="color:#E1E4E8">]}]</span></span>
+<span class="line"><span style="color:#E1E4E8">    ):</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> reservation </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> page[</span><span style="color:#9ECBFF">'Reservations'</span><span style="color:#E1E4E8">]:</span></span>
+<span class="line"><span style="color:#F97583">            for</span><span style="color:#E1E4E8"> inst </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> reservation[</span><span style="color:#9ECBFF">'Instances'</span><span style="color:#E1E4E8">]:</span></span>
+<span class="line"><span style="color:#E1E4E8">                name </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> next</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">                    (t[</span><span style="color:#9ECBFF">'Value'</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">for</span><span style="color:#E1E4E8"> t </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> inst.get(</span><span style="color:#9ECBFF">'Tags'</span><span style="color:#E1E4E8">, []) </span><span style="color:#F97583">if</span><span style="color:#E1E4E8"> t[</span><span style="color:#9ECBFF">'Key'</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> 'Name'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'No Name'</span></span>
+<span class="line"><span style="color:#E1E4E8">                )</span></span>
+<span class="line"><span style="color:#E1E4E8">                instances.append({</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'id'</span><span style="color:#E1E4E8">: inst[</span><span style="color:#9ECBFF">'InstanceId'</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'type'</span><span style="color:#E1E4E8">: inst[</span><span style="color:#9ECBFF">'InstanceType'</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'name'</span><span style="color:#E1E4E8">: name,</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'private_ip'</span><span style="color:#E1E4E8">: inst.get(</span><span style="color:#9ECBFF">'PrivateIpAddress'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'N/A'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">                })</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> instances</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># エラーハンドリング（Kotlin の try-catch と同じ構造）</span></span>
+<span class="line"><span style="color:#F97583">try</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    instances </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> get_running_instances()</span></span>
+<span class="line"><span style="color:#F97583">    for</span><span style="color:#E1E4E8"> inst </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> instances:</span></span>
+<span class="line"><span style="color:#79B8FF">        print</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">inst[</span><span style="color:#9ECBFF">'name'</span><span style="color:#E1E4E8">]</span><span style="color:#F97583">:30</span><span style="color:#79B8FF">}</span><span style="color:#79B8FF"> {</span><span style="color:#E1E4E8">inst[</span><span style="color:#9ECBFF">'type'</span><span style="color:#E1E4E8">]</span><span style="color:#F97583">:15</span><span style="color:#79B8FF">}</span><span style="color:#79B8FF"> {</span><span style="color:#E1E4E8">inst[</span><span style="color:#9ECBFF">'id'</span><span style="color:#E1E4E8">]</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">except</span><span style="color:#E1E4E8"> ClientError </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> e:</span></span>
+<span class="line"><span style="color:#79B8FF">    print</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"AWS Error: </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">e.response[</span><span style="color:#9ECBFF">'Error'</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">'Code'</span><span style="color:#E1E4E8">]</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">: </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">e.response[</span><span style="color:#9ECBFF">'Error'</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">'Message'</span><span style="color:#E1E4E8">]</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="5-型ヒント実践kotlin-の型安全に近づける">5. 型ヒント実践（Kotlin の型安全に近づける）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> typing </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> TypeVar, Generic</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">T </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> TypeVar(</span><span style="color:#9ECBFF">'T'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Kotlin の Result&lt;T&gt; / sealed class に相当</span></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> Result</span><span style="color:#E1E4E8">(Generic[T]):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#79B8FF"> __init__</span><span style="color:#E1E4E8">(self, value: T </span><span style="color:#F97583">|</span><span style="color:#79B8FF"> None</span><span style="color:#E1E4E8">, error: </span><span style="color:#79B8FF">Exception</span><span style="color:#F97583"> |</span><span style="color:#79B8FF"> None</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">._value </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> value</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">._error </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> error</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    @</span><span style="color:#79B8FF">classmethod</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> success</span><span style="color:#E1E4E8">(cls, value: T) -&gt; </span><span style="color:#9ECBFF">'Result[T]'</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> cls</span><span style="color:#E1E4E8">(value, </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    @</span><span style="color:#79B8FF">classmethod</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> failure</span><span style="color:#E1E4E8">(cls, error: </span><span style="color:#79B8FF">Exception</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#9ECBFF">'Result[T]'</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> cls</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">, error)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">    @</span><span style="color:#79B8FF">property</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> is_success</span><span style="color:#E1E4E8">(self) -&gt; </span><span style="color:#79B8FF">bool</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> self</span><span style="color:#E1E4E8">._error </span><span style="color:#F97583">is</span><span style="color:#79B8FF"> None</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> get_or_raise</span><span style="color:#E1E4E8">(self) -&gt; T:</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#79B8FF"> self</span><span style="color:#E1E4E8">._error:</span></span>
+<span class="line"><span style="color:#F97583">            raise</span><span style="color:#79B8FF"> self</span><span style="color:#E1E4E8">._error</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> self</span><span style="color:#E1E4E8">._value</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 使用例</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> fetch_config</span><span style="color:#E1E4E8">(key: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; Result[</span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">]:</span></span>
+<span class="line"><span style="color:#F97583">    import</span><span style="color:#E1E4E8"> os</span></span>
+<span class="line"><span style="color:#E1E4E8">    value </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> os.environ.get(key)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> value </span><span style="color:#F97583">is</span><span style="color:#79B8FF"> None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> Result.failure(</span><span style="color:#79B8FF">KeyError</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"環境変数 </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">key</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF"> が未設定"</span><span style="color:#E1E4E8">))</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> Result.success(value)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> fetch_config(</span><span style="color:#9ECBFF">"DATABASE_URL"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> result.is_success:</span></span>
+<span class="line"><span style="color:#E1E4E8">    url </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> result.get_or_raise()</span></span></code></pre>
+<hr>
+<h2 id="6-cli-ツール作成click">6. CLI ツール作成（click）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> click</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@click.group</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> cli</span><span style="color:#E1E4E8">():</span></span>
+<span class="line"><span style="color:#9ECBFF">    """インフラ管理ツール"""</span></span>
+<span class="line"><span style="color:#F97583">    pass</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@cli.command</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#B392F0">@click.option</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'--region'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">default</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'ap-northeast-1'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">help</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'AWSリージョン'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">@click.option</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'--env'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">type</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">click.Choice([</span><span style="color:#9ECBFF">'prod'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'stg'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'dev'</span><span style="color:#E1E4E8">]), </span><span style="color:#FFAB70">required</span><span style="color:#F97583">=</span><span style="color:#79B8FF">True</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> list_instances</span><span style="color:#E1E4E8">(region: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">, env: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#9ECBFF">    """EC2インスタンス一覧を表示"""</span></span>
+<span class="line"><span style="color:#E1E4E8">    click.echo(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"Region: </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">region</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">, Env: </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">env</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#6A737D">    # boto3 で取得...</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@cli.command</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#B392F0">@click.argument</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'instance_id'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#B392F0">@click.confirmation_option</span><span style="color:#E1E4E8">(</span><span style="color:#FFAB70">prompt</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'本当に停止しますか？'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> stop_instance</span><span style="color:#E1E4E8">(instance_id: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#9ECBFF">    """EC2インスタンスを停止"""</span></span>
+<span class="line"><span style="color:#E1E4E8">    click.echo(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"Stopping </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">instance_id</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">..."</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#79B8FF"> __name__</span><span style="color:#F97583"> ==</span><span style="color:#9ECBFF"> '__main__'</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    cli()</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">python</span><span style="color:#9ECBFF"> tool.py</span><span style="color:#9ECBFF"> list-instances</span><span style="color:#79B8FF"> --env</span><span style="color:#9ECBFF"> prod</span></span>
+<span class="line"><span style="color:#B392F0">python</span><span style="color:#9ECBFF"> tool.py</span><span style="color:#9ECBFF"> stop-instance</span><span style="color:#9ECBFF"> i-abc1234</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li>Anthropic API — Claude API 実践（今後追加予定）</li>
+<li><a href="/learning/devops/cicd/github-actions/">../../06_DevOps/CICD/01_GitHub_Actions.md</a> — Python スクリプトを CI/CD で自動実行</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

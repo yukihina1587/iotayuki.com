@@ -1,0 +1,223 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「AWS — SAA 以上の設計・運用知識」。クラウドについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="AWS — SAA 以上の設計・運用知識 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「AWS — SAA 以上の設計・運用知識」。クラウドについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/"><meta name="theme-color" content="#c8ff4a"><title>AWS — SAA 以上の設計・運用知識 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-cloud">クラウド</a> <span aria-hidden="true">/</span><span>aws</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-saa-を超えた設計判断">1. SAA を超えた設計判断</a> </li><li class="learning-toc-subitem"> <a href="#ecs-vs-eks--選び方">ECS vs EKS — 選び方</a> </li><li class="learning-toc-subitem"> <a href="#lambda-vs-fargate-vs-ec2">Lambda vs Fargate vs EC2</a> </li><li> <a href="#2-コスト最適化sap-でも重要">2. コスト最適化（SAP でも重要）</a> </li><li class="learning-toc-subitem"> <a href="#reserved-instance-vs-savings-plans">Reserved Instance vs Savings Plans</a> </li><li class="learning-toc-subitem"> <a href="#コスト可視化削減の実践">コスト可視化・削減の実践</a> </li><li> <a href="#3-マルチアカウント設計organizations">3. マルチアカウント設計（Organizations）</a> </li><li class="learning-toc-subitem"> <a href="#service-control-policy-scp">Service Control Policy (SCP)</a> </li><li> <a href="#4-可用性設計パターン">4. 可用性設計パターン</a> </li><li class="learning-toc-subitem"> <a href="#multi-az-vs-multi-region">Multi-AZ vs Multi-Region</a> </li><li class="learning-toc-subitem"> <a href="#rds-のフェイルオーバーを理解する">RDS のフェイルオーバーを理解する</a> </li><li> <a href="#5-オブザーバビリティobservability三本柱">5. オブザーバビリティ（Observability）三本柱</a> </li><li> <a href="#6-よく出る-sap-試験の設計問題">6. よく出る SAP 試験の設計問題</a> </li><li class="learning-toc-subitem"> <a href="#大量データの転送">大量データの転送</a> </li><li class="learning-toc-subitem"> <a href="#bluegreen-デプロイ">Blue/Green デプロイ</a> </li><li class="learning-toc-subitem"> <a href="#イベント駆動アーキテクチャ">イベント駆動アーキテクチャ</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="aws--saa-以上の設計運用知識">AWS — SAA 以上の設計・運用知識</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+SAA 取得済み・Lambda 実装経験あり。VPC/EC2/S3/IAM の基礎は省略。<strong>設計判断・コスト・運用</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-saa-を超えた設計判断">1. SAA を超えた設計判断</h2>
+<h3 id="ecs-vs-eks--選び方">ECS vs EKS — 選び方</h3>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>ECS (Fargate)</th>
+<th>EKS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>学習コスト</td>
+<td>低い（AWS 固有）</td>
+<td>高い（K8s 知識必要）</td>
+</tr>
+<tr>
+<td>運用コスト</td>
+<td>低い</td>
+<td>高い（コントロールプレーン $0.10/h）</td>
+</tr>
+<tr>
+<td>ポータビリティ</td>
+<td>AWS のみ</td>
+<td>どのK8sクラスターでも動く</td>
+</tr>
+<tr>
+<td>エコシステム</td>
+<td>AWS 統合が充実</td>
+<td>K8s エコシステム（Helm等）</td>
+</tr>
+<tr>
+<td><strong>採用基準</strong></td>
+<td>AWS に集中・チームが小さい</td>
+<td>マルチクラウド・K8s 標準化済み</td>
+</tr>
+</tbody>
+</table>
+<h3 id="lambda-vs-fargate-vs-ec2">Lambda vs Fargate vs EC2</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Lambda:</span></span>
+<span class="line"><span>  ✅ イベント駆動・短時間処理（15分以内）</span></span>
+<span class="line"><span>  ✅ リクエスト数が読めない（ゼロスケール）</span></span>
+<span class="line"><span>  ❌ コールドスタート、ステートレス</span></span>
+<span class="line"><span>  例: S3イベント処理、API Gateway バックエンド</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Fargate:</span></span>
+<span class="line"><span>  ✅ 常時稼働のコンテナ、サーバー管理不要</span></span>
+<span class="line"><span>  ✅ 秒単位課金（EC2より柔軟）</span></span>
+<span class="line"><span>  ❌ EC2 より高コスト（同スペックで約2倍）</span></span>
+<span class="line"><span>  例: Web API、バッチ処理</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>EC2:</span></span>
+<span class="line"><span>  ✅ 最大コントロール、コスト最適化</span></span>
+<span class="line"><span>  ✅ Reserved Instance で大幅割引（最大72%）</span></span>
+<span class="line"><span>  ❌ サーバー管理が必要</span></span>
+<span class="line"><span>  例: 長時間・安定したワークロード、特殊なインスタンスタイプ</span></span></code></pre>
+<hr>
+<h2 id="2-コスト最適化sap-でも重要">2. コスト最適化（SAP でも重要）</h2>
+<h3 id="reserved-instance-vs-savings-plans">Reserved Instance vs Savings Plans</h3>
+<table>
+<thead>
+<tr>
+<th>タイプ</th>
+<th>割引率</th>
+<th>柔軟性</th>
+<th>適用対象</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Standard RI</td>
+<td>最大72%</td>
+<td>低（変更不可）</td>
+<td>特定インスタンスタイプ</td>
+</tr>
+<tr>
+<td>Convertible RI</td>
+<td>最大66%</td>
+<td>中（変更可）</td>
+<td>インスタンスタイプ変更可</td>
+</tr>
+<tr>
+<td>Compute Savings Plans</td>
+<td>最大66%</td>
+<td>高</td>
+<td>EC2/Lambda/Fargate</td>
+</tr>
+<tr>
+<td>EC2 Instance Savings Plans</td>
+<td>最大72%</td>
+<td>中</td>
+<td>特定ファミリー</td>
+</tr>
+</tbody>
+</table>
+<h3 id="コスト可視化削減の実践">コスト可視化・削減の実践</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Cost Explorer API で月次コストを取得</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ce</span><span style="color:#9ECBFF"> get-cost-and-usage</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --time-period</span><span style="color:#9ECBFF"> Start=2026-02-01,End=2026-03-01</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --granularity</span><span style="color:#9ECBFF"> MONTHLY</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --metrics</span><span style="color:#9ECBFF"> BlendedCost</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --group-by</span><span style="color:#9ECBFF"> Type=DIMENSION,Key=SERVICE</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 未使用リソースの検出</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ec2</span><span style="color:#9ECBFF"> describe-instances</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --filters</span><span style="color:#9ECBFF"> "Name=instance-state-name,Values=stopped"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --query</span><span style="color:#9ECBFF"> 'Reservations[].Instances[].[InstanceId,Tags[?Key==`Name`].Value|[0],LaunchTime]'</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --output</span><span style="color:#9ECBFF"> table</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Trusted Advisor で推奨確認（Businessサポート以上で全チェック）</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> support</span><span style="color:#9ECBFF"> describe-trusted-advisor-checks</span><span style="color:#79B8FF"> --language</span><span style="color:#9ECBFF"> ja</span></span></code></pre>
+<hr>
+<h2 id="3-マルチアカウント設計organizations">3. マルチアカウント設計（Organizations）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Root</span></span>
+<span class="line"><span>├── Management Account（請求・ポリシー管理のみ）</span></span>
+<span class="line"><span>├── Security OU</span></span>
+<span class="line"><span>│   ├── Log Archive Account（CloudTrail, Config logs）</span></span>
+<span class="line"><span>│   └── Security Tooling Account（SecurityHub, GuardDuty）</span></span>
+<span class="line"><span>├── Infrastructure OU</span></span>
+<span class="line"><span>│   └── Shared Services Account（DNS, Directory Service）</span></span>
+<span class="line"><span>└── Workloads OU</span></span>
+<span class="line"><span>    ├── Production Account</span></span>
+<span class="line"><span>    └── Development Account</span></span></code></pre>
+<h3 id="service-control-policy-scp">Service Control Policy (SCP)</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#6A737D">// 東京リージョン以外での操作を禁止（Root OUに適用）</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "Version"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2012-10-17"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "Statement"</span><span style="color:#E1E4E8">: [{</span></span>
+<span class="line"><span style="color:#79B8FF">    "Effect"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Deny"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "Action"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"*"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "Resource"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"*"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "Condition"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "StringNotEquals"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">        "aws:RequestedRegion"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"ap-northeast-1"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">      },</span></span>
+<span class="line"><span style="color:#79B8FF">      "ArnNotLike"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">        "aws:PrincipalARN"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#9ECBFF">          "arn:aws:iam::*:role/OrganizationAccountAccessRole"</span></span>
+<span class="line"><span style="color:#E1E4E8">        ]</span></span>
+<span class="line"><span style="color:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }]</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="4-可用性設計パターン">4. 可用性設計パターン</h2>
+<h3 id="multi-az-vs-multi-region">Multi-AZ vs Multi-Region</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Multi-AZ（高可用性）:</span></span>
+<span class="line"><span>  - 同一リージョン内の別データセンター</span></span>
+<span class="line"><span>  - RDS Multi-AZ: スタンバイへの自動フェイルオーバー（60-120秒）</span></span>
+<span class="line"><span>  - 99.99% SLA が目安</span></span>
+<span class="line"><span>  - ほぼ全てのサービスで推奨</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Multi-Region（DR対応）:</span></span>
+<span class="line"><span>  - 地域災害・リージョン障害への対応</span></span>
+<span class="line"><span>  - RTO/RPO 要件が厳しい場合</span></span>
+<span class="line"><span>  - コストが大幅増</span></span>
+<span class="line"><span>  - Route53 + CloudFront でトラフィック切り替え</span></span></code></pre>
+<h3 id="rds-のフェイルオーバーを理解する">RDS のフェイルオーバーを理解する</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Primary (AZ-a)          Standby (AZ-c)</span></span>
+<span class="line"><span>    ↓ 書き込み              ↓ 同期レプリケーション</span></span>
+<span class="line"><span>   DB データ  ─────────&gt;  DB データ（ミラーリング）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>フェイルオーバー時:</span></span>
+<span class="line"><span>1. Primary が障害</span></span>
+<span class="line"><span>2. DNS が Standby に切り替わる（同じエンドポイントURL）</span></span>
+<span class="line"><span>3. アプリは再接続するだけ</span></span></code></pre>
+<hr>
+<h2 id="5-オブザーバビリティobservability三本柱">5. オブザーバビリティ（Observability）三本柱</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Metrics（メトリクス）</span></span>
+<span class="line"><span>  └── CloudWatch Metrics, Container Insights</span></span>
+<span class="line"><span>  └── 例: CPU使用率, リクエスト数, エラー率</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Logs（ログ）</span></span>
+<span class="line"><span>  └── CloudWatch Logs, OpenSearch</span></span>
+<span class="line"><span>  └── 例: アプリログ, アクセスログ, 監査ログ</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Traces（トレース）</span></span>
+<span class="line"><span>  └── X-Ray, OpenTelemetry</span></span>
+<span class="line"><span>  └── 例: マイクロサービス間のレイテンシ追跡</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Lambda での X-Ray トレーシング</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> aws_xray_sdk.core </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> xray_recorder, patch_all</span></span>
+<span class="line"><span style="color:#E1E4E8">patch_all()  </span><span style="color:#6A737D"># boto3, requests 等を自動計装</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@xray_recorder.capture</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">'process_order'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> process_order</span><span style="color:#E1E4E8">(order_id: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#6A737D">    # このセグメントがX-Rayのトレースに記録される</span></span>
+<span class="line"><span style="color:#79B8FF">    ...</span></span></code></pre>
+<hr>
+<h2 id="6-よく出る-sap-試験の設計問題">6. よく出る SAP 試験の設計問題</h2>
+<h3 id="大量データの転送">大量データの転送</h3>
+<ul>
+<li>オンプレ → AWS: <strong>AWS DataSync</strong>（ネットワーク転送）/ <strong>Snowball Edge</strong>（物理デバイス）</li>
+<li>閾値: 10Gbps 以下なら Direct Connect / 100TB 超なら Snowball 検討</li>
+</ul>
+<h3 id="bluegreen-デプロイ">Blue/Green デプロイ</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Blue（現行）:  ALB → Target Group Blue  → EC2/ECS Blue</span></span>
+<span class="line"><span>Green（新版）:                           → EC2/ECS Green</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>切り替え: ALB のリスナールールを Green に変更</span></span>
+<span class="line"><span>ロールバック: Blue に戻すだけ（即時）</span></span></code></pre>
+<h3 id="イベント駆動アーキテクチャ">イベント駆動アーキテクチャ</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>S3 Upload</span></span>
+<span class="line"><span>  → S3 Event Notification</span></span>
+<span class="line"><span>  → SQS（バッファリング・デカップリング）</span></span>
+<span class="line"><span>  → Lambda（処理）</span></span>
+<span class="line"><span>  → SNS（通知）</span></span>
+<span class="line"><span>  → DynamoDB（結果保存）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>ポイント: SQS でバッファリングすると Lambda の同時実行数を制御できる</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/cloud/aws/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/">02_コンテナサービス.md</a> — ECS・EKS 実践</li>
+<li><a href="/learning/cloud/aws/%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC%E3%83%AC%E3%82%B9/">03_サーバーレス.md</a> — Lambda・API Gateway 深掘り</li>
+<li><a href="/learning/devops/iac/terraform/">../../06_DevOps/IaC/01_Terraform.md</a> — AWS リソースを Terraform で管理</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

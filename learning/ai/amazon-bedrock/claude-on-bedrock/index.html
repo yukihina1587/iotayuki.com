@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Claude with Amazon Bedrock」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/ai/amazon-bedrock/claude-on-bedrock/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Claude with Amazon Bedrock — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Claude with Amazon Bedrock」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/ai/amazon-bedrock/claude-on-bedrock/"><meta name="theme-color" content="#c8ff4a"><title>Claude with Amazon Bedrock — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-ai">AI・LLM</a> <span aria-hidden="true">/</span><span>amazon bedrock</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">AI</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-bedrock-vs-anthropic-api-直接--どちらを使うか">1. Bedrock vs Anthropic API 直接 — どちらを使うか</a> </li><li> <a href="#2-セットアップ">2. セットアップ</a> </li><li> <a href="#3-基本的なリクエスト">3. 基本的なリクエスト</a> </li><li> <a href="#4-boto3-でのストリーミング">4. boto3 でのストリーミング</a> </li><li> <a href="#5-bedrock-固有の機能">5. Bedrock 固有の機能</a> </li><li class="learning-toc-subitem"> <a href="#guardrails--入出力フィルタリング">Guardrails — 入出力フィルタリング</a> </li><li class="learning-toc-subitem"> <a href="#knowledge-bases--マネージド-rag">Knowledge Bases — マネージド RAG</a> </li><li> <a href="#6-iam-ポリシー設定">6. IAM ポリシー設定</a> </li><li> <a href="#7-lambda-から-bedrock-を呼ぶ実践パターン">7. Lambda から Bedrock を呼ぶ（実践パターン）</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="claude-with-amazon-bedrock">Claude with Amazon Bedrock</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+参照コース: <a href="https://anthropic.skilljar.com/claude-in-amazon-bedrock">https://anthropic.skilljar.com/claude-in-amazon-bedrock</a><br>
+AWS SAA 取得済み。<strong>Bedrock 経由で Claude を使う方法と、直接 API との使い分け</strong>を理解する。</p>
+</blockquote>
+<hr>
+<h2 id="1-bedrock-vs-anthropic-api-直接--どちらを使うか">1. Bedrock vs Anthropic API 直接 — どちらを使うか</h2>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>Anthropic API 直接</th>
+<th>Amazon Bedrock</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>課金</strong></td>
+<td>Anthropic に直接支払い</td>
+<td>AWS 請求に統合</td>
+</tr>
+<tr>
+<td><strong>IAM 認証</strong></td>
+<td>API キーのみ</td>
+<td><strong>IAM ロール・ポリシーで管理可</strong></td>
+</tr>
+<tr>
+<td><strong>VPC 内利用</strong></td>
+<td>不可（インターネット経由）</td>
+<td><strong>VPC エンドポイント経由で可</strong></td>
+</tr>
+<tr>
+<td><strong>監査ログ</strong></td>
+<td>Anthropic コンソールのみ</td>
+<td><strong>CloudTrail に記録</strong></td>
+</tr>
+<tr>
+<td><strong>モデルの種類</strong></td>
+<td>Claude のみ</td>
+<td>Claude + Titan + Llama 等</td>
+</tr>
+<tr>
+<td><strong>レイテンシ</strong></td>
+<td>低い</td>
+<td>やや高い（AWS 経由）</td>
+</tr>
+<tr>
+<td><strong>エンタープライズ</strong></td>
+<td>△</td>
+<td><strong>◎（コンプライアンス・ガバナンス対応）</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>選び方:</strong></p>
+<ul>
+<li>個人・スタートアップ → Anthropic API 直接</li>
+<li>AWS 既存環境・エンタープライズ → <strong>Bedrock 推奨</strong></li>
+<li>コンプライアンス要件（データの AWS 内保持など）→ <strong>Bedrock 一択</strong></li>
+</ul>
+<hr>
+<h2 id="2-セットアップ">2. セットアップ</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># boto3 で Bedrock を使う（AWS CLI の設定が前提）</span></span>
+<span class="line"><span style="color:#B392F0">pip</span><span style="color:#9ECBFF"> install</span><span style="color:#9ECBFF"> boto3</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># モデルアクセスの有効化</span></span>
+<span class="line"><span style="color:#6A737D"># AWS コンソール → Amazon Bedrock → モデルアクセス → Claude を有効化</span></span></code></pre>
+<hr>
+<h2 id="3-基本的なリクエスト">3. 基本的なリクエスト</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> boto3</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> json</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">bedrock </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> boto3.client(</span></span>
+<span class="line"><span style="color:#FFAB70">    service_name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'bedrock-runtime'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    region_name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'us-east-1'</span><span style="color:#6A737D">  # 利用可能リージョンに注意（東京は一部モデルのみ）</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># Anthropic Messages API 互換フォーマット</span></span>
+<span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> bedrock.invoke_model(</span></span>
+<span class="line"><span style="color:#FFAB70">    modelId</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'anthropic.claude-opus-4-5-20251101-v1:0'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    body</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">json.dumps({</span></span>
+<span class="line"><span style="color:#9ECBFF">        "anthropic_version"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"bedrock-2023-05-31"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "max_tokens"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1024</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "messages"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#E1E4E8">            {</span><span style="color:#9ECBFF">"role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"content"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Terraform でプライベートサブネットを作るコードを書いて"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">        ]</span></span>
+<span class="line"><span style="color:#E1E4E8">    })</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> json.loads(response[</span><span style="color:#9ECBFF">'body'</span><span style="color:#E1E4E8">].read())</span></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(result[</span><span style="color:#9ECBFF">'content'</span><span style="color:#E1E4E8">][</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">'text'</span><span style="color:#E1E4E8">])</span></span></code></pre>
+<hr>
+<h2 id="4-boto3-でのストリーミング">4. boto3 でのストリーミング</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> bedrock.invoke_model_with_response_stream(</span></span>
+<span class="line"><span style="color:#FFAB70">    modelId</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'anthropic.claude-opus-4-5-20251101-v1:0'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    body</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">json.dumps({</span></span>
+<span class="line"><span style="color:#9ECBFF">        "anthropic_version"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"bedrock-2023-05-31"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "max_tokens"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2048</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "messages"</span><span style="color:#E1E4E8">: [{</span><span style="color:#9ECBFF">"role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"content"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"K8s の Deployment マニフェストを詳しく説明して"</span><span style="color:#E1E4E8">}]</span></span>
+<span class="line"><span style="color:#E1E4E8">    })</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8"> event </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> response[</span><span style="color:#9ECBFF">'body'</span><span style="color:#E1E4E8">]:</span></span>
+<span class="line"><span style="color:#E1E4E8">    chunk </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> json.loads(event[</span><span style="color:#9ECBFF">'chunk'</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">'bytes'</span><span style="color:#E1E4E8">])</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> chunk.get(</span><span style="color:#9ECBFF">'type'</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> 'content_block_delta'</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#79B8FF">        print</span><span style="color:#E1E4E8">(chunk[</span><span style="color:#9ECBFF">'delta'</span><span style="color:#E1E4E8">].get(</span><span style="color:#9ECBFF">'text'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">''</span><span style="color:#E1E4E8">), </span><span style="color:#FFAB70">end</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">''</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">flush</span><span style="color:#F97583">=</span><span style="color:#79B8FF">True</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="5-bedrock-固有の機能">5. Bedrock 固有の機能</h2>
+<h3 id="guardrails--入出力フィルタリング">Guardrails — 入出力フィルタリング</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Guardrail を設定して有害コンテンツをブロック</span></span>
+<span class="line"><span style="color:#6A737D"># コンソールで Guardrail を作成後、ID を指定</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> bedrock.invoke_model(</span></span>
+<span class="line"><span style="color:#FFAB70">    modelId</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'anthropic.claude-opus-4-5-20251101-v1:0'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    guardrailIdentifier</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'xxxxxxxx'</span><span style="color:#E1E4E8">,  </span><span style="color:#6A737D"># Guardrail ID</span></span>
+<span class="line"><span style="color:#FFAB70">    guardrailVersion</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'DRAFT'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">    body</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">json.dumps({</span></span>
+<span class="line"><span style="color:#9ECBFF">        "anthropic_version"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"bedrock-2023-05-31"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "max_tokens"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1024</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        "messages"</span><span style="color:#E1E4E8">: [{</span><span style="color:#9ECBFF">"role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"content"</span><span style="color:#E1E4E8">: user_input}]</span></span>
+<span class="line"><span style="color:#E1E4E8">    })</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span></code></pre>
+<h3 id="knowledge-bases--マネージド-rag">Knowledge Bases — マネージド RAG</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Bedrock Knowledge Base = S3のドキュメントを自動でベクトル化してくれるマネージドRAG</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">bedrock_agent </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> boto3.client(</span><span style="color:#9ECBFF">'bedrock-agent-runtime'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">region_name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'us-east-1'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> bedrock_agent.retrieve_and_generate(</span></span>
+<span class="line"><span style="color:#FFAB70">    input</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span><span style="color:#9ECBFF">'text'</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'障害対応手順を教えてください'</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#FFAB70">    retrieveAndGenerateConfiguration</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#9ECBFF">        'type'</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'KNOWLEDGE_BASE'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        'knowledgeBaseConfiguration'</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">            'knowledgeBaseId'</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'XXXXXXXXXX'</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            'modelArn'</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-opus-4-5-20251101-v1:0'</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(response[</span><span style="color:#9ECBFF">'output'</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">'text'</span><span style="color:#E1E4E8">])</span></span>
+<span class="line"><span style="color:#6A737D"># 引用元も返ってくる</span></span>
+<span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8"> citation </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> response.get(</span><span style="color:#9ECBFF">'citations'</span><span style="color:#E1E4E8">, []):</span></span>
+<span class="line"><span style="color:#79B8FF">    print</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"参照: </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">citation[</span><span style="color:#9ECBFF">'retrievedReferences'</span><span style="color:#E1E4E8">][</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">'location'</span><span style="color:#E1E4E8">]</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<hr>
+<h2 id="6-iam-ポリシー設定">6. IAM ポリシー設定</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">    "Version"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2012-10-17"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "Statement"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#E1E4E8">        {</span></span>
+<span class="line"><span style="color:#79B8FF">            "Effect"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Allow"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">            "Action"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#9ECBFF">                "bedrock:InvokeModel"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "bedrock:InvokeModelWithResponseStream"</span></span>
+<span class="line"><span style="color:#E1E4E8">            ],</span></span>
+<span class="line"><span style="color:#79B8FF">            "Resource"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#9ECBFF">                "arn:aws:bedrock:*::foundation-model/anthropic.claude-*"</span></span>
+<span class="line"><span style="color:#E1E4E8">            ]</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="7-lambda-から-bedrock-を呼ぶ実践パターン">7. Lambda から Bedrock を呼ぶ（実践パターン）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># Lambda 関数（Lambda の実行ロールに Bedrock 権限を付与）</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> json</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> boto3</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">bedrock </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> boto3.client(</span><span style="color:#9ECBFF">'bedrock-runtime'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">region_name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'us-east-1'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> lambda_handler</span><span style="color:#E1E4E8">(event, context):</span></span>
+<span class="line"><span style="color:#E1E4E8">    user_message </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> event.get(</span><span style="color:#9ECBFF">'message'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">''</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> bedrock.invoke_model(</span></span>
+<span class="line"><span style="color:#FFAB70">        modelId</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'anthropic.claude-haiku-4-5-20250307-v1:0'</span><span style="color:#E1E4E8">,  </span><span style="color:#6A737D"># 安い・速いモデル</span></span>
+<span class="line"><span style="color:#FFAB70">        body</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">json.dumps({</span></span>
+<span class="line"><span style="color:#9ECBFF">            "anthropic_version"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"bedrock-2023-05-31"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "max_tokens"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">512</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">            "messages"</span><span style="color:#E1E4E8">: [{</span><span style="color:#9ECBFF">"role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"content"</span><span style="color:#E1E4E8">: user_message}]</span></span>
+<span class="line"><span style="color:#E1E4E8">        })</span></span>
+<span class="line"><span style="color:#E1E4E8">    )</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> json.loads(response[</span><span style="color:#9ECBFF">'body'</span><span style="color:#E1E4E8">].read())</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">        'statusCode'</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">200</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">        'body'</span><span style="color:#E1E4E8">: json.dumps({</span></span>
+<span class="line"><span style="color:#9ECBFF">            'response'</span><span style="color:#E1E4E8">: result[</span><span style="color:#9ECBFF">'content'</span><span style="color:#E1E4E8">][</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">'text'</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#9ECBFF">            'usage'</span><span style="color:#E1E4E8">: result[</span><span style="color:#9ECBFF">'usage'</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">        })</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/ai/claude/api%E6%B4%BB%E7%94%A8/">../Claude/03_API活用.md</a> — Anthropic API 直接との比較</li>
+<li><a href="/learning/cloud/aws/%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC%E3%83%AC%E3%82%B9/">../../03_Cloud/AWS/03_サーバーレス.md</a> — Lambda から Bedrock を呼ぶ構成</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

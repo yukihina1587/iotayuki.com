@@ -1,0 +1,286 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Terraform 応用 — Workspace・Terragrunt・Atlantis」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/devops/iac/terraform%E5%BF%9C%E7%94%A8/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Terraform 応用 — Workspace・Terragrunt・Atlantis — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Terraform 応用 — Workspace・Terragrunt・Atlantis」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/devops/iac/terraform%E5%BF%9C%E7%94%A8/"><meta name="theme-color" content="#c8ff4a"><title>Terraform 応用 — Workspace・Terragrunt・Atlantis — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-devops">DevOps・自動化</a> <span aria-hidden="true">/</span><span>iac</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">DEVOPS</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-terraform-workspace--環境分離">1. Terraform Workspace — 環境分離</a> </li><li> <a href="#2-terragrunt--dry-な多環境管理">2. Terragrunt — DRY な多環境管理</a> </li><li> <a href="#3-atlantis--pull-request-ベースのレビューフロー">3. Atlantis — Pull Request ベースのレビューフロー</a> </li><li> <a href="#4-tfstate-の管理とロック">4. tfstate の管理とロック</a> </li><li> <a href="#5-モジュール設計のベストプラクティス">5. モジュール設計のベストプラクティス</a> </li><li> <a href="#6-cicd-パイプラインでの-terraform">6. CI/CD パイプラインでの Terraform</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="terraform-応用--workspaceterragruntatlantis">Terraform 応用 — Workspace・Terragrunt・Atlantis</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+Terraform 基礎（HCL・EC2+ALB+RDS 例）は前提。<strong>チーム開発・マルチ環境・CI/CD 統合</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-terraform-workspace--環境分離">1. Terraform Workspace — 環境分離</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Workspace = state ファイルを分離する仕組み</span></span>
+<span class="line"><span style="color:#6A737D"># 同じコードベースで dev/stg/prod を管理</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> workspace</span><span style="color:#9ECBFF"> list</span></span>
+<span class="line"><span style="color:#6A737D"># * default</span></span>
+<span class="line"><span style="color:#6A737D">#   dev</span></span>
+<span class="line"><span style="color:#6A737D">#   staging</span></span>
+<span class="line"><span style="color:#6A737D">#   production</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> workspace</span><span style="color:#9ECBFF"> new</span><span style="color:#9ECBFF"> staging</span></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> workspace</span><span style="color:#9ECBFF"> select</span><span style="color:#9ECBFF"> staging</span></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> plan</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="hcl"><code><span class="line"><span style="color:#6A737D"># workspace によって設定を切り替え</span></span>
+<span class="line"><span style="color:#B392F0">locals</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  env</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> terraform</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">workspace  </span><span style="color:#6A737D"># "dev", "staging", "production"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">  config</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    dev </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">      instance_type </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "t3.micro"</span></span>
+<span class="line"><span style="color:#E1E4E8">      min_size      </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#E1E4E8">      max_size      </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 2</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    staging </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">      instance_type </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "t3.small"</span></span>
+<span class="line"><span style="color:#E1E4E8">      min_size      </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#E1E4E8">      max_size      </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 3</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">    production </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">      instance_type </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "t3.medium"</span></span>
+<span class="line"><span style="color:#E1E4E8">      min_size      </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 2</span></span>
+<span class="line"><span style="color:#E1E4E8">      max_size      </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 10</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">  current</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> local</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">config[local</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">env]</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">resource</span><span style="color:#79B8FF"> "aws_instance"</span><span style="color:#79B8FF"> "app"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  instance_type</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> local</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">current</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">instance_type</span></span>
+<span class="line"><span style="color:#6A737D">  # ...</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p><strong>Workspace の制限</strong>: 同じ backend（S3 バケット等）を共有するため、IAM 設定が複雑。大規模では Terragrunt が有効。</p>
+<hr>
+<h2 id="2-terragrunt--dry-な多環境管理">2. Terragrunt — DRY な多環境管理</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>ディレクトリ構成（Terragrunt 推奨）:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>infra/</span></span>
+<span class="line"><span>├── modules/                    # 再利用可能なモジュール</span></span>
+<span class="line"><span>│   ├── vpc/</span></span>
+<span class="line"><span>│   ├── ecs/</span></span>
+<span class="line"><span>│   └── rds/</span></span>
+<span class="line"><span>├── live/</span></span>
+<span class="line"><span>│   ├── terragrunt.hcl          # 共通設定（backend・provider）</span></span>
+<span class="line"><span>│   ├── dev/</span></span>
+<span class="line"><span>│   │   ├── terragrunt.hcl      # dev 用の変数</span></span>
+<span class="line"><span>│   │   ├── vpc/</span></span>
+<span class="line"><span>│   │   │   └── terragrunt.hcl</span></span>
+<span class="line"><span>│   │   └── ecs/</span></span>
+<span class="line"><span>│   │       └── terragrunt.hcl</span></span>
+<span class="line"><span>│   └── production/</span></span>
+<span class="line"><span>│       ├── terragrunt.hcl</span></span>
+<span class="line"><span>│       └── ...</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="hcl"><code><span class="line"><span style="color:#6A737D"># live/terragrunt.hcl（ルート：共通設定）</span></span>
+<span class="line"><span style="color:#B392F0">remote_state</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  backend</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "s3"</span></span>
+<span class="line"><span style="color:#E1E4E8">  generate</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    path      </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "backend.tf"</span></span>
+<span class="line"><span style="color:#E1E4E8">    if_exists </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "overwrite"</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">  config</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    bucket         </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "mycompany-terraform-state"</span></span>
+<span class="line"><span style="color:#E1E4E8">    key            </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "</span><span style="color:#F97583">${</span><span style="color:#79B8FF">path_relative_to_include</span><span style="color:#9ECBFF">()</span><span style="color:#F97583">}</span><span style="color:#9ECBFF">/terraform.tfstate"</span></span>
+<span class="line"><span style="color:#E1E4E8">    region         </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "ap-northeast-1"</span></span>
+<span class="line"><span style="color:#E1E4E8">    encrypt        </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> true</span></span>
+<span class="line"><span style="color:#E1E4E8">    dynamodb_table </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "terraform-lock"</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">generate</span><span style="color:#79B8FF"> "provider"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  path</span><span style="color:#F97583">      =</span><span style="color:#9ECBFF"> "provider.tf"</span></span>
+<span class="line"><span style="color:#E1E4E8">  if_exists</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "overwrite"</span></span>
+<span class="line"><span style="color:#E1E4E8">  contents</span><span style="color:#F97583"> =</span><span style="color:#F97583"> &lt;&lt;EOF</span></span>
+<span class="line"><span style="color:#9ECBFF">provider "aws" {</span></span>
+<span class="line"><span style="color:#9ECBFF">  region = "ap-northeast-1"</span></span>
+<span class="line"><span style="color:#9ECBFF">}</span></span>
+<span class="line"><span style="color:#F97583">EOF</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="hcl"><code><span class="line"><span style="color:#6A737D"># live/production/vpc/terragrunt.hcl</span></span>
+<span class="line"><span style="color:#B392F0">include</span><span style="color:#79B8FF"> "root"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  path</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> find_in_parent_folders</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  source</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "../../../modules/vpc"</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">inputs</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  vpc_cidr     </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "10.0.0.0/16"</span></span>
+<span class="line"><span style="color:#E1E4E8">  env          </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "production"</span></span>
+<span class="line"><span style="color:#E1E4E8">  az_count     </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> 3</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 全環境を一括でプランしたい場合（--all オプション）</span></span>
+<span class="line"><span style="color:#79B8FF">cd</span><span style="color:#9ECBFF"> live/production</span></span>
+<span class="line"><span style="color:#B392F0">terragrunt</span><span style="color:#9ECBFF"> run-all</span><span style="color:#9ECBFF"> plan</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 依存関係も自動的に処理（vpc → ecs の順でデプロイ）</span></span>
+<span class="line"><span style="color:#B392F0">terragrunt</span><span style="color:#9ECBFF"> run-all</span><span style="color:#9ECBFF"> apply</span><span style="color:#79B8FF"> --terragrunt-non-interactive</span></span></code></pre>
+<hr>
+<h2 id="3-atlantis--pull-request-ベースのレビューフロー">3. Atlantis — Pull Request ベースのレビューフロー</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Atlantis の仕組み:</span></span>
+<span class="line"><span>  PR 作成</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>  GitHub Webhook → Atlantis サーバー</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>  Atlantis が自動で `terraform plan` を実行</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>  PR にプランの結果をコメント</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>  レビュアーが確認してコメントで承認</span></span>
+<span class="line"><span>  `atlantis apply`</span></span>
+<span class="line"><span>    ↓</span></span>
+<span class="line"><span>  `terraform apply` が実行される → PR マージ</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># atlantis.yaml（リポジトリルートに置く）</span></span>
+<span class="line"><span style="color:#85E89D">version</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span></span>
+<span class="line"><span style="color:#85E89D">automerge</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">false</span></span>
+<span class="line"><span style="color:#85E89D">parallel_plan</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span></span>
+<span class="line"><span style="color:#85E89D">parallel_apply</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">false</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">projects</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production-vpc</span></span>
+<span class="line"><span style="color:#85E89D">    dir</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">live/production/vpc</span></span>
+<span class="line"><span style="color:#85E89D">    workspace</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">default</span></span>
+<span class="line"><span style="color:#85E89D">    autoplan</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      when_modified</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        - </span><span style="color:#9ECBFF">"*.tf"</span></span>
+<span class="line"><span style="color:#E1E4E8">        - </span><span style="color:#9ECBFF">"../../../modules/vpc/**/*.tf"</span></span>
+<span class="line"><span style="color:#85E89D">      enabled</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production-ecs</span></span>
+<span class="line"><span style="color:#85E89D">    dir</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">live/production/ecs</span></span>
+<span class="line"><span style="color:#85E89D">    workspace</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">default</span></span>
+<span class="line"><span style="color:#85E89D">    depends_on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">production-vpc</span></span>
+<span class="line"><span style="color:#85E89D">    autoplan</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      enabled</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span></span></code></pre>
+<hr>
+<h2 id="4-tfstate-の管理とロック">4. tfstate の管理とロック</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="hcl"><code><span class="line"><span style="color:#6A737D"># backend.tf — state を S3 に保存・DynamoDB でロック</span></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#B392F0">  backend</span><span style="color:#79B8FF"> "s3"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    bucket</span><span style="color:#F97583">         =</span><span style="color:#9ECBFF"> "mycompany-terraform-state"</span></span>
+<span class="line"><span style="color:#E1E4E8">    key</span><span style="color:#F97583">            =</span><span style="color:#9ECBFF"> "production/main/terraform.tfstate"</span></span>
+<span class="line"><span style="color:#E1E4E8">    region</span><span style="color:#F97583">         =</span><span style="color:#9ECBFF"> "ap-northeast-1"</span></span>
+<span class="line"><span style="color:#E1E4E8">    encrypt</span><span style="color:#F97583">        =</span><span style="color:#79B8FF"> true</span></span>
+<span class="line"><span style="color:#E1E4E8">    dynamodb_table</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "terraform-state-lock"</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # State Locking: 同時実行を防ぐ</span></span>
+<span class="line"><span style="color:#6A737D">    # DynamoDB テーブルに LockID という項目でロックを取得</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># state の操作（緊急時）</span></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> state</span><span style="color:#9ECBFF"> list</span><span style="color:#6A737D">                    # 管理対象リソースの一覧</span></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> state</span><span style="color:#9ECBFF"> show</span><span style="color:#9ECBFF"> aws_instance.app</span><span style="color:#6A737D">   # 特定リソースの詳細</span></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> state</span><span style="color:#9ECBFF"> mv</span><span style="color:#9ECBFF"> aws_instance.old</span><span style="color:#9ECBFF"> aws_instance.new</span><span style="color:#6A737D">  # リソース名変更</span></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> state</span><span style="color:#9ECBFF"> rm</span><span style="color:#9ECBFF"> aws_instance.to_delete</span><span style="color:#6A737D">             # state から削除（実リソースは残る）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># state が壊れた・ロックが残った場合</span></span>
+<span class="line"><span style="color:#B392F0">terraform</span><span style="color:#9ECBFF"> force-unlock</span><span style="color:#9ECBFF"> LOCK_ID</span></span></code></pre>
+<hr>
+<h2 id="5-モジュール設計のベストプラクティス">5. モジュール設計のベストプラクティス</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="hcl"><code><span class="line"><span style="color:#6A737D"># modules/ecs/main.tf — 再利用可能なモジュール</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">variable</span><span style="color:#79B8FF"> "env"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  description</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "環境名（dev/staging/production）"</span></span>
+<span class="line"><span style="color:#E1E4E8">  type</span><span style="color:#F97583">        =</span><span style="color:#F97583"> string</span></span>
+<span class="line"><span style="color:#B392F0">  validation</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    condition</span><span style="color:#F97583">     =</span><span style="color:#79B8FF"> contains</span><span style="color:#E1E4E8">([</span><span style="color:#9ECBFF">"dev"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"staging"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"production"</span><span style="color:#E1E4E8">], var</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">env)</span></span>
+<span class="line"><span style="color:#E1E4E8">    error_message</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "env は dev, staging, production のいずれかである必要があります。"</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">variable</span><span style="color:#79B8FF"> "container_image"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  description</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "ECR イメージ URI"</span></span>
+<span class="line"><span style="color:#E1E4E8">  type</span><span style="color:#F97583">        =</span><span style="color:#F97583"> string</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">variable</span><span style="color:#79B8FF"> "desired_count"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  description</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "ECS タスクの希望数"</span></span>
+<span class="line"><span style="color:#E1E4E8">  type</span><span style="color:#F97583">        =</span><span style="color:#F97583"> number</span></span>
+<span class="line"><span style="color:#E1E4E8">  default</span><span style="color:#F97583">     =</span><span style="color:#79B8FF"> 2</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 出力値（他のモジュールから参照できる）</span></span>
+<span class="line"><span style="color:#B392F0">output</span><span style="color:#79B8FF"> "service_name"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  description</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "ECS サービス名"</span></span>
+<span class="line"><span style="color:#E1E4E8">  value</span><span style="color:#F97583">       =</span><span style="color:#E1E4E8"> aws_ecs_service</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">main</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">name</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">output</span><span style="color:#79B8FF"> "cluster_arn"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  description</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "ECS クラスター ARN"</span></span>
+<span class="line"><span style="color:#E1E4E8">  value</span><span style="color:#F97583">       =</span><span style="color:#E1E4E8"> aws_ecs_cluster</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">main</span><span style="color:#F97583">.</span><span style="color:#E1E4E8">arn</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="6-cicd-パイプラインでの-terraform">6. CI/CD パイプラインでの Terraform</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># .github/workflows/terraform.yml</span></span>
+<span class="line"><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Terraform</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  pull_request</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    branches</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">main</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">    paths</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"infra/**"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">  push</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    branches</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">main</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">    paths</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"infra/**"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">permissions</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  id-token</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">write</span><span style="color:#6A737D">   # OIDC 認証に必要</span></span>
+<span class="line"><span style="color:#85E89D">  contents</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">read</span></span>
+<span class="line"><span style="color:#85E89D">  pull-requests</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">write</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">jobs</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  plan</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    if</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">github.event_name == 'pull_request'</span></span>
+<span class="line"><span style="color:#85E89D">    runs-on</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ubuntu-latest</span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/checkout@v4</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Configure AWS credentials (OIDC)</span></span>
+<span class="line"><span style="color:#85E89D">        uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">aws-actions/configure-aws-credentials@v4</span></span>
+<span class="line"><span style="color:#85E89D">        with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          role-to-assume</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">arn:aws:iam::123456789:role/terraform-plan-role</span></span>
+<span class="line"><span style="color:#85E89D">          aws-region</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ap-northeast-1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Terraform Plan</span></span>
+<span class="line"><span style="color:#85E89D">        id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">plan</span></span>
+<span class="line"><span style="color:#85E89D">        working-directory</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">infra/live/production</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">|</span></span>
+<span class="line"><span style="color:#9ECBFF">          terraform init</span></span>
+<span class="line"><span style="color:#9ECBFF">          terraform plan -no-color -out=tfplan 2&gt;&amp;1 | tee plan.txt</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Comment PR with Plan</span></span>
+<span class="line"><span style="color:#85E89D">        uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/github-script@v7</span></span>
+<span class="line"><span style="color:#85E89D">        with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          script</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">|</span></span>
+<span class="line"><span style="color:#9ECBFF">            const fs = require('fs');</span></span>
+<span class="line"><span style="color:#9ECBFF">            const plan = fs.readFileSync('infra/live/production/plan.txt', 'utf8');</span></span>
+<span class="line"><span style="color:#9ECBFF">            github.rest.issues.createComment({</span></span>
+<span class="line"><span style="color:#9ECBFF">              issue_number: context.issue.number,</span></span>
+<span class="line"><span style="color:#9ECBFF">              owner: context.repo.owner,</span></span>
+<span class="line"><span style="color:#9ECBFF">              repo: context.repo.repo,</span></span>
+<span class="line"><span style="color:#9ECBFF">              body: `\`\`\`\n${plan.slice(0, 65000)}\n\`\`\``</span></span>
+<span class="line"><span style="color:#9ECBFF">            });</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  apply</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    if</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">github.event_name == 'push' &amp;&amp; github.ref == 'refs/heads/main'</span></span>
+<span class="line"><span style="color:#85E89D">    runs-on</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ubuntu-latest</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production</span><span style="color:#6A737D">  # GitHub Environment で承認フローを設定</span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/checkout@v4</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Configure AWS credentials (OIDC)</span></span>
+<span class="line"><span style="color:#85E89D">        uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">aws-actions/configure-aws-credentials@v4</span></span>
+<span class="line"><span style="color:#85E89D">        with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          role-to-assume</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">arn:aws:iam::123456789:role/terraform-apply-role</span></span>
+<span class="line"><span style="color:#85E89D">          aws-region</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ap-northeast-1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Terraform Apply</span></span>
+<span class="line"><span style="color:#85E89D">        working-directory</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">infra/live/production</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">|</span></span>
+<span class="line"><span style="color:#9ECBFF">          terraform init</span></span>
+<span class="line"><span style="color:#9ECBFF">          terraform apply -auto-approve</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/devops/iac/terraform/">01_Terraform.md</a> — 基礎・EC2+ALB+RDS の例</li>
+<li><a href="/learning/devops/cicd/github-actions/">../CICD/01_GitHub_Actions.md</a> — OIDC 認証・ECS デプロイ</li>
+<li><a href="/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/">../../03_Cloud/AWS/01_SAA以上の設計.md</a> — マルチアカウント設計</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

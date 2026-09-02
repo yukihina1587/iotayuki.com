@@ -1,0 +1,184 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「AWS コンテナサービス — ECS・EKS・ECR」。クラウドについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/aws/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="AWS コンテナサービス — ECS・EKS・ECR — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「AWS コンテナサービス — ECS・EKS・ECR」。クラウドについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/cloud/aws/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/"><meta name="theme-color" content="#c8ff4a"><title>AWS コンテナサービス — ECS・EKS・ECR — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-cloud">クラウド</a> <span aria-hidden="true">/</span><span>aws</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-ecrelastic-container-registry-イメージ管理">1. ECR（Elastic Container Registry）— イメージ管理</a> </li><li> <a href="#2-ecs-fargate--サーバーレスコンテナ">2. ECS Fargate — サーバーレスコンテナ</a> </li><li class="learning-toc-subitem"> <a href="#タスク定義docker-composeyml-の-aws-版">タスク定義（docker-compose.yml の AWS 版）</a> </li><li class="learning-toc-subitem"> <a href="#ecs-サービス常時稼働alb-連携">ECS サービス（常時稼働・ALB 連携）</a> </li><li> <a href="#3-ecs-デプロイパターン">3. ECS デプロイパターン</a> </li><li> <a href="#4-ecs-auto-scaling">4. ECS Auto Scaling</a> </li><li> <a href="#5-eksmanaged-kubernetes">5. EKS（Managed Kubernetes）</a> </li><li class="learning-toc-subitem"> <a href="#eks-vs-ecs-の選び方再掲深掘り">EKS vs ECS の選び方（再掲・深掘り）</a> </li><li> <a href="#6-コンテナのコスト最適化">6. コンテナのコスト最適化</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="aws-コンテナサービス--ecseksecr">AWS コンテナサービス — ECS・EKS・ECR</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+Docker・K8sの基礎は前提。<strong>AWS上でコンテナを本番運用するための設計と運用</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-ecrelastic-container-registry-イメージ管理">1. ECR（Elastic Container Registry）— イメージ管理</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># ログイン（OIDC や IAM Role で認証）</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ecr</span><span style="color:#9ECBFF"> get-login-password</span><span style="color:#79B8FF"> --region</span><span style="color:#9ECBFF"> ap-northeast-1</span><span style="color:#F97583"> |</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#B392F0">  docker</span><span style="color:#9ECBFF"> login</span><span style="color:#79B8FF"> --username</span><span style="color:#9ECBFF"> AWS</span><span style="color:#79B8FF"> --password-stdin</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#9ECBFF">  123456789.dkr.ecr.ap-northeast-1.amazonaws.com</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># イメージをプッシュ</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> build</span><span style="color:#79B8FF"> -t</span><span style="color:#9ECBFF"> myapp:latest</span><span style="color:#9ECBFF"> .</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> tag</span><span style="color:#9ECBFF"> myapp:latest</span><span style="color:#9ECBFF"> 123456789.dkr.ecr.ap-northeast-1.amazonaws.com/myapp:latest</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> push</span><span style="color:#9ECBFF"> 123456789.dkr.ecr.ap-northeast-1.amazonaws.com/myapp:latest</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ライフサイクルポリシーで古いイメージを自動削除</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ecr</span><span style="color:#9ECBFF"> put-lifecycle-policy</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --repository-name</span><span style="color:#9ECBFF"> myapp</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --lifecycle-policy-text</span><span style="color:#9ECBFF"> '{</span></span>
+<span class="line"><span style="color:#9ECBFF">    "rules": [{</span></span>
+<span class="line"><span style="color:#9ECBFF">      "rulePriority": 1,</span></span>
+<span class="line"><span style="color:#9ECBFF">      "description": "最新10件を保持",</span></span>
+<span class="line"><span style="color:#9ECBFF">      "selection": {</span></span>
+<span class="line"><span style="color:#9ECBFF">        "tagStatus": "untagged",</span></span>
+<span class="line"><span style="color:#9ECBFF">        "countType": "imageCountMoreThan",</span></span>
+<span class="line"><span style="color:#9ECBFF">        "countNumber": 10</span></span>
+<span class="line"><span style="color:#9ECBFF">      },</span></span>
+<span class="line"><span style="color:#9ECBFF">      "action": {"type": "expire"}</span></span>
+<span class="line"><span style="color:#9ECBFF">    }]</span></span>
+<span class="line"><span style="color:#9ECBFF">  }'</span></span></code></pre>
+<hr>
+<h2 id="2-ecs-fargate--サーバーレスコンテナ">2. ECS Fargate — サーバーレスコンテナ</h2>
+<h3 id="タスク定義docker-composeyml-の-aws-版">タスク定義（docker-compose.yml の AWS 版）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "family"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"myapp"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "networkMode"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"awsvpc"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "requiresCompatibilities"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"FARGATE"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#79B8FF">  "cpu"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"512"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "memory"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"1024"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "executionRoleArn"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"arn:aws:iam::123456789:role/ecsTaskExecutionRole"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "taskRoleArn"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"arn:aws:iam::123456789:role/ecsTaskRole"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "containerDefinitions"</span><span style="color:#E1E4E8">: [{</span></span>
+<span class="line"><span style="color:#79B8FF">    "name"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"myapp"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "image"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"123456789.dkr.ecr.ap-northeast-1.amazonaws.com/myapp:latest"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">    "portMappings"</span><span style="color:#E1E4E8">: [{</span><span style="color:#79B8FF">"containerPort"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">8080</span><span style="color:#E1E4E8">}],</span></span>
+<span class="line"><span style="color:#79B8FF">    "environment"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#E1E4E8">      {</span><span style="color:#79B8FF">"name"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ENV"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"value"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"production"</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">    ],</span></span>
+<span class="line"><span style="color:#79B8FF">    "secrets"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#E1E4E8">      {</span></span>
+<span class="line"><span style="color:#79B8FF">        "name"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"DB_PASSWORD"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        "valueFrom"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"arn:aws:secretsmanager:ap-northeast-1:123456789:secret:db-password"</span></span>
+<span class="line"><span style="color:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#E1E4E8">    ],</span></span>
+<span class="line"><span style="color:#79B8FF">    "logConfiguration"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "logDriver"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"awslogs"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "options"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">        "awslogs-group"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"/ecs/myapp"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        "awslogs-region"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ap-northeast-1"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        "awslogs-stream-prefix"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ecs"</span></span>
+<span class="line"><span style="color:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#E1E4E8">    },</span></span>
+<span class="line"><span style="color:#79B8FF">    "healthCheck"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "command"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"CMD-SHELL"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"curl -f http://localhost:8080/health || exit 1"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#79B8FF">      "interval"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">30</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "timeout"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "retries"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "startPeriod"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">60</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }]</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<h3 id="ecs-サービス常時稼働alb-連携">ECS サービス（常時稼働・ALB 連携）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ecs</span><span style="color:#9ECBFF"> create-service</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --cluster</span><span style="color:#9ECBFF"> production</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --service-name</span><span style="color:#9ECBFF"> myapp</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --task-definition</span><span style="color:#9ECBFF"> myapp:5</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --desired-count</span><span style="color:#79B8FF"> 2</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --launch-type</span><span style="color:#9ECBFF"> FARGATE</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --network-configuration</span><span style="color:#9ECBFF"> "awsvpcConfiguration={</span></span>
+<span class="line"><span style="color:#9ECBFF">    subnets=[subnet-xxx,subnet-yyy],</span></span>
+<span class="line"><span style="color:#9ECBFF">    securityGroups=[sg-zzz],</span></span>
+<span class="line"><span style="color:#9ECBFF">    assignPublicIp=DISABLED</span></span>
+<span class="line"><span style="color:#9ECBFF">  }"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --load-balancers</span><span style="color:#9ECBFF"> "targetGroupArn=arn:aws:...,containerName=myapp,containerPort=8080"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --deployment-configuration</span><span style="color:#9ECBFF"> "minimumHealthyPercent=100,maximumPercent=200"</span></span>
+<span class="line"><span style="color:#6A737D">  # minimumHealthyPercent=100 → 無停止デプロイ</span></span></code></pre>
+<hr>
+<h2 id="3-ecs-デプロイパターン">3. ECS デプロイパターン</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>ローリングアップデート（デフォルト）:</span></span>
+<span class="line"><span>  既存タスク: [v1][v1][v1]</span></span>
+<span class="line"><span>  デプロイ中: [v1][v1][v2]</span></span>
+<span class="line"><span>  完了後:     [v2][v2][v2]</span></span>
+<span class="line"><span>  → ダウンタイムなし（minimumHealthyPercent=100 の場合）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Blue/Green（CodeDeploy 連携）:</span></span>
+<span class="line"><span>  ALB → Target Group Blue [v1][v1]</span></span>
+<span class="line"><span>      ↘ Target Group Green [v2][v2]（新バージョン）</span></span>
+<span class="line"><span>  </span></span>
+<span class="line"><span>  テスト後に ALB を Green に切り替え</span></span>
+<span class="line"><span>  → 即時ロールバック可能（Blue を残しているため）</span></span></code></pre>
+<hr>
+<h2 id="4-ecs-auto-scaling">4. ECS Auto Scaling</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Application Auto Scaling でタスク数を自動調整</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># スケーリングポリシー（CPU 70% を目標）</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> application-autoscaling</span><span style="color:#9ECBFF"> put-scaling-policy</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --service-namespace</span><span style="color:#9ECBFF"> ecs</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --resource-id</span><span style="color:#9ECBFF"> service/production/myapp</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --scalable-dimension</span><span style="color:#9ECBFF"> ecs:service:DesiredCount</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --policy-name</span><span style="color:#9ECBFF"> cpu-tracking</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --policy-type</span><span style="color:#9ECBFF"> TargetTrackingScaling</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --target-tracking-scaling-policy-configuration</span><span style="color:#9ECBFF"> '{</span></span>
+<span class="line"><span style="color:#9ECBFF">    "TargetValue": 70.0,</span></span>
+<span class="line"><span style="color:#9ECBFF">    "PredefinedMetricSpecification": {</span></span>
+<span class="line"><span style="color:#9ECBFF">      "PredefinedMetricType": "ECSServiceAverageCPUUtilization"</span></span>
+<span class="line"><span style="color:#9ECBFF">    },</span></span>
+<span class="line"><span style="color:#9ECBFF">    "ScaleInCooldown": 300,</span></span>
+<span class="line"><span style="color:#9ECBFF">    "ScaleOutCooldown": 60</span></span>
+<span class="line"><span style="color:#9ECBFF">  }'</span></span></code></pre>
+<hr>
+<h2 id="5-eksmanaged-kubernetes">5. EKS（Managed Kubernetes）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># eksctl でクラスター作成（Terraform でも可）</span></span>
+<span class="line"><span style="color:#B392F0">eksctl</span><span style="color:#9ECBFF"> create</span><span style="color:#9ECBFF"> cluster</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --name</span><span style="color:#9ECBFF"> production</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --region</span><span style="color:#9ECBFF"> ap-northeast-1</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --nodegroup-name</span><span style="color:#9ECBFF"> standard</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --node-type</span><span style="color:#9ECBFF"> t3.medium</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --nodes</span><span style="color:#79B8FF"> 2</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --nodes-min</span><span style="color:#79B8FF"> 1</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --nodes-max</span><span style="color:#79B8FF"> 5</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --managed</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># kubectl の設定を更新</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> eks</span><span style="color:#9ECBFF"> update-kubeconfig</span><span style="color:#79B8FF"> --name</span><span style="color:#9ECBFF"> production</span><span style="color:#79B8FF"> --region</span><span style="color:#9ECBFF"> ap-northeast-1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># EKS 固有の設定: IAM Roles for Service Accounts (IRSA)</span></span>
+<span class="line"><span style="color:#6A737D"># PodがIAMロールを使えるようにする（EC2のインスタンスプロファイルに相当）</span></span>
+<span class="line"><span style="color:#B392F0">eksctl</span><span style="color:#9ECBFF"> create</span><span style="color:#9ECBFF"> iamserviceaccount</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --name</span><span style="color:#9ECBFF"> myapp-sa</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --namespace</span><span style="color:#9ECBFF"> production</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --cluster</span><span style="color:#9ECBFF"> production</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --attach-policy-arn</span><span style="color:#9ECBFF"> arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --approve</span></span></code></pre>
+<h3 id="eks-vs-ecs-の選び方再掲深掘り">EKS vs ECS の選び方（再掲・深掘り）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>ECS を選ぶとき:</span></span>
+<span class="line"><span>  ✅ AWS ネイティブで完結したい</span></span>
+<span class="line"><span>  ✅ K8s の学習コストをかけたくない</span></span>
+<span class="line"><span>  ✅ チームが小さい / 移行コストが気になる</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>EKS を選ぶとき:</span></span>
+<span class="line"><span>  ✅ 既に K8s の知識・資産がある</span></span>
+<span class="line"><span>  ✅ Helm チャートなど K8s エコシステムを使いたい</span></span>
+<span class="line"><span>  ✅ マルチクラウドへの対応を見越している</span></span>
+<span class="line"><span>  ✅ 細かいネットワークポリシーが必要（NetworkPolicy）</span></span></code></pre>
+<hr>
+<h2 id="6-コンテナのコスト最適化">6. コンテナのコスト最適化</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># Fargate Spot（最大70%削減、中断リスクあり）</span></span>
+<span class="line"><span style="color:#6A737D"># バッチ処理・開発環境に向く</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ecs</span><span style="color:#9ECBFF"> create-service</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --capacity-provider-strategy</span><span style="color:#9ECBFF"> '[</span></span>
+<span class="line"><span style="color:#9ECBFF">    {"capacityProvider": "FARGATE", "weight": 1, "base": 1},</span></span>
+<span class="line"><span style="color:#9ECBFF">    {"capacityProvider": "FARGATE_SPOT", "weight": 4}</span></span>
+<span class="line"><span style="color:#9ECBFF">  ]'</span></span>
+<span class="line"><span style="color:#6A737D"># → 80%をSpot、20%をオンデマンドで実行</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ECR イメージスキャン（脆弱性検出）</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ecr</span><span style="color:#9ECBFF"> start-image-scan</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --repository-name</span><span style="color:#9ECBFF"> myapp</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --image-id</span><span style="color:#9ECBFF"> imageTag=latest</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ecr</span><span style="color:#9ECBFF"> describe-image-scan-findings</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --repository-name</span><span style="color:#9ECBFF"> myapp</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --image-id</span><span style="color:#9ECBFF"> imageTag=latest</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">  --query</span><span style="color:#9ECBFF"> 'imageScanFindings.findings[?severity==`CRITICAL`]'</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/devops/kubernetes/k8s%E5%9F%BA%E7%A4%8E/">../../06_DevOps/Kubernetes/01_K8s基礎.md</a> — K8s マニフェスト設計</li>
+<li><a href="/learning/devops/iac/terraform/">../../06_DevOps/IaC/01_Terraform.md</a> — ECS/EKS を Terraform で管理</li>
+<li><a href="/learning/devops/cicd/github-actions/">../../06_DevOps/CICD/01_GitHub_Actions.md</a> — ECR/ECS への CI/CD パイプライン</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Bash シェルスクリプト実践」。プログラミングについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/bash/%E3%82%B7%E3%82%A7%E3%83%AB%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88%E5%AE%9F%E8%B7%B5/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Bash シェルスクリプト実践 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Bash シェルスクリプト実践」。プログラミングについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/programming/bash/%E3%82%B7%E3%82%A7%E3%83%AB%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88%E5%AE%9F%E8%B7%B5/"><meta name="theme-color" content="#c8ff4a"><title>Bash シェルスクリプト実践 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-programming">プログラミング</a> <span aria-hidden="true">/</span><span>bash</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-bash-の罠-他言語経験者が踏みやすい">1. Bash の「罠」— 他言語経験者が踏みやすい</a> </li><li> <a href="#2-スクリプトの基本構造">2. スクリプトの基本構造</a> </li><li> <a href="#3-よく使うパターン集">3. よく使うパターン集</a> </li><li class="learning-toc-subitem"> <a href="#ファイルディレクトリ操作">ファイル・ディレクトリ操作</a> </li><li class="learning-toc-subitem"> <a href="#テキスト処理">テキスト処理</a> </li><li class="learning-toc-subitem"> <a href="#プロセスサービス管理">プロセス・サービス管理</a> </li><li> <a href="#4-実践スクリプト--aws-ec2-ヘルスチェック">4. 実践スクリプト — AWS EC2 ヘルスチェック</a> </li><li> <a href="#5-cron定期実行">5. cron・定期実行</a> </li><li> <a href="#6-デバッグ">6. デバッグ</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="bash-シェルスクリプト実践">Bash シェルスクリプト実践</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+プログラミング経験は十分あるので、Bash 特有の罠・イディオム・実践パターンに集中する。</p>
+</blockquote>
+<hr>
+<h2 id="1-bash-の罠-他言語経験者が踏みやすい">1. Bash の「罠」— 他言語経験者が踏みやすい</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># ❌ 変数展開の罠：スペースが入ると2引数になる</span></span>
+<span class="line"><span style="color:#E1E4E8">FILE</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"my file.txt"</span></span>
+<span class="line"><span style="color:#B392F0">rm</span><span style="color:#E1E4E8"> $FILE       </span><span style="color:#6A737D"># → rm my file.txt（2つの引数）</span></span>
+<span class="line"><span style="color:#B392F0">rm</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$FILE</span><span style="color:#9ECBFF">"</span><span style="color:#6A737D">     # ✅ クォートで囲む（常にこちら）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ❌ 比較演算子の違い</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> [ $a </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> $b ]   </span><span style="color:#6A737D"># 文字列比較（[[ ]] 推奨）</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> [ $a </span><span style="color:#F97583">-eq</span><span style="color:#E1E4E8"> $b ]  </span><span style="color:#6A737D"># 数値比較</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> [[ $a </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> $b ]] </span><span style="color:#6A737D"># ✅ 推奨（Word splitting なし）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ❌ コマンド失敗を無視する（デフォルト動作）</span></span>
+<span class="line"><span style="color:#B392F0">cp</span><span style="color:#9ECBFF"> /src</span><span style="color:#9ECBFF"> /dst</span></span>
+<span class="line"><span style="color:#B392F0">rm</span><span style="color:#9ECBFF"> /important</span><span style="color:#6A737D">  # cp が失敗しても rm が実行される</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ✅ エラーで即停止（スクリプト先頭に書く）</span></span>
+<span class="line"><span style="color:#79B8FF">set</span><span style="color:#79B8FF"> -euo</span><span style="color:#9ECBFF"> pipefail</span></span>
+<span class="line"><span style="color:#6A737D"># -e: エラーで即終了</span></span>
+<span class="line"><span style="color:#6A737D"># -u: 未定義変数をエラー</span></span>
+<span class="line"><span style="color:#6A737D"># -o pipefail: パイプ途中のエラーも検知</span></span></code></pre>
+<hr>
+<h2 id="2-スクリプトの基本構造">2. スクリプトの基本構造</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D">#!/usr/bin/env bash</span></span>
+<span class="line"><span style="color:#79B8FF">set</span><span style="color:#79B8FF"> -euo</span><span style="color:#9ECBFF"> pipefail</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 定数</span></span>
+<span class="line"><span style="color:#F97583">readonly</span><span style="color:#E1E4E8"> SCRIPT_DIR</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"$(</span><span style="color:#79B8FF">cd</span><span style="color:#9ECBFF"> "$(</span><span style="color:#B392F0">dirname</span><span style="color:#9ECBFF"> "${</span><span style="color:#E1E4E8">BASH_SOURCE</span><span style="color:#9ECBFF">[0]}")" &amp;&amp; </span><span style="color:#79B8FF">pwd</span><span style="color:#9ECBFF">)"</span></span>
+<span class="line"><span style="color:#F97583">readonly</span><span style="color:#E1E4E8"> LOG_FILE</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"/var/log/myapp/deploy.log"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ログ関数</span></span>
+<span class="line"><span style="color:#B392F0">log</span><span style="color:#E1E4E8">() { </span><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "[$(</span><span style="color:#B392F0">date</span><span style="color:#9ECBFF"> '+%Y-%m-%d %H:%M:%S')] </span><span style="color:#79B8FF">$*</span><span style="color:#9ECBFF">"</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> tee</span><span style="color:#79B8FF"> -a</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$LOG_FILE</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">; }</span></span>
+<span class="line"><span style="color:#B392F0">error</span><span style="color:#E1E4E8">() { </span><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "[ERROR] </span><span style="color:#79B8FF">$*</span><span style="color:#9ECBFF">"</span><span style="color:#F97583"> &gt;&amp;2</span><span style="color:#E1E4E8">; </span><span style="color:#79B8FF">exit</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">; }</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 引数チェック</span></span>
+<span class="line"><span style="color:#B392F0">usage</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#B392F0">    cat</span><span style="color:#F97583"> &lt;&lt;</span><span style="color:#9ECBFF">EOF</span></span>
+<span class="line"><span style="color:#9ECBFF">Usage: </span><span style="color:#79B8FF">$0</span><span style="color:#9ECBFF"> [OPTIONS] &lt;environment&gt;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9ECBFF">Options:</span></span>
+<span class="line"><span style="color:#9ECBFF">  -r, --region    AWS region (default: ap-northeast-1)</span></span>
+<span class="line"><span style="color:#9ECBFF">  -d, --dry-run   Dry run mode</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#9ECBFF">Example:</span></span>
+<span class="line"><span style="color:#79B8FF">  $0</span><span style="color:#9ECBFF"> --region ap-northeast-1 prod</span></span>
+<span class="line"><span style="color:#9ECBFF">EOF</span></span>
+<span class="line"><span style="color:#79B8FF">    exit</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 引数パース</span></span>
+<span class="line"><span style="color:#E1E4E8">REGION</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"ap-northeast-1"</span></span>
+<span class="line"><span style="color:#E1E4E8">DRY_RUN</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">false</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">while</span><span style="color:#E1E4E8"> [[ </span><span style="color:#79B8FF">$#</span><span style="color:#F97583"> -gt</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8"> ]]; </span><span style="color:#F97583">do</span></span>
+<span class="line"><span style="color:#F97583">    case</span><span style="color:#FFAB70"> $1</span><span style="color:#F97583"> in</span></span>
+<span class="line"><span style="color:#DBEDFF">        -r</span><span style="color:#F97583">|</span><span style="color:#DBEDFF">--region</span><span style="color:#F97583">)</span><span style="color:#E1E4E8"> REGION</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">$2</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">; </span><span style="color:#79B8FF">shift</span><span style="color:#79B8FF"> 2</span><span style="color:#E1E4E8"> ;;</span></span>
+<span class="line"><span style="color:#DBEDFF">        -d</span><span style="color:#F97583">|</span><span style="color:#DBEDFF">--dry-run</span><span style="color:#F97583">)</span><span style="color:#E1E4E8"> DRY_RUN</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">true</span><span style="color:#E1E4E8">; </span><span style="color:#79B8FF">shift</span><span style="color:#E1E4E8"> ;;</span></span>
+<span class="line"><span style="color:#DBEDFF">        -h</span><span style="color:#F97583">|</span><span style="color:#DBEDFF">--help</span><span style="color:#F97583">)</span><span style="color:#B392F0"> usage</span><span style="color:#E1E4E8"> ;;</span></span>
+<span class="line"><span style="color:#F97583">        *)</span><span style="color:#E1E4E8"> ENVIRONMENT</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">$1</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">; </span><span style="color:#79B8FF">shift</span><span style="color:#E1E4E8"> ;;</span></span>
+<span class="line"><span style="color:#F97583">    esac</span></span>
+<span class="line"><span style="color:#F97583">done</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">[[ </span><span style="color:#F97583">-z</span><span style="color:#9ECBFF"> "${</span><span style="color:#E1E4E8">ENVIRONMENT</span><span style="color:#F97583">:-</span><span style="color:#9ECBFF">}"</span><span style="color:#E1E4E8"> ]] &amp;&amp; </span><span style="color:#B392F0">usage</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">log</span><span style="color:#9ECBFF"> "Deploy to </span><span style="color:#E1E4E8">$ENVIRONMENT</span><span style="color:#9ECBFF"> (region: </span><span style="color:#E1E4E8">$REGION</span><span style="color:#9ECBFF">, dry-run: </span><span style="color:#E1E4E8">$DRY_RUN</span><span style="color:#9ECBFF">)"</span></span></code></pre>
+<hr>
+<h2 id="3-よく使うパターン集">3. よく使うパターン集</h2>
+<h3 id="ファイルディレクトリ操作">ファイル・ディレクトリ操作</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># ファイル存在チェック</span></span>
+<span class="line"><span style="color:#E1E4E8">[[ </span><span style="color:#F97583">-f</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$FILE</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8"> ]] </span><span style="color:#F97583">||</span><span style="color:#B392F0"> error</span><span style="color:#9ECBFF"> "ファイルが存在しない: </span><span style="color:#E1E4E8">$FILE</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">[[ </span><span style="color:#F97583">-d</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$DIR</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8"> ]] </span><span style="color:#F97583">||</span><span style="color:#B392F0"> mkdir</span><span style="color:#79B8FF"> -p</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$DIR</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 一時ファイル（終了時に自動削除）</span></span>
+<span class="line"><span style="color:#E1E4E8">TMPFILE</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">$(</span><span style="color:#B392F0">mktemp</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#79B8FF">trap</span><span style="color:#9ECBFF"> 'rm -f "$TMPFILE"'</span><span style="color:#9ECBFF"> EXIT</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ファイルの最終N行を監視</span></span>
+<span class="line"><span style="color:#B392F0">tail</span><span style="color:#79B8FF"> -f</span><span style="color:#9ECBFF"> /var/log/nginx/error.log</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -E</span><span style="color:#9ECBFF"> "ERROR|WARN"</span></span></code></pre>
+<h3 id="テキスト処理">テキスト処理</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># CSV の2列目を合計（awkはインフラ必須）</span></span>
+<span class="line"><span style="color:#B392F0">awk</span><span style="color:#79B8FF"> -F</span><span style="color:#9ECBFF">','</span><span style="color:#9ECBFF"> '{sum += $2} END {print sum}'</span><span style="color:#9ECBFF"> data.csv</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ログから特定時間帯を抽出</span></span>
+<span class="line"><span style="color:#B392F0">awk</span><span style="color:#9ECBFF"> '/2026-03-06 15:0[0-5]/'</span><span style="color:#9ECBFF"> /var/log/app.log</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># sed で設定ファイルの値を書き換え</span></span>
+<span class="line"><span style="color:#B392F0">sed</span><span style="color:#79B8FF"> -i</span><span style="color:#9ECBFF"> 's/^MAX_CONNECTIONS=.*/MAX_CONNECTIONS=200/'</span><span style="color:#9ECBFF"> /etc/app/config</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># JSON を整形（jq はインフラで必須）</span></span>
+<span class="line"><span style="color:#B392F0">aws</span><span style="color:#9ECBFF"> ec2</span><span style="color:#9ECBFF"> describe-instances</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> jq</span><span style="color:#9ECBFF"> '.Reservations[].Instances[] | {id: .InstanceId, type: .InstanceType}'</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 特定列だけ表示</span></span>
+<span class="line"><span style="color:#B392F0">ps</span><span style="color:#9ECBFF"> aux</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> awk</span><span style="color:#9ECBFF"> '{print $1, $2, $11}'</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> column</span><span style="color:#79B8FF"> -t</span></span></code></pre>
+<h3 id="プロセスサービス管理">プロセス・サービス管理</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># PID ファイルを使った二重起動防止</span></span>
+<span class="line"><span style="color:#E1E4E8">PIDFILE</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"/var/run/myapp.pid"</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> [[ </span><span style="color:#F97583">-f</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$PIDFILE</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8"> ]] &amp;&amp; </span><span style="color:#79B8FF">kill</span><span style="color:#79B8FF"> -0</span><span style="color:#9ECBFF"> "$(</span><span style="color:#B392F0">cat</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$PIDFILE</span><span style="color:#9ECBFF">")"</span><span style="color:#F97583"> 2&gt;</span><span style="color:#9ECBFF">/dev/null</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">then</span></span>
+<span class="line"><span style="color:#B392F0">    error</span><span style="color:#9ECBFF"> "既に起動中 (PID: $(</span><span style="color:#B392F0">cat</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$PIDFILE</span><span style="color:#9ECBFF">"))"</span></span>
+<span class="line"><span style="color:#F97583">fi</span></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#79B8FF"> $$</span><span style="color:#F97583"> &gt;</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$PIDFILE</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#79B8FF">trap</span><span style="color:#9ECBFF"> 'rm -f "$PIDFILE"'</span><span style="color:#9ECBFF"> EXIT</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># バックグラウンドジョブの管理</span></span>
+<span class="line"><span style="color:#E1E4E8">job_ids</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8"> host </span><span style="color:#F97583">in</span><span style="color:#9ECBFF"> server1</span><span style="color:#9ECBFF"> server2</span><span style="color:#9ECBFF"> server3</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">do</span></span>
+<span class="line"><span style="color:#B392F0">    ssh</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$host</span><span style="color:#9ECBFF">"</span><span style="color:#9ECBFF"> "systemctl restart app"</span><span style="color:#E1E4E8"> &amp;</span></span>
+<span class="line"><span style="color:#E1E4E8">    job_ids</span><span style="color:#F97583">+=</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">$!</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">done</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 全ジョブの完了を待つ</span></span>
+<span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8"> pid </span><span style="color:#F97583">in</span><span style="color:#9ECBFF"> "${</span><span style="color:#E1E4E8">job_ids</span><span style="color:#9ECBFF">[</span><span style="color:#F97583">@</span><span style="color:#9ECBFF">]}"</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">do</span></span>
+<span class="line"><span style="color:#79B8FF">    wait</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$pid</span><span style="color:#9ECBFF">"</span><span style="color:#F97583"> ||</span><span style="color:#B392F0"> error</span><span style="color:#9ECBFF"> "ジョブ失敗 PID: </span><span style="color:#E1E4E8">$pid</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#F97583">done</span></span>
+<span class="line"><span style="color:#B392F0">log</span><span style="color:#9ECBFF"> "全サーバーへのデプロイ完了"</span></span></code></pre>
+<hr>
+<h2 id="4-実践スクリプト--aws-ec2-ヘルスチェック">4. 実践スクリプト — AWS EC2 ヘルスチェック</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D">#!/usr/bin/env bash</span></span>
+<span class="line"><span style="color:#79B8FF">set</span><span style="color:#79B8FF"> -euo</span><span style="color:#9ECBFF"> pipefail</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 全リージョンのEC2インスタンス状態を確認</span></span>
+<span class="line"><span style="color:#B392F0">check_ec2_health</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">    local</span><span style="color:#E1E4E8"> region</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">${1</span><span style="color:#F97583">:-</span><span style="color:#E1E4E8">ap-northeast-1</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#B392F0">    log</span><span style="color:#9ECBFF"> "Checking EC2 instances in </span><span style="color:#E1E4E8">$region</span><span style="color:#9ECBFF">..."</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # AWS CLI + jq でインスタンス一覧取得</span></span>
+<span class="line"><span style="color:#B392F0">    aws</span><span style="color:#9ECBFF"> ec2</span><span style="color:#9ECBFF"> describe-instances</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">        --region</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$region</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">        --query</span><span style="color:#9ECBFF"> 'Reservations[].Instances[].[InstanceId,InstanceType,State.Name,Tags[?Key==`Name`].Value|[0]]'</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#79B8FF">        --output</span><span style="color:#9ECBFF"> text</span><span style="color:#F97583"> |</span><span style="color:#79B8FF"> \</span></span>
+<span class="line"><span style="color:#F97583">    while</span><span style="color:#9ECBFF"> IFS</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">$'</span><span style="color:#79B8FF">\t</span><span style="color:#9ECBFF">'</span><span style="color:#9ECBFF"> read</span><span style="color:#79B8FF"> -r</span><span style="color:#9ECBFF"> id</span><span style="color:#9ECBFF"> type</span><span style="color:#9ECBFF"> state</span><span style="color:#9ECBFF"> name</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">do</span></span>
+<span class="line"><span style="color:#79B8FF">        printf</span><span style="color:#9ECBFF"> "%-20s %-15s %-15s %s\n"</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$id</span><span style="color:#9ECBFF">"</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$type</span><span style="color:#9ECBFF">"</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$state</span><span style="color:#9ECBFF">"</span><span style="color:#9ECBFF"> "${</span><span style="color:#E1E4E8">name</span><span style="color:#F97583">:-</span><span style="color:#E1E4E8">N</span><span style="color:#F97583">/</span><span style="color:#E1E4E8">A</span><span style="color:#9ECBFF">}"</span></span>
+<span class="line"><span style="color:#F97583">    done</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ステータスに応じて色付き出力</span></span>
+<span class="line"><span style="color:#B392F0">colorize</span><span style="color:#E1E4E8">() {</span></span>
+<span class="line"><span style="color:#F97583">    while</span><span style="color:#9ECBFF"> IFS</span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> read</span><span style="color:#79B8FF"> -r</span><span style="color:#9ECBFF"> line</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">do</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> [[ </span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">$line</span><span style="color:#9ECBFF">"</span><span style="color:#F97583"> ==</span><span style="color:#F97583"> *</span><span style="color:#9ECBFF">"running"</span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> ]]; </span><span style="color:#F97583">then</span></span>
+<span class="line"><span style="color:#79B8FF">            echo</span><span style="color:#79B8FF"> -e</span><span style="color:#9ECBFF"> "\033[32m</span><span style="color:#E1E4E8">$line</span><span style="color:#9ECBFF">\033[0m"</span><span style="color:#6A737D">  # 緑</span></span>
+<span class="line"><span style="color:#F97583">        elif</span><span style="color:#E1E4E8"> [[ </span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">$line</span><span style="color:#9ECBFF">"</span><span style="color:#F97583"> ==</span><span style="color:#F97583"> *</span><span style="color:#9ECBFF">"stopped"</span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> ]]; </span><span style="color:#F97583">then</span></span>
+<span class="line"><span style="color:#79B8FF">            echo</span><span style="color:#79B8FF"> -e</span><span style="color:#9ECBFF"> "\033[31m</span><span style="color:#E1E4E8">$line</span><span style="color:#9ECBFF">\033[0m"</span><span style="color:#6A737D">  # 赤</span></span>
+<span class="line"><span style="color:#F97583">        else</span></span>
+<span class="line"><span style="color:#79B8FF">            echo</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$line</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#F97583">        fi</span></span>
+<span class="line"><span style="color:#F97583">    done</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">check_ec2_health</span><span style="color:#9ECBFF"> "ap-northeast-1"</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> colorize</span></span></code></pre>
+<hr>
+<h2 id="5-cron定期実行">5. cron・定期実行</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># crontab -e で編集</span></span>
+<span class="line"><span style="color:#6A737D"># 書式: 分 時 日 月 曜日 コマンド</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 毎日午前2時にバックアップ</span></span>
+<span class="line"><span style="color:#B392F0">0</span><span style="color:#79B8FF"> 2</span><span style="color:#79B8FF"> *</span><span style="color:#79B8FF"> *</span><span style="color:#79B8FF"> *</span><span style="color:#9ECBFF"> /opt/scripts/backup.sh</span><span style="color:#F97583"> &gt;&gt;</span><span style="color:#9ECBFF"> /var/log/backup.log</span><span style="color:#F97583"> 2&gt;&amp;1</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 5分ごとにヘルスチェック</span></span>
+<span class="line"><span style="color:#F97583">*</span><span style="color:#E1E4E8">/5 </span><span style="color:#F97583">*</span><span style="color:#F97583"> *</span><span style="color:#F97583"> *</span><span style="color:#F97583"> *</span><span style="color:#E1E4E8"> /opt/scripts/health_check.sh</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 平日9時にレポート生成</span></span>
+<span class="line"><span style="color:#B392F0">0</span><span style="color:#79B8FF"> 9</span><span style="color:#79B8FF"> *</span><span style="color:#79B8FF"> *</span><span style="color:#9ECBFF"> 1-5</span><span style="color:#9ECBFF"> /opt/scripts/daily_report.sh</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># systemd timer（cron より推奨）も参照: 02_Infrastructure/Linux/</span></span></code></pre>
+<hr>
+<h2 id="6-デバッグ">6. デバッグ</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 実行トレース（各コマンドを表示）</span></span>
+<span class="line"><span style="color:#79B8FF">set</span><span style="color:#79B8FF"> -x</span></span>
+<span class="line"><span style="color:#6A737D"># ... デバッグしたい処理 ...</span></span>
+<span class="line"><span style="color:#79B8FF">set</span><span style="color:#9ECBFF"> +x</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># スクリプト全体をトレース</span></span>
+<span class="line"><span style="color:#B392F0">bash</span><span style="color:#79B8FF"> -x</span><span style="color:#9ECBFF"> script.sh</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 変数の内容確認</span></span>
+<span class="line"><span style="color:#F97583">declare</span><span style="color:#79B8FF"> -p</span><span style="color:#E1E4E8"> MY_ARRAY  </span><span style="color:#6A737D"># 配列の中身をダンプ</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/infrastructure/linux/linux%E5%AE%9F%E8%B7%B5/">../../02_Infrastructure/Linux/01_Linux実践.md</a> — Bash を活かした Linux 管理</li>
+<li><a href="/learning/devops/cicd/github-actions/">../../06_DevOps/CICD/01_GitHub_Actions.md</a> — シェルスクリプトを CI/CD で活用</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

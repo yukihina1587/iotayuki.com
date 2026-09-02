@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Claude 活用実践 — AI Fluency + 業務活用」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/ai/claude/claude%E6%B4%BB%E7%94%A8%E5%AE%9F%E8%B7%B5/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Claude 活用実践 — AI Fluency + 業務活用 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Claude 活用実践 — AI Fluency + 業務活用」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/ai/claude/claude%E6%B4%BB%E7%94%A8%E5%AE%9F%E8%B7%B5/"><meta name="theme-color" content="#c8ff4a"><title>Claude 活用実践 — AI Fluency + 業務活用 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-ai">AI・LLM</a> <span aria-hidden="true">/</span><span>claude</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">AI</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-ai-fluency-フレームワーク">1. AI Fluency フレームワーク</a> </li><li> <a href="#2-claude-の特性を理解する">2. Claude の特性を理解する</a> </li><li class="learning-toc-subitem"> <a href="#claudeが得意なこと">Claudeが得意なこと</a> </li><li class="learning-toc-subitem"> <a href="#注意が必要な場面">注意が必要な場面</a> </li><li> <a href="#3-プロンプトエンジニアリング実践">3. プロンプトエンジニアリング実践</a> </li><li class="learning-toc-subitem"> <a href="#構造化プロンプトxml-タグ活用">構造化プロンプト（XML タグ活用）</a> </li><li class="learning-toc-subitem"> <a href="#few-shot-プロンプト具体例を与える">Few-shot プロンプト（具体例を与える）</a> </li><li class="learning-toc-subitem"> <a href="#chain-of-thought複雑な問題">Chain of Thought（複雑な問題）</a> </li><li> <a href="#4-インフラ業務での具体的な使い方">4. インフラ業務での具体的な使い方</a> </li><li class="learning-toc-subitem"> <a href="#障害対応支援">障害対応支援</a> </li><li class="learning-toc-subitem"> <a href="#設計レビュー">設計レビュー</a> </li><li class="learning-toc-subitem"> <a href="#コード生成の品質を上げる">コード生成の品質を上げる</a> </li><li> <a href="#5-claude-code-活用既に使っているが深掘り">5. Claude Code 活用（既に使っているが深掘り）</a> </li><li class="learning-toc-subitem"> <a href="#claudemd-で-claude-code-をカスタマイズall-book-等でも活用可能">CLAUDE.md で Claude Code をカスタマイズ（all-book 等でも活用可能）</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="claude-活用実践--ai-fluency--業務活用">Claude 活用実践 — AI Fluency + 業務活用</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+参照コース: <a href="https://anthropic.skilljar.com/claude-101">https://anthropic.skilljar.com/claude-101</a> / <a href="https://anthropic.skilljar.com/ai-fluency-framework-foundations">https://anthropic.skilljar.com/ai-fluency-framework-foundations</a><br>
+Claude Code・claude-mem を既に使いこなしている前提。さらに深い活用法にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-ai-fluency-フレームワーク">1. AI Fluency フレームワーク</h2>
+<p>Anthropic が定義する「AI と効果的に協働できる状態」：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>AI Fluency の4軸</span></span>
+<span class="line"><span>┌─────────────────────────────────────────────┐</span></span>
+<span class="line"><span>│  Effective  │ 意図した成果を出せる            │</span></span>
+<span class="line"><span>│  Efficient  │ 最小の労力で最大の成果          │</span></span>
+<span class="line"><span>│  Ethical    │ 倫理的・安全な使い方            │</span></span>
+<span class="line"><span>│  Empowering │ 自分と周囲の能力を高める         │</span></span>
+<span class="line"><span>└─────────────────────────────────────────────┘</span></span></code></pre>
+<p><strong>インフラエンジニアとして意識すること：</strong></p>
+<ul>
+<li>AIが生成したコード・設定を<strong>ブラインドで使わない</strong>（セキュリティリスク）</li>
+<li>AIの出力を<strong>検証できるだけの基礎知識</strong>を持つ</li>
+<li>AIが苦手なこと（最新情報、社内固有知識、実環境の状態）を理解する</li>
+</ul>
+<hr>
+<h2 id="2-claude-の特性を理解する">2. Claude の特性を理解する</h2>
+<h3 id="claudeが得意なこと">Claudeが得意なこと</h3>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>有効度</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>コード生成・変換</td>
+<td>⭐⭐⭐</td>
+<td>Terraform コード生成、スクリプト作成</td>
+</tr>
+<tr>
+<td>エラーの説明・デバッグ支援</td>
+<td>⭐⭐⭐</td>
+<td>スタックトレースの分析</td>
+</tr>
+<tr>
+<td>ドキュメント作成</td>
+<td>⭐⭐⭐</td>
+<td>設計書・手順書の下書き</td>
+</tr>
+<tr>
+<td>概念説明・学習支援</td>
+<td>⭐⭐⭐</td>
+<td>新技術のキャッチアップ</td>
+</tr>
+<tr>
+<td>コードレビュー</td>
+<td>⭐⭐⭐</td>
+<td>セキュリティ・品質チェック</td>
+</tr>
+<tr>
+<td>アーキテクチャ相談</td>
+<td>⭐⭐</td>
+<td>トレードオフの整理</td>
+</tr>
+</tbody>
+</table>
+<h3 id="注意が必要な場面">注意が必要な場面</h3>
+<table>
+<thead>
+<tr>
+<th>状況</th>
+<th>リスク</th>
+<th>対策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>セキュリティ設定の生成</td>
+<td>脆弱な設定を生成することがある</td>
+<td>AWS ドキュメントで確認</td>
+</tr>
+<tr>
+<td>最新の API / サービス情報</td>
+<td>学習データが古い場合がある</td>
+<td>公式ドキュメント併用</td>
+</tr>
+<tr>
+<td>社内環境・固有設定</td>
+<td>知識がない</td>
+<td>コンテキストを十分に与える</td>
+</tr>
+<tr>
+<td>本番への直接適用</td>
+<td>ハルシネーションリスク</td>
+<td>必ず plan/dry-run で確認</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="3-プロンプトエンジニアリング実践">3. プロンプトエンジニアリング実践</h2>
+<h3 id="構造化プロンプトxml-タグ活用">構造化プロンプト（XML タグ活用）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>&lt;context&gt;</span></span>
+<span class="line"><span>  環境: AWS ECS on Fargate</span></span>
+<span class="line"><span>  既存構成: ALB → ECS（2タスク）→ RDS PostgreSQL</span></span>
+<span class="line"><span>  問題: デプロイ後にタスクが頻繁に落ちる</span></span>
+<span class="line"><span>&lt;/context&gt;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>&lt;logs&gt;</span></span>
+<span class="line"><span>[ERROR] OOMKilled: container exceeded memory limit of 512MB</span></span>
+<span class="line"><span>[INFO] Container starting...</span></span>
+<span class="line"><span>[ERROR] OOMKilled: ...</span></span>
+<span class="line"><span>&lt;/logs&gt;</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>&lt;task&gt;</span></span>
+<span class="line"><span>以下を分析してください：</span></span>
+<span class="line"><span>1. 根本原因の特定</span></span>
+<span class="line"><span>2. 即時対処法（タスク定義の変更）</span></span>
+<span class="line"><span>3. 恒久対策（アプリケーションレベル）</span></span>
+<span class="line"><span>4. 再発防止のためのメトリクス監視設定</span></span>
+<span class="line"><span>&lt;/task&gt;</span></span></code></pre>
+<h3 id="few-shot-プロンプト具体例を与える">Few-shot プロンプト（具体例を与える）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Terraform の security group ルールを以下のフォーマットで書いてください。</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>例1（入力）: ALBからアプリへの8080ポート</span></span>
+<span class="line"><span>例1（出力）:</span></span>
+<span class="line"><span>ingress {</span></span>
+<span class="line"><span>  from_port       = 8080</span></span>
+<span class="line"><span>  to_port         = 8080</span></span>
+<span class="line"><span>  protocol        = "tcp"</span></span>
+<span class="line"><span>  security_groups = [aws_security_group.alb.id]</span></span>
+<span class="line"><span>  description     = "ALB から アプリへのHTTPトラフィック"</span></span>
+<span class="line"><span>}</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>では以下を書いてください：</span></span>
+<span class="line"><span>- アプリからRDSへの5432ポート</span></span>
+<span class="line"><span>- アプリからElastiCacheへの6379ポート</span></span></code></pre>
+<h3 id="chain-of-thought複雑な問題">Chain of Thought（複雑な問題）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>以下のネットワーク設計の問題点を、ステップバイステップで分析してください。</span></span>
+<span class="line"><span>分析の手順：</span></span>
+<span class="line"><span>1. まずセキュリティの観点</span></span>
+<span class="line"><span>2. 次に可用性の観点  </span></span>
+<span class="line"><span>3. コストの観点</span></span>
+<span class="line"><span>4. 総合的な改善提案</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>[設計図の説明]</span></span></code></pre>
+<hr>
+<h2 id="4-インフラ業務での具体的な使い方">4. インフラ業務での具体的な使い方</h2>
+<h3 id="障害対応支援">障害対応支援</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>【障害調査テンプレート】</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>以下の障害を調査しています：</span></span>
+<span class="line"><span>- 症状: [具体的な症状]</span></span>
+<span class="line"><span>- 発生時刻: [いつから]</span></span>
+<span class="line"><span>- 影響範囲: [どのサービス・ユーザー]</span></span>
+<span class="line"><span>- 直前の変更: [デプロイ・設定変更等]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>ログ:</span></span></code></pre>
+<p>[ここにログを貼る]</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>以下の順で回答してください：</span></span>
+<span class="line"><span>1. ログから読み取れる事象（事実のみ）</span></span>
+<span class="line"><span>2. 考えられる原因（確率順）</span></span>
+<span class="line"><span>3. 各原因の調査コマンド</span></span>
+<span class="line"><span>4. 暫定対処と恒久対策</span></span></code></pre>
+<h3 id="設計レビュー">設計レビュー</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>以下のアーキテクチャ設計を AWS Well-Architected Framework の5つの柱でレビューしてください。</span></span>
+<span class="line"><span>問題点と改善案を具体的に指摘してください。</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>[設計の説明]</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>特に気になっている点：</span></span>
+<span class="line"><span>- コスト最適化ができているか</span></span>
+<span class="line"><span>- 単一障害点がないか</span></span></code></pre>
+<h3 id="コード生成の品質を上げる">コード生成の品質を上げる</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>以下の要件で Terraform コードを生成してください。</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>【要件】</span></span>
+<span class="line"><span>- リソース: ECS Fargate サービス</span></span>
+<span class="line"><span>- 環境変数: Secrets Manager から取得</span></span>
+<span class="line"><span>- オートスケーリング: CPU 70% でスケールアウト（最小2、最大10）</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>【制約】</span></span>
+<span class="line"><span>- セキュリティグループは最小権限で</span></span>
+<span class="line"><span>- タグは必ず付ける（Environment, ManagedBy）</span></span>
+<span class="line"><span>- 変数は var. で外出し</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>【確認してほしいこと】</span></span>
+<span class="line"><span>- IAM ロールの権限が過剰になっていないか</span></span>
+<span class="line"><span>- ハードコードされた値がないか</span></span></code></pre>
+<hr>
+<h2 id="5-claude-code-活用既に使っているが深掘り">5. Claude Code 活用（既に使っているが深掘り）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># インフラ作業での活用例</span></span>
+<span class="line"><span style="color:#79B8FF">cd</span><span style="color:#9ECBFF"> /terraform/environments/production</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 現在の構成を分析させる</span></span>
+<span class="line"><span style="color:#B392F0">claude</span><span style="color:#9ECBFF"> "このTerraformディレクトリを分析して、セキュリティ上の問題点を列挙して"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 変更の影響範囲確認</span></span>
+<span class="line"><span style="color:#B392F0">claude</span><span style="color:#9ECBFF"> "main.tf を変更してRDSのinstance_classをアップグレードしたい。影響範囲と手順を教えて"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ドキュメント自動生成</span></span>
+<span class="line"><span style="color:#B392F0">claude</span><span style="color:#9ECBFF"> "このTerraformモジュールのREADME.mdを生成して"</span></span></code></pre>
+<h3 id="claudemd-で-claude-code-をカスタマイズall-book-等でも活用可能">CLAUDE.md で Claude Code をカスタマイズ（all-book 等でも活用可能）</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#79B8FF;font-weight:bold"># CLAUDE.md（リポジトリルートに置く）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">## このリポジトリについて</span></span>
+<span class="line"><span style="color:#E1E4E8">インフラ管理用のTerraformコード。本番AWSアカウントを管理。</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">## 重要なルール</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#E1E4E8"> terraform apply は絶対に実行しない（CIのみ）</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#E1E4E8"> セキュリティグループの 0.0.0.0/0 は絶対に追加しない</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#E1E4E8"> コスト影響が大きい変更（RDSクラス変更等）は必ずコメントで警告</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">## よく使うコマンド</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#79B8FF"> `terraform fmt -recursive`</span><span style="color:#E1E4E8"> : フォーマット</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#79B8FF"> `terraform validate`</span><span style="color:#E1E4E8"> : バリデーション</span></span>
+<span class="line"><span style="color:#FFAB70">-</span><span style="color:#79B8FF"> `tflint`</span><span style="color:#E1E4E8"> : 追加の静的解析</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/ai/claude/%E3%83%97%E3%83%AD%E3%83%B3%E3%83%97%E3%83%88%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0/">プロンプトエンジニアリング</a> — より高度な技法</li>
+<li><a href="/learning/ai/claude/api%E6%B4%BB%E7%94%A8/">../../04_AI/Claude/03_API活用.md</a> — Claude API でツールを作る</li>
+<li><a href="/learning/ai/mcp/mcp%E5%85%A5%E9%96%80/">../../04_AI/MCP/01_MCP入門.md</a> — MCP でClaudeに機能を追加</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

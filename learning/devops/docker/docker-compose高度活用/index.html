@@ -1,0 +1,237 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「Docker Compose 高度活用 — 本番向け設定」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/devops/docker/docker-compose%E9%AB%98%E5%BA%A6%E6%B4%BB%E7%94%A8/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Docker Compose 高度活用 — 本番向け設定 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「Docker Compose 高度活用 — 本番向け設定」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/devops/docker/docker-compose%E9%AB%98%E5%BA%A6%E6%B4%BB%E7%94%A8/"><meta name="theme-color" content="#c8ff4a"><title>Docker Compose 高度活用 — 本番向け設定 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-devops">DevOps・自動化</a> <span aria-hidden="true">/</span><span>docker</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">DEVOPS</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-composeyaml-の本番向け設定">1. compose.yaml の本番向け設定</a> </li><li> <a href="#2-環境別の-compose-ファイル分割">2. 環境別の compose ファイル分割</a> </li><li> <a href="#3-ゼロダウンタイムデプロイ">3. ゼロダウンタイムデプロイ</a> </li><li> <a href="#4-ログと監視">4. ログと監視</a> </li><li> <a href="#5-よく使うコマンド集">5. よく使うコマンド集</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="docker-compose-高度活用--本番向け設定">Docker Compose 高度活用 — 本番向け設定</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+Docker 基礎・シングルコンテナは理解済み。<strong>本番相当のマルチサービス構成と運用</strong>にフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-composeyaml-の本番向け設定">1. compose.yaml の本番向け設定</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># compose.yaml（本番相当の構成）</span></span>
+<span class="line"><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">services</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  app</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">123456789.dkr.ecr.ap-northeast-1.amazonaws.com/myapp:${APP_VERSION:-latest}</span></span>
+<span class="line"><span style="color:#85E89D">    restart</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">unless-stopped</span><span style="color:#6A737D">  # クラッシュ時に自動再起動</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # リソース制限（cgroup v2）</span></span>
+<span class="line"><span style="color:#85E89D">    deploy</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      resources</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        limits</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          cpus</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"1.0"</span></span>
+<span class="line"><span style="color:#85E89D">          memory</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">512M</span></span>
+<span class="line"><span style="color:#85E89D">        reservations</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          cpus</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"0.25"</span></span>
+<span class="line"><span style="color:#85E89D">          memory</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">256M</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # ヘルスチェック</span></span>
+<span class="line"><span style="color:#85E89D">    healthcheck</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      test</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"CMD"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"curl"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"-f"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"http://localhost:8080/health"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">      interval</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">30s</span></span>
+<span class="line"><span style="color:#85E89D">      timeout</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">5s</span></span>
+<span class="line"><span style="color:#85E89D">      retries</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span></span>
+<span class="line"><span style="color:#85E89D">      start_period</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">60s</span><span style="color:#6A737D">  # 起動時の猶予</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # 環境変数（シークレットは secrets を使う）</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">ENV=production</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">DB_HOST=db</span></span>
+<span class="line"><span style="color:#85E89D">    secrets</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">db_password</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">jwt_secret</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # 依存関係（db の healthcheck が通ってから起動）</span></span>
+<span class="line"><span style="color:#85E89D">    depends_on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      db</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        condition</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">service_healthy</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # ネットワーク分離</span></span>
+<span class="line"><span style="color:#85E89D">    networks</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">frontend</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">backend</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#6A737D">    # ログ設定</span></span>
+<span class="line"><span style="color:#85E89D">    logging</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      driver</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"json-file"</span></span>
+<span class="line"><span style="color:#85E89D">      options</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        max-size</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"100m"</span></span>
+<span class="line"><span style="color:#85E89D">        max-file</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"3"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  db</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">postgres:16-alpine</span></span>
+<span class="line"><span style="color:#85E89D">    restart</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">unless-stopped</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      POSTGRES_DB</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp</span></span>
+<span class="line"><span style="color:#85E89D">      POSTGRES_USER</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp</span></span>
+<span class="line"><span style="color:#85E89D">      POSTGRES_PASSWORD_FILE</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">/run/secrets/db_password</span><span style="color:#6A737D">  # secrets を使う</span></span>
+<span class="line"><span style="color:#85E89D">    secrets</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">db_password</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">postgres_data:/var/lib/postgresql/data</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">./init.sql:/docker-entrypoint-initdb.d/init.sql:ro</span></span>
+<span class="line"><span style="color:#85E89D">    networks</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">backend</span><span style="color:#6A737D">  # app からのみアクセス可能</span></span>
+<span class="line"><span style="color:#85E89D">    healthcheck</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      test</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"CMD-SHELL"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"pg_isready -U myapp"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">      interval</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">10s</span></span>
+<span class="line"><span style="color:#85E89D">      timeout</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">5s</span></span>
+<span class="line"><span style="color:#85E89D">      retries</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  nginx</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">nginx:alpine</span></span>
+<span class="line"><span style="color:#85E89D">    restart</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">unless-stopped</span></span>
+<span class="line"><span style="color:#85E89D">    ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">"80:80"</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">"443:443"</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">./nginx/nginx.conf:/etc/nginx/nginx.conf:ro</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">./certs:/etc/nginx/certs:ro</span></span>
+<span class="line"><span style="color:#85E89D">    depends_on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">app</span></span>
+<span class="line"><span style="color:#85E89D">    networks</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">frontend</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  redis</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">redis:7-alpine</span></span>
+<span class="line"><span style="color:#85E89D">    restart</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">unless-stopped</span></span>
+<span class="line"><span style="color:#85E89D">    command</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">redis-server --requirepass ${REDIS_PASSWORD} --appendonly yes</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">redis_data:/data</span></span>
+<span class="line"><span style="color:#85E89D">    networks</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">backend</span></span>
+<span class="line"><span style="color:#85E89D">    healthcheck</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      test</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"CMD"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"redis-cli"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"ping"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">      interval</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">10s</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># シークレット（ファイルから読み込む）</span></span>
+<span class="line"><span style="color:#85E89D">secrets</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  db_password</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    file</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">./secrets/db_password.txt</span></span>
+<span class="line"><span style="color:#85E89D">  jwt_secret</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    file</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">./secrets/jwt_secret.txt</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  postgres_data</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  redis_data</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">networks</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  frontend</span><span style="color:#E1E4E8">:    </span><span style="color:#6A737D"># nginx ↔ app</span></span>
+<span class="line"><span style="color:#85E89D">  backend</span><span style="color:#E1E4E8">:     </span><span style="color:#6A737D"># app ↔ db ↔ redis</span></span></code></pre>
+<hr>
+<h2 id="2-環境別の-compose-ファイル分割">2. 環境別の compose ファイル分割</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 基本設定（共通）</span></span>
+<span class="line"><span style="color:#B392F0">compose.yaml</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 開発環境の上書き</span></span>
+<span class="line"><span style="color:#B392F0">compose.override.yaml</span><span style="color:#6A737D">  # docker compose up だけで自動的に merge される</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 本番用の上書き</span></span>
+<span class="line"><span style="color:#B392F0">compose.prod.yaml</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ステージング</span></span>
+<span class="line"><span style="color:#B392F0">compose.staging.yaml</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># compose.override.yaml（開発環境のみ）</span></span>
+<span class="line"><span style="color:#85E89D">services</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  app</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    build</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">.</span><span style="color:#6A737D">               # 開発は build、本番は image を使う</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">./src:/app/src</span><span style="color:#6A737D">    # ホットリロード用マウント</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">DEBUG=true</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">ENV=development</span></span>
+<span class="line"><span style="color:#85E89D">    ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">"8080:8080"</span><span style="color:#6A737D">       # 開発時だけポートを開放</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  db</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">"5432:5432"</span><span style="color:#6A737D">       # 開発時だけ外部からDBに接続可能</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 本番環境での起動</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#79B8FF"> -f</span><span style="color:#9ECBFF"> compose.yaml</span><span style="color:#79B8FF"> -f</span><span style="color:#9ECBFF"> compose.prod.yaml</span><span style="color:#9ECBFF"> up</span><span style="color:#79B8FF"> -d</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 開発環境（compose.override.yaml が自動的にマージされる）</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> up</span></span></code></pre>
+<hr>
+<h2 id="3-ゼロダウンタイムデプロイ">3. ゼロダウンタイムデプロイ</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 新バージョンのイメージをプル → サービスを1台ずつ更新</span></span>
+<span class="line"><span style="color:#6A737D"># (--no-deps: 依存サービスを再起動しない)</span></span>
+<span class="line"><span style="color:#E1E4E8">APP_VERSION</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">v1.2.3</span><span style="color:#B392F0"> docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> pull</span><span style="color:#9ECBFF"> app</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> up</span><span style="color:#79B8FF"> -d</span><span style="color:#79B8FF"> --no-deps</span><span style="color:#79B8FF"> --scale</span><span style="color:#9ECBFF"> app=</span><span style="color:#79B8FF">2</span><span style="color:#9ECBFF"> app</span></span>
+<span class="line"><span style="color:#6A737D"># → 古いコンテナと新しいコンテナが並走</span></span>
+<span class="line"><span style="color:#6A737D"># → Nginx が新しいコンテナにトラフィックを振り分け</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> up</span><span style="color:#79B8FF"> -d</span><span style="color:#79B8FF"> --no-deps</span><span style="color:#9ECBFF"> app</span></span>
+<span class="line"><span style="color:#6A737D"># → 最終的に新しいバージョンのみになる</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 実用的なスクリプト</span></span>
+<span class="line"><span style="color:#6A737D">#!/bin/bash</span></span>
+<span class="line"><span style="color:#79B8FF">set</span><span style="color:#79B8FF"> -euo</span><span style="color:#9ECBFF"> pipefail</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">NEW_VERSION</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">${1</span><span style="color:#F97583">:?</span><span style="color:#9ECBFF">バージョンを指定してください</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "▶ イメージをプル: </span><span style="color:#E1E4E8">$NEW_VERSION</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#E1E4E8">APP_VERSION</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">$NEW_VERSION</span><span style="color:#9ECBFF">"</span><span style="color:#B392F0"> docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> pull</span><span style="color:#9ECBFF"> app</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "▶ 新バージョンを起動（2台並走）"</span></span>
+<span class="line"><span style="color:#E1E4E8">APP_VERSION</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">$NEW_VERSION</span><span style="color:#9ECBFF">"</span><span style="color:#B392F0"> docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> up</span><span style="color:#79B8FF"> -d</span><span style="color:#79B8FF"> --scale</span><span style="color:#9ECBFF"> app=</span><span style="color:#79B8FF">2</span><span style="color:#79B8FF"> --no-deps</span><span style="color:#9ECBFF"> app</span></span>
+<span class="line"><span style="color:#B392F0">sleep</span><span style="color:#79B8FF"> 30</span><span style="color:#6A737D">  # ヘルスチェック通過を待つ</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "▶ 古いコンテナを停止"</span></span>
+<span class="line"><span style="color:#E1E4E8">APP_VERSION</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">$NEW_VERSION</span><span style="color:#9ECBFF">"</span><span style="color:#B392F0"> docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> up</span><span style="color:#79B8FF"> -d</span><span style="color:#79B8FF"> --scale</span><span style="color:#9ECBFF"> app=</span><span style="color:#79B8FF">1</span><span style="color:#79B8FF"> --no-deps</span><span style="color:#9ECBFF"> app</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">echo</span><span style="color:#9ECBFF"> "✅ デプロイ完了: </span><span style="color:#E1E4E8">$NEW_VERSION</span><span style="color:#9ECBFF">"</span></span></code></pre>
+<hr>
+<h2 id="4-ログと監視">4. ログと監視</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># Loki + Grafana でログ収集（docker compose で構築）</span></span>
+<span class="line"><span style="color:#85E89D">services</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  loki</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">grafana/loki:latest</span></span>
+<span class="line"><span style="color:#85E89D">    ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">"3100:3100"</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">loki_data:/loki</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  grafana</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">grafana/grafana:latest</span></span>
+<span class="line"><span style="color:#85E89D">    ports</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">"3000:3000"</span></span>
+<span class="line"><span style="color:#85E89D">    environment</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">GF_SECURITY_ADMIN_PASSWORD=admin</span></span>
+<span class="line"><span style="color:#85E89D">    volumes</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">grafana_data:/var/lib/grafana</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D">  # アプリのログを Loki に送る</span></span>
+<span class="line"><span style="color:#85E89D">  app</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    logging</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      driver</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">loki</span></span>
+<span class="line"><span style="color:#85E89D">      options</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        loki-url</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"http://loki:3100/loki/api/v1/push"</span></span>
+<span class="line"><span style="color:#85E89D">        loki-labels</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"app=myapp,env=production"</span></span></code></pre>
+<hr>
+<h2 id="5-よく使うコマンド集">5. よく使うコマンド集</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 起動・停止</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> up</span><span style="color:#79B8FF"> -d</span><span style="color:#6A737D">             # バックグラウンドで起動</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> down</span><span style="color:#6A737D">              # 停止・コンテナ削除</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> down</span><span style="color:#79B8FF"> -v</span><span style="color:#6A737D">           # ボリュームも削除（データ初期化）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 状態確認</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> ps</span><span style="color:#6A737D">                # サービス一覧</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> top</span><span style="color:#6A737D">               # 実行中のプロセス</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> stats</span><span style="color:#6A737D">             # CPU/メモリ使用率（リアルタイム）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ログ</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> logs</span><span style="color:#79B8FF"> -f</span><span style="color:#9ECBFF"> app</span><span style="color:#6A737D">       # アプリのログを follow</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> logs</span><span style="color:#79B8FF"> --since=1h</span><span style="color:#6A737D">  # 直近1時間のログ</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># デバッグ</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> exec</span><span style="color:#9ECBFF"> app</span><span style="color:#9ECBFF"> bash</span><span style="color:#6A737D">     # コンテナ内でシェル起動</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> exec</span><span style="color:#9ECBFF"> db</span><span style="color:#9ECBFF"> psql</span><span style="color:#79B8FF"> -U</span><span style="color:#9ECBFF"> myapp</span><span style="color:#6A737D">  # DB に接続</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 設定確認</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> config</span><span style="color:#6A737D">            # merge 後の最終設定を表示</span></span>
+<span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> compose</span><span style="color:#9ECBFF"> config</span><span style="color:#79B8FF"> --quiet</span><span style="color:#6A737D">    # 設定エラーのみチェック</span></span></code></pre>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/devops/docker/docker%E5%AE%9F%E8%B7%B5/">01_Docker実践.md</a> — Dockerfile・マルチステージビルド</li>
+<li><a href="/learning/devops/kubernetes/k8s%E5%9F%BA%E7%A4%8E/">../Kubernetes/01_K8s基礎.md</a> — 本番スケールは K8s へ</li>
+<li><a href="/learning/cloud/aws/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/">../../03_Cloud/AWS/02_コンテナサービス.md</a> — ECS/EKS での本番運用</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

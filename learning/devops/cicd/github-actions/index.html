@@ -1,0 +1,248 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「GitHub Actions — CI/CD パイプライン構築」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/devops/cicd/github-actions/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="GitHub Actions — CI/CD パイプライン構築 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「GitHub Actions — CI/CD パイプライン構築」。DevOps・自動化について、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/devops/cicd/github-actions/"><meta name="theme-color" content="#c8ff4a"><title>GitHub Actions — CI/CD パイプライン構築 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-devops">DevOps・自動化</a> <span aria-hidden="true">/</span><span>cicd</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">DEVOPS</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-基本構造">1. 基本構造</a> </li><li> <a href="#2-実践的な-python-アプリのci">2. 実践的な Python アプリのCI</a> </li><li> <a href="#3-aws-oidc-認証キーレスで最も安全">3. AWS OIDC 認証（キーレスで最も安全）</a> </li><li> <a href="#4-ecs-デプロイパイプライン">4. ECS デプロイパイプライン</a> </li><li> <a href="#5-便利なパターン">5. 便利なパターン</a> </li><li class="learning-toc-subitem"> <a href="#キャッシュで高速化">キャッシュで高速化</a> </li><li class="learning-toc-subitem"> <a href="#条件付き実行">条件付き実行</a> </li><li class="learning-toc-subitem"> <a href="#並列実行でビルドを高速化">並列実行でビルドを高速化</a> </li><li> <a href="#6-secrets-管理">6. Secrets 管理</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="github-actions--cicd-パイプライン構築">GitHub Actions — CI/CD パイプライン構築</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+all-book（Androidアプリ）での開発経験あり。インフラ・バックエンド向けのCI/CDにフォーカス。</p>
+</blockquote>
+<hr>
+<h2 id="1-基本構造">1. 基本構造</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>.github/</span></span>
+<span class="line"><span>└── workflows/</span></span>
+<span class="line"><span>    ├── ci.yml        # テスト・ビルド（PR時）</span></span>
+<span class="line"><span>    ├── deploy.yml    # デプロイ（main マージ時）</span></span>
+<span class="line"><span>    └── terraform.yml # インフラ変更</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># 基本的な構造</span></span>
+<span class="line"><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">CI</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  push</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    branches</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">main</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">develop</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">  pull_request</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    branches</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">main</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">jobs</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  test</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    runs-on</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ubuntu-latest</span><span style="color:#6A737D">  # GitHub ホステッドランナー</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/checkout@v4</span><span style="color:#6A737D">  # リポジトリをチェックアウト</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Setup Python</span></span>
+<span class="line"><span style="color:#85E89D">        uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/setup-python@v5</span></span>
+<span class="line"><span style="color:#85E89D">        with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          python-version</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'3.12'</span></span>
+<span class="line"><span style="color:#85E89D">          cache</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'pip'</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Install dependencies</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">pip install -r requirements.txt</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Run tests</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">pytest --cov=src --cov-report=xml</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Upload coverage</span></span>
+<span class="line"><span style="color:#85E89D">        uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">codecov/codecov-action@v4</span></span></code></pre>
+<hr>
+<h2 id="2-実践的な-python-アプリのci">2. 実践的な Python アプリのCI</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Python CI</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  pull_request</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  push</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    branches</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">main</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">jobs</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  lint-and-test</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    runs-on</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ubuntu-latest</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#85E89D">    strategy</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      matrix</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        python-version</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">'3.11'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'3.12'</span><span style="color:#E1E4E8">]  </span><span style="color:#6A737D"># 複数バージョンでテスト</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/checkout@v4</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Setup Python ${{ matrix.python-version }}</span></span>
+<span class="line"><span style="color:#85E89D">        uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/setup-python@v5</span></span>
+<span class="line"><span style="color:#85E89D">        with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          python-version</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ matrix.python-version }}</span></span>
+<span class="line"><span style="color:#85E89D">          cache</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'pip'</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Install dependencies</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">|</span></span>
+<span class="line"><span style="color:#9ECBFF">          pip install --upgrade pip</span></span>
+<span class="line"><span style="color:#9ECBFF">          pip install -r requirements.txt</span></span>
+<span class="line"><span style="color:#9ECBFF">          pip install ruff pytest pytest-cov</span></span>
+<span class="line"><span style="color:#9ECBFF">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Lint（ruff）</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ruff check src/</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Type check（mypy）</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">mypy src/ --ignore-missing-imports</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Test</span></span>
+<span class="line"><span style="color:#85E89D">        env</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          AWS_ACCESS_KEY_ID</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ secrets.AWS_ACCESS_KEY_ID }}</span></span>
+<span class="line"><span style="color:#85E89D">          AWS_SECRET_ACCESS_KEY</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ secrets.AWS_SECRET_ACCESS_KEY }}</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">|</span></span>
+<span class="line"><span style="color:#9ECBFF">          pytest tests/ -v --cov=src --cov-report=term-missing</span></span>
+<span class="line"><span style="color:#9ECBFF">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">セキュリティスキャン（bandit）</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">|</span></span>
+<span class="line"><span style="color:#9ECBFF">          pip install bandit</span></span>
+<span class="line"><span style="color:#9ECBFF">          bandit -r src/ -ll  # 中程度以上の問題を検出</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  docker-build</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    needs</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">lint-and-test</span></span>
+<span class="line"><span style="color:#85E89D">    runs-on</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ubuntu-latest</span></span>
+<span class="line"><span style="color:#85E89D">    if</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">github.ref == 'refs/heads/main'</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#85E89D">    permissions</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">      id-token</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">write</span><span style="color:#6A737D">   # OIDC認証に必要</span></span>
+<span class="line"><span style="color:#85E89D">      contents</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">read</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/checkout@v4</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#6A737D">      # AWS OIDC認証（キーレス！）</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Configure AWS credentials</span></span>
+<span class="line"><span style="color:#85E89D">        uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">aws-actions/configure-aws-credentials@v4</span></span>
+<span class="line"><span style="color:#85E89D">        with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          role-to-assume</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">arn:aws:iam::123456789:role/github-actions</span></span>
+<span class="line"><span style="color:#85E89D">          aws-region</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ap-northeast-1</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Login to ECR</span></span>
+<span class="line"><span style="color:#85E89D">        id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">login-ecr</span></span>
+<span class="line"><span style="color:#85E89D">        uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">aws-actions/amazon-ecr-login@v2</span></span>
+<span class="line"><span style="color:#E1E4E8">      </span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Build and push</span></span>
+<span class="line"><span style="color:#85E89D">        env</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">          ECR_REGISTRY</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ steps.login-ecr.outputs.registry }}</span></span>
+<span class="line"><span style="color:#85E89D">          IMAGE_TAG</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ github.sha }}</span></span>
+<span class="line"><span style="color:#85E89D">        run</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">|</span></span>
+<span class="line"><span style="color:#9ECBFF">          docker build -t $ECR_REGISTRY/myapp:$IMAGE_TAG .</span></span>
+<span class="line"><span style="color:#9ECBFF">          docker build -t $ECR_REGISTRY/myapp:latest .</span></span>
+<span class="line"><span style="color:#9ECBFF">          docker push $ECR_REGISTRY/myapp:$IMAGE_TAG</span></span>
+<span class="line"><span style="color:#9ECBFF">          docker push $ECR_REGISTRY/myapp:latest</span></span></code></pre>
+<hr>
+<h2 id="3-aws-oidc-認証キーレスで最も安全">3. AWS OIDC 認証（キーレスで最も安全）</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="hcl"><code><span class="line"><span style="color:#6A737D"># Terraform で GitHub Actions 用の IAM Role を作成</span></span>
+<span class="line"><span style="color:#B392F0">resource</span><span style="color:#79B8FF"> "aws_iam_openid_connect_provider"</span><span style="color:#79B8FF"> "github"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  url</span><span style="color:#F97583">             =</span><span style="color:#9ECBFF"> "https://token.actions.githubusercontent.com"</span></span>
+<span class="line"><span style="color:#E1E4E8">  client_id_list</span><span style="color:#F97583">  =</span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">"sts.amazonaws.com"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">  thumbprint_list</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> [</span><span style="color:#9ECBFF">"6938fd4d98bab03faadb97b34396831e3780aea1"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">resource</span><span style="color:#79B8FF"> "aws_iam_role"</span><span style="color:#79B8FF"> "github_actions"</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">  name</span><span style="color:#F97583"> =</span><span style="color:#9ECBFF"> "github-actions-deploy"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">  assume_role_policy</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> jsonencode</span><span style="color:#E1E4E8">({</span></span>
+<span class="line"><span style="color:#E1E4E8">    Version </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "2012-10-17"</span></span>
+<span class="line"><span style="color:#E1E4E8">    Statement </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> [{</span></span>
+<span class="line"><span style="color:#E1E4E8">      Effect    </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "Allow"</span></span>
+<span class="line"><span style="color:#E1E4E8">      Principal </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> { Federated </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> aws_iam_openid_connect_provider.github.arn }</span></span>
+<span class="line"><span style="color:#E1E4E8">      Action    </span><span style="color:#F97583">=</span><span style="color:#9ECBFF"> "sts:AssumeRoleWithWebIdentity"</span></span>
+<span class="line"><span style="color:#E1E4E8">      Condition </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">        StringLike </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#9ECBFF">          "token.actions.githubusercontent.com:sub"</span><span style="color:#F97583"> =</span><span style="color:#E1E4E8"> </span></span>
+<span class="line"><span style="color:#9ECBFF">            "repo:myorg/myrepo:ref:refs/heads/main"</span><span style="color:#6A737D">  # 特定ブランチのみ</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }]</span></span>
+<span class="line"><span style="color:#E1E4E8">  })</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="4-ecs-デプロイパイプライン">4. ECS デプロイパイプライン</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">deploy-ecs</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  runs-on</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ubuntu-latest</span></span>
+<span class="line"><span style="color:#85E89D">  needs</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">docker-build</span></span>
+<span class="line"><span style="color:#85E89D">  environment</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production</span><span style="color:#6A737D">  # GitHub Environments で承認フロー</span></span>
+<span class="line"><span style="color:#E1E4E8">  </span></span>
+<span class="line"><span style="color:#85E89D">  steps</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">actions/checkout@v4</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Configure AWS credentials</span></span>
+<span class="line"><span style="color:#85E89D">      uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">aws-actions/configure-aws-credentials@v4</span></span>
+<span class="line"><span style="color:#85E89D">      with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        role-to-assume</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ vars.DEPLOY_ROLE_ARN }}</span></span>
+<span class="line"><span style="color:#85E89D">        aws-region</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ap-northeast-1</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">タスク定義を更新</span></span>
+<span class="line"><span style="color:#85E89D">      id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">render-task</span></span>
+<span class="line"><span style="color:#85E89D">      uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">aws-actions/amazon-ecs-render-task-definition@v1</span></span>
+<span class="line"><span style="color:#85E89D">      with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        task-definition</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ecs/task-definition.json</span></span>
+<span class="line"><span style="color:#85E89D">        container-name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp</span></span>
+<span class="line"><span style="color:#85E89D">        image</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ needs.docker-build.outputs.image }}</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ECS デプロイ</span></span>
+<span class="line"><span style="color:#85E89D">      uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">aws-actions/amazon-ecs-deploy-task-definition@v1</span></span>
+<span class="line"><span style="color:#85E89D">      with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        task-definition</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ steps.render-task.outputs.task-definition }}</span></span>
+<span class="line"><span style="color:#85E89D">        service</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">myapp-service</span></span>
+<span class="line"><span style="color:#85E89D">        cluster</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">production</span></span>
+<span class="line"><span style="color:#85E89D">        wait-for-service-stability</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span><span style="color:#6A737D">  # 安定するまで待機</span></span>
+<span class="line"><span style="color:#E1E4E8">    </span></span>
+<span class="line"><span style="color:#E1E4E8">    - </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">デプロイ通知（Slack）</span></span>
+<span class="line"><span style="color:#85E89D">      if</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">always()</span></span>
+<span class="line"><span style="color:#85E89D">      uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">slackapi/slack-github-action@v1</span></span>
+<span class="line"><span style="color:#85E89D">      with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        payload</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">|</span></span>
+<span class="line"><span style="color:#9ECBFF">          {</span></span>
+<span class="line"><span style="color:#9ECBFF">            "text": "${{ job.status == 'success' &amp;&amp; '✅' || '❌' }} Deploy to production: ${{ job.status }}"</span></span>
+<span class="line"><span style="color:#9ECBFF">          }</span></span>
+<span class="line"><span style="color:#85E89D">      env</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">        SLACK_WEBHOOK_URL</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">${{ secrets.SLACK_WEBHOOK }}</span></span></code></pre>
+<hr>
+<h2 id="5-便利なパターン">5. 便利なパターン</h2>
+<h3 id="キャッシュで高速化">キャッシュで高速化</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># Docker レイヤーキャッシュ</span></span>
+<span class="line"><span style="color:#E1E4E8">- </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Set up Docker Buildx</span></span>
+<span class="line"><span style="color:#85E89D">  uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">docker/setup-buildx-action@v3</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">- </span><span style="color:#85E89D">name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">Build with cache</span></span>
+<span class="line"><span style="color:#85E89D">  uses</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">docker/build-push-action@v5</span></span>
+<span class="line"><span style="color:#85E89D">  with</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    cache-from</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">type=gha</span></span>
+<span class="line"><span style="color:#85E89D">    cache-to</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">type=gha,mode=max</span></span></code></pre>
+<h3 id="条件付き実行">条件付き実行</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># 特定ファイルが変更された時のみ実行</span></span>
+<span class="line"><span style="color:#79B8FF">on</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  push</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    paths</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">'src/**'</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">'Dockerfile'</span></span>
+<span class="line"><span style="color:#E1E4E8">      - </span><span style="color:#9ECBFF">'!**.md'</span><span style="color:#6A737D">      # Markdown変更は除外</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ジョブレベルの条件</span></span>
+<span class="line"><span style="color:#85E89D">deploy</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  if</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">github.ref == 'refs/heads/main' &amp;&amp; github.event_name == 'push'</span></span></code></pre>
+<h3 id="並列実行でビルドを高速化">並列実行でビルドを高速化</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#85E89D">jobs</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  test-unit</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    runs-on</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ubuntu-latest</span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">: [</span><span style="color:#79B8FF">...</span><span style="color:#E1E4E8">]   </span><span style="color:#6A737D"># ユニットテスト</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  test-integration</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    runs-on</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">ubuntu-latest</span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">: [</span><span style="color:#79B8FF">...</span><span style="color:#E1E4E8">]   </span><span style="color:#6A737D"># 統合テスト（並列実行）</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">  build</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">    needs</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">test-unit</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">test-integration</span><span style="color:#E1E4E8">]  </span><span style="color:#6A737D"># 両方成功後にビルド</span></span>
+<span class="line"><span style="color:#85E89D">    steps</span><span style="color:#E1E4E8">: [</span><span style="color:#79B8FF">...</span><span style="color:#E1E4E8">]</span></span></code></pre>
+<hr>
+<h2 id="6-secrets-管理">6. Secrets 管理</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># GitHub CLI でシークレット設定</span></span>
+<span class="line"><span style="color:#B392F0">gh</span><span style="color:#9ECBFF"> secret</span><span style="color:#9ECBFF"> set</span><span style="color:#9ECBFF"> AWS_ACCESS_KEY_ID</span></span>
+<span class="line"><span style="color:#B392F0">gh</span><span style="color:#9ECBFF"> secret</span><span style="color:#9ECBFF"> set</span><span style="color:#9ECBFF"> SLACK_WEBHOOK_URL</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 環境別シークレット（Environments 機能）</span></span>
+<span class="line"><span style="color:#6A737D"># Settings → Environments → production → Secrets</span></span></code></pre>
+<blockquote>
+<p>⚠️ <strong>推奨</strong>: AWS の永続的なキーより OIDC（キーレス）認証を優先</p>
+</blockquote>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/devops/iac/terraform/">../IaC/01_Terraform.md</a> — Terraform の CI/CD</li>
+<li><a href="/learning/cloud/aws/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/">../../03_Cloud/AWS/02_コンテナサービス.md</a> — ECS/ECR の設定</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

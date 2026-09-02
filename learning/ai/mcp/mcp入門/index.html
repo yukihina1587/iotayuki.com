@@ -1,0 +1,261 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Kryιkの学習ノート「MCP (Model Context Protocol) 入門」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/ai/mcp/mcp%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="MCP (Model Context Protocol) 入門 — 学習ノート — Kryιk"><meta property="og:description" content="Kryιkの学習ノート「MCP (Model Context Protocol) 入門」。AI・LLMについて、学んだ内容と実践例をまとめています。"><meta property="og:url" content="https://kryix.jp/learning/ai/mcp/mcp%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><title>MCP (Model Context Protocol) 入門 — 学習ノート — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.CrdRbYdu.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学習ノート</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">学習ノート</a> <span aria-hidden="true">/</span> <a href="/learning/#category-ai">AI・LLM</a> <span aria-hidden="true">/</span><span>mcp</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">AI</p> <h2 id="learning-toc-title">このノートの目次</h2> <ol> <li> <a href="#1-mcp-とは何か">1. MCP とは何か</a> </li><li> <a href="#2-mcp-の3つのプリミティブ">2. MCP の3つのプリミティブ</a> </li><li> <a href="#3-python-で-mcp-サーバーを作る">3. Python で MCP サーバーを作る</a> </li><li> <a href="#4-claude-desktop-への登録">4. Claude Desktop への登録</a> </li><li> <a href="#5-mcp-inspector-でデバッグ">5. MCP Inspector でデバッグ</a> </li><li> <a href="#6-作ると役立つ-mcp-サーバーのアイデア">6. 作ると役立つ MCP サーバーのアイデア</a> </li><li> <a href="#-次のステップ">🔗 次のステップ</a> </li> </ol> <a class="learning-index-back" href="/learning/"><span aria-hidden="true">←</span> 一覧へ戻る</a> </aside> <article class="learning-prose"> <h1 id="mcp-model-context-protocol-入門">MCP (Model Context Protocol) 入門</h1>
+<blockquote>
+<p>📌 ステータス: [ ] 未読 / [ ] 学習中 / [ ] 完了<br>
+参照コース: <a href="https://anthropic.skilljar.com/introduction-to-model-context-protocol">https://anthropic.skilljar.com/introduction-to-model-context-protocol</a><br>
+claude-mem を使ってMCPは触れている。<strong>自分でサーバーを作る側</strong>の視点で学ぶ。</p>
+</blockquote>
+<hr>
+<h2 id="1-mcp-とは何か">1. MCP とは何か</h2>
+<p><strong>一言で:</strong> Claude（AIクライアント）と外部サービス（ツール・データ）をつなぐ標準プロトコル</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>Before MCP（ツールごとに実装が必要）:</span></span>
+<span class="line"><span>Claude ──[独自コード]──&gt; AWS API</span></span>
+<span class="line"><span>Claude ──[独自コード]──&gt; DB</span></span>
+<span class="line"><span>Claude ──[独自コード]──&gt; Git</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>After MCP（標準プロトコルで統一）:</span></span>
+<span class="line"><span>Claude ──[MCP]──&gt; MCP Server A (AWS tools)</span></span>
+<span class="line"><span>Claude ──[MCP]──&gt; MCP Server B (DB tools)</span></span>
+<span class="line"><span>Claude ──[MCP]──&gt; MCP Server C (Git tools)</span></span></code></pre>
+<p><strong>claude-mem との関係:</strong> claude-mem 自体が MCP サーバー実装。インストールすると Claude が SQLite DB を検索できるようになる仕組みがまさにこれ。</p>
+<hr>
+<h2 id="2-mcp-の3つのプリミティブ">2. MCP の3つのプリミティブ</h2>
+<table>
+<thead>
+<tr>
+<th>プリミティブ</th>
+<th>制御者</th>
+<th>用途</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tools</strong></td>
+<td>モデル（Claude）</td>
+<td>アクション実行</td>
+<td>ファイル読書き、API呼び出し</td>
+</tr>
+<tr>
+<td><strong>Resources</strong></td>
+<td>アプリ（ホスト）</td>
+<td>データ読み取り</td>
+<td>ドキュメント、DB内容の参照</td>
+</tr>
+<tr>
+<td><strong>Prompts</strong></td>
+<td>ユーザー</td>
+<td>テンプレート提供</td>
+<td>よく使う指示のプリセット</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="3-python-で-mcp-サーバーを作る">3. Python で MCP サーバーを作る</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">pip</span><span style="color:#9ECBFF"> install</span><span style="color:#9ECBFF"> mcp</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># server.py — AWS インフラ調査ツールを持つ MCP サーバー</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> mcp.server </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Server</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> mcp.server.stdio </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> stdio_server</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> mcp </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> types</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> boto3</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> json</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">app </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> Server(</span><span style="color:#9ECBFF">"aws-infra-tools"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ── Tools ──────────────────────────────────────────────</span></span>
+<span class="line"><span style="color:#B392F0">@app.list_tools</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> list_tools</span><span style="color:#E1E4E8">() -&gt; list[types.Tool]:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">        types.Tool(</span></span>
+<span class="line"><span style="color:#FFAB70">            name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"list_ec2_instances"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            description</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"指定リージョンのEC2インスタンス一覧を取得する"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            inputSchema</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#9ECBFF">                "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"object"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "properties"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">                    "region"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">                        "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"string"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                        "description"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"AWSリージョン（例: ap-northeast-1）"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                        "default"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ap-northeast-1"</span></span>
+<span class="line"><span style="color:#E1E4E8">                    },</span></span>
+<span class="line"><span style="color:#9ECBFF">                    "state"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">                        "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"string"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                        "enum"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"running"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"stopped"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"all"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#9ECBFF">                        "default"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"running"</span></span>
+<span class="line"><span style="color:#E1E4E8">                    }</span></span>
+<span class="line"><span style="color:#E1E4E8">                }</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        ),</span></span>
+<span class="line"><span style="color:#E1E4E8">        types.Tool(</span></span>
+<span class="line"><span style="color:#FFAB70">            name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"get_cloudwatch_metrics"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            description</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"EC2インスタンスのCPU使用率を取得する"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            inputSchema</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#9ECBFF">                "type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"object"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "properties"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#9ECBFF">                    "instance_id"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"string"</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#9ECBFF">                    "hours"</span><span style="color:#E1E4E8">: {</span><span style="color:#9ECBFF">"type"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"integer"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"default"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span><span style="color:#E1E4E8">}</span></span>
+<span class="line"><span style="color:#E1E4E8">                },</span></span>
+<span class="line"><span style="color:#9ECBFF">                "required"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"instance_id"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#E1E4E8">            }</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@app.call_tool</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> call_tool</span><span style="color:#E1E4E8">(name: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">, arguments: </span><span style="color:#79B8FF">dict</span><span style="color:#E1E4E8">) -&gt; list[types.TextContent]:</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> name </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> "list_ec2_instances"</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        region </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> arguments.get(</span><span style="color:#9ECBFF">"region"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"ap-northeast-1"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">        state </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> arguments.get(</span><span style="color:#9ECBFF">"state"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"running"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">        </span></span>
+<span class="line"><span style="color:#E1E4E8">        ec2 </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> boto3.client(</span><span style="color:#9ECBFF">'ec2'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">region_name</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">region)</span></span>
+<span class="line"><span style="color:#E1E4E8">        </span></span>
+<span class="line"><span style="color:#E1E4E8">        filters </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> [] </span><span style="color:#F97583">if</span><span style="color:#E1E4E8"> state </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> "all"</span><span style="color:#F97583"> else</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">            {</span><span style="color:#9ECBFF">'Name'</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">'instance-state-name'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'Values'</span><span style="color:#E1E4E8">: [state]}</span></span>
+<span class="line"><span style="color:#E1E4E8">        ]</span></span>
+<span class="line"><span style="color:#E1E4E8">        </span></span>
+<span class="line"><span style="color:#E1E4E8">        response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ec2.describe_instances(</span><span style="color:#FFAB70">Filters</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">filters)</span></span>
+<span class="line"><span style="color:#E1E4E8">        instances </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> []</span></span>
+<span class="line"><span style="color:#F97583">        for</span><span style="color:#E1E4E8"> r </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> response[</span><span style="color:#9ECBFF">'Reservations'</span><span style="color:#E1E4E8">]:</span></span>
+<span class="line"><span style="color:#F97583">            for</span><span style="color:#E1E4E8"> inst </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> r[</span><span style="color:#9ECBFF">'Instances'</span><span style="color:#E1E4E8">]:</span></span>
+<span class="line"><span style="color:#E1E4E8">                name_tag </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> next</span><span style="color:#E1E4E8">(</span></span>
+<span class="line"><span style="color:#E1E4E8">                    (t[</span><span style="color:#9ECBFF">'Value'</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">for</span><span style="color:#E1E4E8"> t </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> inst.get(</span><span style="color:#9ECBFF">'Tags'</span><span style="color:#E1E4E8">, []) </span><span style="color:#F97583">if</span><span style="color:#E1E4E8"> t[</span><span style="color:#9ECBFF">'Key'</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> 'Name'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'N/A'</span></span>
+<span class="line"><span style="color:#E1E4E8">                )</span></span>
+<span class="line"><span style="color:#E1E4E8">                instances.append({</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'id'</span><span style="color:#E1E4E8">: inst[</span><span style="color:#9ECBFF">'InstanceId'</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'type'</span><span style="color:#E1E4E8">: inst[</span><span style="color:#9ECBFF">'InstanceType'</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'state'</span><span style="color:#E1E4E8">: inst[</span><span style="color:#9ECBFF">'State'</span><span style="color:#E1E4E8">][</span><span style="color:#9ECBFF">'Name'</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'name'</span><span style="color:#E1E4E8">: name_tag,</span></span>
+<span class="line"><span style="color:#9ECBFF">                    'private_ip'</span><span style="color:#E1E4E8">: inst.get(</span><span style="color:#9ECBFF">'PrivateIpAddress'</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">'N/A'</span><span style="color:#E1E4E8">),</span></span>
+<span class="line"><span style="color:#E1E4E8">                })</span></span>
+<span class="line"><span style="color:#E1E4E8">        </span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> [types.TextContent(</span></span>
+<span class="line"><span style="color:#FFAB70">            type</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"text"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            text</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">json.dumps(instances, </span><span style="color:#FFAB70">ensure_ascii</span><span style="color:#F97583">=</span><span style="color:#79B8FF">False</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">indent</span><span style="color:#F97583">=</span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">        )]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ── Resources ──────────────────────────────────────────</span></span>
+<span class="line"><span style="color:#B392F0">@app.list_resources</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> list_resources</span><span style="color:#E1E4E8">() -&gt; list[types.Resource]:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">        types.Resource(</span></span>
+<span class="line"><span style="color:#FFAB70">            uri</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"aws://ec2/regions"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"利用可能なAWSリージョン一覧"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            description</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"EC2が利用可能なリージョンの一覧"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            mimeType</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"application/json"</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@app.read_resource</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> read_resource</span><span style="color:#E1E4E8">(uri: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> uri </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> "aws://ec2/regions"</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        ec2 </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> boto3.client(</span><span style="color:#9ECBFF">'ec2'</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">region_name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'ap-northeast-1'</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">        response </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> ec2.describe_regions()</span></span>
+<span class="line"><span style="color:#E1E4E8">        regions </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> [r[</span><span style="color:#9ECBFF">'RegionName'</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">for</span><span style="color:#E1E4E8"> r </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> response[</span><span style="color:#9ECBFF">'Regions'</span><span style="color:#E1E4E8">]]</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> json.dumps(regions)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># ── Prompts ─────────────────────────────────────────────</span></span>
+<span class="line"><span style="color:#B392F0">@app.list_prompts</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> list_prompts</span><span style="color:#E1E4E8">() -&gt; list[types.Prompt]:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">        types.Prompt(</span></span>
+<span class="line"><span style="color:#FFAB70">            name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"investigate_instance"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            description</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"EC2インスタンスの障害調査を行う"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">            arguments</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[</span></span>
+<span class="line"><span style="color:#E1E4E8">                types.PromptArgument(</span></span>
+<span class="line"><span style="color:#FFAB70">                    name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"instance_id"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">                    description</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"調査対象のインスタンスID"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#FFAB70">                    required</span><span style="color:#F97583">=</span><span style="color:#79B8FF">True</span></span>
+<span class="line"><span style="color:#E1E4E8">                )</span></span>
+<span class="line"><span style="color:#E1E4E8">            ]</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"><span style="color:#E1E4E8">    ]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">@app.get_prompt</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> get_prompt</span><span style="color:#E1E4E8">(name: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">, arguments: </span><span style="color:#79B8FF">dict</span><span style="color:#E1E4E8">) -&gt; types.GetPromptResult:</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> name </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> "investigate_instance"</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        instance_id </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> arguments[</span><span style="color:#9ECBFF">"instance_id"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> types.GetPromptResult(</span></span>
+<span class="line"><span style="color:#FFAB70">            messages</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">[{</span></span>
+<span class="line"><span style="color:#9ECBFF">                "role"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"user"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#9ECBFF">                "content"</span><span style="color:#E1E4E8">: </span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"""</span></span>
+<span class="line"><span style="color:#9ECBFF">EC2インスタンス </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">instance_id</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF"> の障害調査をしてください。</span></span>
+<span class="line"><span style="color:#9ECBFF">以下のツールを使って情報を収集し、問題の特定と対処法を提示してください：</span></span>
+<span class="line"><span style="color:#9ECBFF">1. list_ec2_instances でインスタンス状態を確認</span></span>
+<span class="line"><span style="color:#9ECBFF">2. get_cloudwatch_metrics でCPU使用率を確認</span></span>
+<span class="line"><span style="color:#9ECBFF">3. 収集した情報から問題を分析</span></span>
+<span class="line"><span style="color:#9ECBFF">"""</span></span>
+<span class="line"><span style="color:#E1E4E8">            }]</span></span>
+<span class="line"><span style="color:#E1E4E8">        )</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># エントリーポイント</span></span>
+<span class="line"><span style="color:#F97583">async</span><span style="color:#F97583"> def</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">():</span></span>
+<span class="line"><span style="color:#F97583">    async</span><span style="color:#F97583"> with</span><span style="color:#E1E4E8"> stdio_server() </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> (read_stream, write_stream):</span></span>
+<span class="line"><span style="color:#F97583">        await</span><span style="color:#E1E4E8"> app.run(read_stream, write_stream, app.create_initialization_options())</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#79B8FF"> __name__</span><span style="color:#F97583"> ==</span><span style="color:#9ECBFF"> "__main__"</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    import</span><span style="color:#E1E4E8"> asyncio</span></span>
+<span class="line"><span style="color:#E1E4E8">    asyncio.run(main())</span></span></code></pre>
+<hr>
+<h2 id="4-claude-desktop-への登録">4. Claude Desktop への登録</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#6A737D">// ~/AppData/Roaming/Claude/claude_desktop_config.json (Windows)</span></span>
+<span class="line"><span style="color:#6A737D">// ~/.config/claude/claude_desktop_config.json (Linux)</span></span>
+<span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "mcpServers"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">    "aws-infra-tools"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">      "command"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"python"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">      "args"</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"/path/to/server.py"</span><span style="color:#E1E4E8">],</span></span>
+<span class="line"><span style="color:#79B8FF">      "env"</span><span style="color:#E1E4E8">: {</span></span>
+<span class="line"><span style="color:#79B8FF">        "AWS_PROFILE"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"default"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">        "AWS_DEFAULT_REGION"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"ap-northeast-1"</span></span>
+<span class="line"><span style="color:#E1E4E8">      }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">  }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<hr>
+<h2 id="5-mcp-inspector-でデバッグ">5. MCP Inspector でデバッグ</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># ブラウザで動作確認できる</span></span>
+<span class="line"><span style="color:#B392F0">npx</span><span style="color:#9ECBFF"> @modelcontextprotocol/inspector</span><span style="color:#9ECBFF"> python</span><span style="color:#9ECBFF"> server.py</span></span>
+<span class="line"><span style="color:#6A737D"># → http://localhost:5173 でツールの動作確認</span></span></code></pre>
+<hr>
+<h2 id="6-作ると役立つ-mcp-サーバーのアイデア">6. 作ると役立つ MCP サーバーのアイデア</h2>
+<table>
+<thead>
+<tr>
+<th>サーバー</th>
+<th>ツール例</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AWS Infra</td>
+<td>EC2/RDS/ECS の状態確認・操作</td>
+<td>障害対応・構成確認</td>
+</tr>
+<tr>
+<td>Terraform</td>
+<td>plan 実行・state 確認</td>
+<td>インフラ変更の支援</td>
+</tr>
+<tr>
+<td>Log Analyzer</td>
+<td>CloudWatch Logs 検索・集計</td>
+<td>ログ分析</td>
+</tr>
+<tr>
+<td>DB Query</td>
+<td>読み取り専用SQL実行</td>
+<td>データ調査</td>
+</tr>
+<tr>
+<td>GitHub</td>
+<td>PR・Issue・Actions 確認</td>
+<td>開発フロー</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="-次のステップ">🔗 次のステップ</h2>
+<ul>
+<li><a href="/learning/ai/mcp/mcp%E5%BF%9C%E7%94%A8/">02_MCP応用.md</a> — 参照コース: <a href="https://anthropic.skilljar.com/model-context-protocol-advanced-topics">https://anthropic.skilljar.com/model-context-protocol-advanced-topics</a></li>
+<li><a href="/learning/ai/claude/api%E6%B4%BB%E7%94%A8/">../Claude/03_API活用.md</a> — Claude API から MCP クライアントを実装</li>
+</ul>
+ </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

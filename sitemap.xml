@@ -7,6 +7,9 @@
     <loc>https://kryix.jp/about/</loc>
   </url>
   <url>
+    <loc>https://kryix.jp/learning/</loc>
+  </url>
+  <url>
     <loc>https://kryix.jp/projects/</loc>
   </url>
   <url>
@@ -38,5 +41,113 @@
   </url>
   <url>
     <loc>https://kryix.jp/play/roulette/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/ai/amazon-bedrock/claude-on-bedrock/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/ai/claude/api%E6%B4%BB%E7%94%A8/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/ai/claude/claude%E6%B4%BB%E7%94%A8%E5%AE%9F%E8%B7%B5/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/ai/claude/%E3%83%97%E3%83%AD%E3%83%B3%E3%83%97%E3%83%88%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/ai/mcp/mcp%E5%85%A5%E9%96%80/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/ai/mcp/mcp%E5%BF%9C%E7%94%A8/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/ai/roadmap/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/ai/vertexai/claude-on-vertexai/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/cloud/aws/%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/cloud/aws/%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC%E3%83%AC%E3%82%B9/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/cloud/aws/%E3%83%87%E3%83%BC%E3%82%BF%E3%83%99%E3%83%BC%E3%82%B9%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/cloud/roadmap/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/databases/nosql/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/databases/rdb%E8%A8%AD%E8%A8%88%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/databases/roadmap/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/databases/sql%E5%AE%9F%E8%B7%B5-%E5%BF%9C%E7%94%A8%E6%83%85%E5%A0%B1%E5%AF%BE%E7%AD%96/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/devops/cicd/github-actions/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/devops/docker/docker-compose%E9%AB%98%E5%BA%A6%E6%B4%BB%E7%94%A8/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/devops/docker/docker%E5%AE%9F%E8%B7%B5/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/devops/iac/terraform/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/devops/iac/terraform%E5%BF%9C%E7%94%A8/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/devops/kubernetes/k8s%E3%83%8D%E3%83%83%E3%83%88%E3%83%AF%E3%83%BC%E3%82%AF%E3%81%A8ingress/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/devops/kubernetes/k8s%E5%9F%BA%E7%A4%8E/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/devops/roadmap/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/infrastructure/linux/linux%E5%AE%9F%E8%B7%B5/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/infrastructure/linux/%E3%83%91%E3%83%95%E3%82%A9%E3%83%BC%E3%83%9E%E3%83%B3%E3%82%B9%E3%83%81%E3%83%A5%E3%83%BC%E3%83%8B%E3%83%B3%E3%82%B0/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/infrastructure/networking/tcp-ip%E8%A9%B3%E8%A7%A3/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/infrastructure/networking/%E3%83%AD%E3%83%BC%E3%83%89%E3%83%90%E3%83%A9%E3%83%B3%E3%82%B5%E3%83%BC%E3%81%A8%E3%83%97%E3%83%AD%E3%82%AD%E3%82%B7/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/infrastructure/roadmap/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/programming/bash/%E3%82%B7%E3%82%A7%E3%83%AB%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88%E5%AE%9F%E8%B7%B5/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/programming/python/python%E5%AE%9F%E8%B7%B5-kotlin%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E5%90%91%E3%81%91/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/programming/roadmap/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/security/aws%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E6%B7%B1%E6%8E%98%E3%82%8A/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/security/roadmap/</loc>
+  </url>
+  <url>
+    <loc>https://kryix.jp/learning/security/%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E5%AE%9F%E8%B7%B5/</loc>
   </url>
 </urlset>
