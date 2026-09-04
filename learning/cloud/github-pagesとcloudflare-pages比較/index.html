@@ -1,0 +1,185 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="GitHub PagesとCloudflare Pages比較 — 静的サイト配信の選び方を基礎から実践へつなげて学ぶ技術教材。静的サイトの配信先を、制限・運用・将来性から比較します。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/github-pages%E3%81%A8cloudflare-pages%E6%AF%94%E8%BC%83/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="GitHub PagesとCloudflare Pages比較 — 静的サイト配信の選び方 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="GitHub PagesとCloudflare Pages比較 — 静的サイト配信の選び方を基礎から実践へつなげて学ぶ技術教材。静的サイトの配信先を、制限・運用・将来性から比較します。"><meta property="og:url" content="https://kryix.jp/learning/cloud/github-pages%E3%81%A8cloudflare-pages%E6%AF%94%E8%BC%83/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"GitHub PagesとCloudflare Pages比較 — 静的サイト配信の選び方","description":"GitHub PagesとCloudflare Pages比較 — 静的サイト配信の選び方を基礎から実践へつなげて学ぶ技術教材。静的サイトの配信先を、制限・運用・将来性から比較します。","educationalLevel":"発展","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"クラウドコース","url":"https://kryix.jp/learning/#course-cloud"}}</script><title>GitHub PagesとCloudflare Pages比較 — 静的サイト配信の選び方 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.IQOJQQBb.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-cloud">クラウド</a>  </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD / 発展</p> <div class="learning-course-progress" aria-label="クラウドコース 6/6"> <span style="--learning-progress: 100%"></span> <small>6 / 6</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/cloud/aws/%E3%83%87%E3%83%BC%E3%82%BF%E3%83%99%E3%83%BC%E3%82%B9%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9/"><span>← 前へ</span><strong>AWS データベースサービス — RDS・Aurora・DynamoDB・ElastiCache</strong></a>  </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#最初に整理する3つの構成">最初に整理する3つの構成</a></li><li class="learning-toc-subitem"><a href="#1-github-pagesだけで配信">1. GitHub Pagesだけで配信</a></li><li class="learning-toc-subitem"><a href="#2-cloudflare-pagesへ移行">2. Cloudflare Pagesへ移行</a></li><li class="learning-toc-subitem"><a href="#3-github-pagesの前段にcloudflareを追加">3. GitHub Pagesの前段にCloudflareを追加</a></li><li><a href="#機能比較">機能比較</a></li><li><a href="#主な制限を比較する">主な制限を比較する</a></li><li class="learning-toc-subitem"><a href="#github-pages">GitHub Pages</a></li><li class="learning-toc-subitem"><a href="#cloudflare-pages">Cloudflare Pages</a></li><li><a href="#cloudflare-pagesが強いところ">Cloudflare Pagesが強いところ</a></li><li class="learning-toc-subitem"><a href="#preview-deployment">Preview deployment</a></li><li class="learning-toc-subitem"><a href="#edge機能への発展">Edge機能への発展</a></li><li class="learning-toc-subitem"><a href="#dnsとrulesの統合">DNSとRulesの統合</a></li><li><a href="#github-pagesが強いところ">GitHub Pagesが強いところ</a></li><li class="learning-toc-subitem"><a href="#構成が単純">構成が単純</a></li><li class="learning-toc-subitem"><a href="#github中心の運用と相性がよい">GitHub中心の運用と相性がよい</a></li><li><a href="#選定フロー">選定フロー</a></li><li><a href="#ケーススタディ小規模なastro学習サイト">ケーススタディ：小規模なAstro学習サイト</a></li><li><a href="#移行前のチェックリスト">移行前のチェックリスト</a></li><li><a href="#まとめ">まとめ</a></li> </ol> <a class="learning-index-back" href="/learning/#course-cloud"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>発展</span>LESSON 05</p> <strong>この教材で学ぶこと</strong> <span>静的サイトの配信先を、制限・運用・将来性から比較します。</span> </header> <h1 id="github-pagesとcloudflare-pages比較--静的サイト配信の選び方">GitHub PagesとCloudflare Pages比較 — 静的サイト配信の選び方</h1>
+<p>静的サイトの公開先を選ぶときは、単純な表示速度だけでなく、<strong>デプロイ方法・プレビュー環境・配信制御・将来の動的機能・運用の複雑さ</strong>を比較します。</p>
+<blockquote>
+<p>数値やプランは変更されることがあります。本稿の制限値は2026年9月時点の公式ドキュメントを基準にしています。導入時には必ず最新情報を確認してください。</p>
+</blockquote>
+<h2 id="最初に整理する3つの構成">最初に整理する3つの構成</h2>
+<p>「Cloudflareを使う」という表現には、異なる構成が含まれます。</p>
+<h3 id="1-github-pagesだけで配信">1. GitHub Pagesだけで配信</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Browser</span></span>
+<span class="line"><span>  └─ GitHub Pages edge</span></span>
+<span class="line"><span>       └─ Static HTML / CSS / JavaScript / Images</span></span></code></pre>
+<p>Gitのbranchから静的ファイルを公開する、最も単純な構成です。GitHub Pagesはcustom domainとHTTPS enforcementに対応しています。</p>
+<h3 id="2-cloudflare-pagesへ移行">2. Cloudflare Pagesへ移行</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Browser</span></span>
+<span class="line"><span>  └─ Cloudflare Pages</span></span>
+<span class="line"><span>       └─ Static assets</span></span>
+<span class="line"><span>       └─ Pages Functions（必要な場合だけ）</span></span></code></pre>
+<p>hosting先そのものをCloudflareへ変更します。Git連携、preview deployment、CloudflareのDNS・Rules・Workers ecosystemをまとめて使えます。</p>
+<h3 id="3-github-pagesの前段にcloudflareを追加">3. GitHub Pagesの前段にCloudflareを追加</h3>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Browser</span></span>
+<span class="line"><span>  └─ Cloudflare proxy / CDN</span></span>
+<span class="line"><span>       └─ GitHub Pages edge</span></span>
+<span class="line"><span>            └─ Static assets</span></span></code></pre>
+<p>hostingはGitHub Pagesのまま、Cloudflareをreverse proxyとして追加する構成です。WAFやcache ruleを利用できますが、CDNが二重になるため、cache・TLS・障害の切り分けは複雑になります。</p>
+<h2 id="機能比較">機能比較</h2>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>GitHub Pages</th>
+<th>Cloudflare Pages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>得意な用途</td>
+<td>documentation、portfolio、小規模な静的サイト</td>
+<td>静的サイト、preview中心の開発、edge機能を使うサイト</td>
+</tr>
+<tr>
+<td>配信</td>
+<td>GitHubのmanaged static hosting</td>
+<td>Cloudflareのglobal network</td>
+</tr>
+<tr>
+<td>custom domain・HTTPS</td>
+<td>対応</td>
+<td>対応</td>
+</tr>
+<tr>
+<td>Git連携</td>
+<td>branchまたはGitHub Actionsから公開</td>
+<td>GitHub・GitLabと連携して自動build・deploy</td>
+</tr>
+<tr>
+<td>preview</td>
+<td>標準機能は限定的。workflowで補う</td>
+<td>branch・PRごとの固有preview URL</td>
+</tr>
+<tr>
+<td>redirect・header制御</td>
+<td>制約が多い</td>
+<td><code>_redirects</code>、<code>_headers</code>、Rulesを利用可能</td>
+</tr>
+<tr>
+<td>動的処理</td>
+<td>原則として静的配信のみ</td>
+<td>Pages Functions / Workersを追加可能</td>
+</tr>
+<tr>
+<td>security制御</td>
+<td>platform側のmanaged protection</td>
+<td>WAF、rate limiting、bot対策等と統合しやすい</td>
+</tr>
+<tr>
+<td>運用負荷</td>
+<td>小さい</td>
+<td>機能が増える分、設定項目も増える</td>
+</tr>
+</tbody>
+</table>
+<h2 id="主な制限を比較する">主な制限を比較する</h2>
+<h3 id="github-pages">GitHub Pages</h3>
+<p><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits">GitHub Pagesの公式制限</a>では、主に次の基準が示されています。</p>
+<ul>
+<li>公開サイトは最大1 GB</li>
+<li>月100 GBのsoft bandwidth limit</li>
+<li>deploymentは10分でtimeout</li>
+<li>buildはsoft limitとして1時間あたり10回。ただしcustom GitHub Actions workflowによるbuildには適用されない</li>
+</ul>
+<p>通常のportfolioや技術文書では十分大きな枠です。上限に近づいた場合、GitHubは第三者CDNや別hostingへの移行も選択肢として案内しています。</p>
+<h3 id="cloudflare-pages">Cloudflare Pages</h3>
+<p><a href="https://developers.cloudflare.com/pages/platform/limits/">Cloudflare Pagesの公式制限</a>では、Free planに次の基準があります。</p>
+<ul>
+<li>月500 builds</li>
+<li>build timeoutは20分</li>
+<li>1 siteあたり20,000 files</li>
+<li>1 assetあたり最大25 MiB</li>
+<li>1 projectあたり100 custom domains</li>
+</ul>
+<p><a href="https://developers.cloudflare.com/pages/functions/pricing/">Pages Functionsの料金説明</a>では、Functionsを通らないstatic asset requestはFree・Paidとも無料かつ無制限です。Functionsを使うrequestはWorkersのquota・料金体系で計算されます。</p>
+<h2 id="cloudflare-pagesが強いところ">Cloudflare Pagesが強いところ</h2>
+<h3 id="preview-deployment">Preview deployment</h3>
+<p>Git連携したCloudflare Pagesでは、branchやpull requestごとにproductionへ影響しないURLを作れます。previewには既定で<code>X-Robots-Tag: noindex</code>が付与され、検索結果の重複も抑えられます。</p>
+<ul>
+<li><a href="https://developers.cloudflare.com/pages/configuration/git-integration/">Git integration</a></li>
+<li><a href="https://developers.cloudflare.com/pages/configuration/preview-deployments/">Preview deployments</a></li>
+</ul>
+<p>デザイン確認や記事レビューをproduction公開前に行いたい場合に有効です。</p>
+<h3 id="edge機能への発展">Edge機能への発展</h3>
+<p><a href="https://developers.cloudflare.com/pages/functions/">Pages Functions</a>を利用すると、専用serverを管理せずに次の機能を追加できます。</p>
+<ul>
+<li>form受付</li>
+<li>authentication</li>
+<li>middleware</li>
+<li>API endpoint</li>
+<li>Workers KV・D1・R2等との連携</li>
+</ul>
+<p>ただし、静的サイトに必要のないFunctionsを追加すると、security boundary、料金、障害点も増えます。必要になった機能だけを追加します。</p>
+<h3 id="dnsとrulesの統合">DNSとRulesの統合</h3>
+<p>Cloudflare Pagesをapex domainで利用する場合、そのdomainをCloudflare zoneへ追加し、authoritative nameserverをCloudflareへ向けます。subdomainだけなら外部DNSからCNAMEで接続できます。詳しくは<a href="https://developers.cloudflare.com/pages/configuration/custom-domains/">Custom domains</a>を確認してください。</p>
+<p>DNSを移管すると、redirect、WAF、cache、DNSSECなどを同じ管理画面で扱いやすくなります。一方、DNS変更の影響範囲が大きくなるため、mail用recordやdomain verification recordまで事前に棚卸しする必要があります。</p>
+<h2 id="github-pagesが強いところ">GitHub Pagesが強いところ</h2>
+<h3 id="構成が単純">構成が単純</h3>
+<p>静的ファイルをGitで管理して公開するだけなら、GitHub Pagesは部品が少なく、障害調査も容易です。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Source / generated files</span></span>
+<span class="line"><span>  └─ Git push</span></span>
+<span class="line"><span>       └─ GitHub Pages deployment</span></span>
+<span class="line"><span>            └─ Public site</span></span></code></pre>
+<p>DB、authentication、form、server-side APIがないサイトでは、この単純さ自体がsecurityと保守性の利点になります。</p>
+<h3 id="github中心の運用と相性がよい">GitHub中心の運用と相性がよい</h3>
+<p>repository、Actions、Pages deployment、rollback対象のcommitをGitHub内で確認できます。公開物をGitのcommitとして固定したいdocumentationやportfolioに向いています。</p>
+<h2 id="選定フロー">選定フロー</h2>
+<p>次の順番で判断します。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>完全な静的サイトか？</span></span>
+<span class="line"><span>  ├─ Yes</span></span>
+<span class="line"><span>  │   ├─ PR previewやCloudflare Rulesが必要か？</span></span>
+<span class="line"><span>  │   │   ├─ No  → GitHub Pages</span></span>
+<span class="line"><span>  │   │   └─ Yes → Cloudflare Pagesを検討</span></span>
+<span class="line"><span>  │   └─ bandwidthやfile limitに近いか？</span></span>
+<span class="line"><span>  │       ├─ No  → 現状維持</span></span>
+<span class="line"><span>  │       └─ Yes → CDN追加またはhosting移行を比較</span></span>
+<span class="line"><span>  └─ No</span></span>
+<span class="line"><span>      ├─ 小規模なedge functionで足りる → Cloudflare Pages / Workers</span></span>
+<span class="line"><span>      └─ 常駐serverや複雑なbackendが必要 → 別のapplication hostingも比較</span></span></code></pre>
+<h2 id="ケーススタディ小規模なastro学習サイト">ケーススタディ：小規模なAstro学習サイト</h2>
+<p>AstroでbuildしたHTML・CSS・画像を配信し、login、DB、form、server-side APIを持たない学習サイトを考えます。</p>
+<p>この段階ではGitHub Pagesを選ぶ合理性があります。</p>
+<ul>
+<li>build後は静的ファイルだけ</li>
+<li>attack surfaceが小さい</li>
+<li>Git commitをそのままrelease単位にできる</li>
+<li>CDN、custom domain、HTTPSがすでに利用できる</li>
+<li>Cloudflareを重ねても体感速度の改善が小さい可能性がある</li>
+</ul>
+<p>一方、次の要件が生まれたらCloudflare Pagesへの移行を再評価します。</p>
+<ul>
+<li>学習進捗を複数端末で同期する</li>
+<li>教材検索APIを提供する</li>
+<li>問い合わせや回答送信を受け付ける</li>
+<li>PRごとのpreviewを共有する</li>
+<li>WAF、rate limiting、redirect ruleを細かく制御する</li>
+</ul>
+<h2 id="移行前のチェックリスト">移行前のチェックリスト</h2>
+<p>hostingを変更するときは、機能比較だけでなくrollbackまで設計します。</p>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> 現在のDNS recordをすべて保存した</li>
+<li class="task-list-item"><input type="checkbox" disabled> custom domainの所有確認方法を理解した</li>
+<li class="task-list-item"><input type="checkbox" disabled> <code>www</code>とapex domainのredirect先を決めた</li>
+<li class="task-list-item"><input type="checkbox" disabled> canonical URLとsitemapが変わらないことを確認した</li>
+<li class="task-list-item"><input type="checkbox" disabled> CAA recordが新しい証明書発行元を許可している</li>
+<li class="task-list-item"><input type="checkbox" disabled> preview URLへ<code>noindex</code>が付くことを確認した</li>
+<li class="task-list-item"><input type="checkbox" disabled> cache purgeと更新反映の手順を決めた</li>
+<li class="task-list-item"><input type="checkbox" disabled> 旧hostingへ戻すDNS・deployment手順を用意した</li>
+<li class="task-list-item"><input type="checkbox" disabled> production切替前に一時URLで全ページを検証した</li>
+</ul>
+<h2 id="まとめ">まとめ</h2>
+<ul>
+<li>GitHub Pagesは、静的サイトを少ない構成要素で公開したい場合に強い</li>
+<li>Cloudflare Pagesは、preview、Rules、Workers ecosystemへ発展させたい場合に強い</li>
+<li>GitHub Pagesの前段へCloudflareを置く構成は、WAF等の目的が明確な場合に限って検討する</li>
+<li>「CDNを追加すれば必ず速くなる」ではなく、現在の配信経路と必要な機能から選ぶ</li>
+</ul>
+<p>まず最小の構成で公開し、実測した課題が生まれてから構成を増やすことが、静的サイト運用では重要です。</p>
+ <footer class="learning-lesson-footer"> <p>COURSE COMPLETE</p> <a href="/learning/#courses"><strong>別のコースを選ぶ</strong><span aria-hidden="true">→</span></a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>
