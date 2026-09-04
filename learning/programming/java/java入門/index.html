@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Java入門を基礎から実践へつなげて学ぶ技術教材。JVM、record、collection、interfaceからJavaの設計を学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/java/java%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Java入門 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="Java入門を基礎から実践へつなげて学ぶ技術教材。JVM、record、collection、interfaceからJavaの設計を学びます。"><meta property="og:url" content="https://kryix.jp/learning/programming/java/java%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Java入門","description":"Java入門を基礎から実践へつなげて学ぶ技術教材。JVM、record、collection、interfaceからJavaの設計を学びます。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"プログラミングコース","url":"https://kryix.jp/learning/#course-programming"}}</script><title>Java入門 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-programming">プログラミング</a> <span aria-hidden="true">/</span><span>java</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING / 基礎</p> <div class="learning-course-progress" aria-label="プログラミングコース 14/18"> <span style="--learning-progress: 77.77777777777779%"></span> <small>14 / 18</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/programming/python/python%E5%AE%9F%E8%B7%B5-kotlin%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E5%90%91%E3%81%91/"><span>← 前へ</span><strong>Python 実践 — Kotlin エンジニアのための高速キャッチアップ</strong></a> <a href="/learning/programming/fundamentals/%E3%83%87%E3%83%BC%E3%82%BF%E6%A7%8B%E9%80%A0%E3%81%A8%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E5%85%A5%E9%96%80/"><span>次へ →</span><strong>データ構造とアルゴリズム入門</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-javaが動くまで">1. Javaが動くまで</a></li><li><a href="#2-recordで値を表す">2. recordで値を表す</a></li><li><a href="#3-collectionを扱う">3. collectionを扱う</a></li><li><a href="#4-interfaceで境界を作る">4. interfaceで境界を作る</a></li><li><a href="#5-例外を意味で選ぶ">5. 例外を意味で選ぶ</a></li><li><a href="#6-packageで責務を分ける">6. packageで責務を分ける</a></li><li><a href="#演習-学習計画domain">演習: 学習計画domain</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#公式資料">公式資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-programming"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 13</p> <strong>この教材で学ぶこと</strong> <span>JVM、record、collection、interfaceからJavaの設計を学びます。</span> </header> <h1 id="java入門">Java入門</h1>
+<blockquote>
+<p>対象読者: 基本文法を学び、静的型付けとobject-oriented designへ進みたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>source、compiler、bytecode、JVMの関係を説明できる</li>
+<li>class、record、interfaceを用途から選べる</li>
+<li>collectionと例外を扱える</li>
+<li>mutableな状態を小さく保つ設計を説明できる</li>
+</ul>
+<h2 id="1-javaが動くまで">1. Javaが動くまで</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Main.java → javac → Main.class（bytecode）→ JVMで実行</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#F97583">public</span><span style="color:#F97583"> class</span><span style="color:#B392F0"> Main</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    public</span><span style="color:#F97583"> static</span><span style="color:#F97583"> void</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">String</span><span style="color:#E1E4E8">[] </span><span style="color:#FFAB70">args</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#E1E4E8">        System.out.</span><span style="color:#B392F0">println</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"Hello, Java"</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">javac</span><span style="color:#9ECBFF"> Main.java</span></span>
+<span class="line"><span style="color:#B392F0">java</span><span style="color:#9ECBFF"> Main</span></span></code></pre>
+<p>Javaはlanguageであると同時に、JVMを中心とするplatformでもあります。</p>
+<h2 id="2-recordで値を表す">2. recordで値を表す</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#F97583">public</span><span style="color:#F97583"> record</span><span style="color:#B392F0"> Lesson</span><span style="color:#E1E4E8">(String id, String title, Level level) {</span></span>
+<span class="line"><span style="color:#F97583">    public</span><span style="color:#B392F0"> Lesson</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (id </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> null</span><span style="color:#F97583"> ||</span><span style="color:#E1E4E8"> id.</span><span style="color:#B392F0">isBlank</span><span style="color:#E1E4E8">()) {</span></span>
+<span class="line"><span style="color:#F97583">            throw</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> IllegalArgumentException</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"id must not be blank"</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#F97583">        if</span><span style="color:#E1E4E8"> (title </span><span style="color:#F97583">==</span><span style="color:#79B8FF"> null</span><span style="color:#F97583"> ||</span><span style="color:#E1E4E8"> title.</span><span style="color:#B392F0">isBlank</span><span style="color:#E1E4E8">()) {</span></span>
+<span class="line"><span style="color:#F97583">            throw</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> IllegalArgumentException</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"title must not be blank"</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">        }</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">enum</span><span style="color:#B392F0"> Level</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">    BEGINNER</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">INTERMEDIATE</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">ADVANCED</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>recordは値を保持するdata carrierに向いています。検証をcompact constructorへ集めれば、不正状態の生成を防げます。</p>
+<h2 id="3-collectionを扱う">3. collectionを扱う</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> java.util.List;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">public</span><span style="color:#F97583"> final</span><span style="color:#F97583"> class</span><span style="color:#B392F0"> Curriculum</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#F97583">    public</span><span style="color:#F97583"> static</span><span style="color:#F97583"> long</span><span style="color:#B392F0"> countBeginnerLessons</span><span style="color:#E1E4E8">(List&lt;</span><span style="color:#F97583">Lesson</span><span style="color:#E1E4E8">&gt; </span><span style="color:#FFAB70">lessons</span><span style="color:#E1E4E8">) {</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#E1E4E8"> lessons.</span><span style="color:#B392F0">stream</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">            .</span><span style="color:#B392F0">filter</span><span style="color:#E1E4E8">(lesson </span><span style="color:#F97583">-&gt;</span><span style="color:#E1E4E8"> lesson.</span><span style="color:#B392F0">level</span><span style="color:#E1E4E8">() </span><span style="color:#F97583">==</span><span style="color:#E1E4E8"> Level.BEGINNER)</span></span>
+<span class="line"><span style="color:#E1E4E8">            .</span><span style="color:#B392F0">count</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#E1E4E8">    }</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>引数で受け取ったcollectionを不要に変更せず、結果を返す関数として書くと予測しやすくなります。</p>
+<h2 id="4-interfaceで境界を作る">4. interfaceで境界を作る</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> java.util.List;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">public</span><span style="color:#F97583"> interface</span><span style="color:#B392F0"> LessonRepository</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#E1E4E8">    List&lt;</span><span style="color:#F97583">Lesson</span><span style="color:#E1E4E8">&gt; </span><span style="color:#B392F0">findAll</span><span style="color:#E1E4E8">();</span></span>
+<span class="line"><span style="color:#F97583">    void</span><span style="color:#B392F0"> save</span><span style="color:#E1E4E8">(Lesson </span><span style="color:#FFAB70">lesson</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>domain logicがdatabaseやHTTP clientへ直接依存せずinterfaceへ依存すれば、保存方法を差し替えやすくなります。ただし、実装が一つで変更理由もない段階から何でもinterface化する必要はありません。</p>
+<h2 id="5-例外を意味で選ぶ">5. 例外を意味で選ぶ</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="java"><code><span class="line"><span style="color:#F97583">public</span><span style="color:#E1E4E8"> Lesson </span><span style="color:#B392F0">requireLesson</span><span style="color:#E1E4E8">(String id, LessonRepository repository) {</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> repository.</span><span style="color:#B392F0">findAll</span><span style="color:#E1E4E8">().</span><span style="color:#B392F0">stream</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">        .</span><span style="color:#B392F0">filter</span><span style="color:#E1E4E8">(lesson </span><span style="color:#F97583">-&gt;</span><span style="color:#E1E4E8"> lesson.</span><span style="color:#B392F0">id</span><span style="color:#E1E4E8">().</span><span style="color:#B392F0">equals</span><span style="color:#E1E4E8">(id))</span></span>
+<span class="line"><span style="color:#E1E4E8">        .</span><span style="color:#B392F0">findFirst</span><span style="color:#E1E4E8">()</span></span>
+<span class="line"><span style="color:#E1E4E8">        .</span><span style="color:#B392F0">orElseThrow</span><span style="color:#E1E4E8">(() </span><span style="color:#F97583">-&gt;</span><span style="color:#F97583"> new</span><span style="color:#B392F0"> IllegalArgumentException</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"unknown lesson: "</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> id));</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>catchする側が回復できる粒度で例外を選び、秘密情報や内部構成を利用者向けmessageへ出さないようにします。</p>
+<h2 id="6-packageで責務を分ける">6. packageで責務を分ける</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>src/main/java/example/study/</span></span>
+<span class="line"><span>├── domain/</span></span>
+<span class="line"><span>│   ├── Lesson.java</span></span>
+<span class="line"><span>│   └── Curriculum.java</span></span>
+<span class="line"><span>├── application/</span></span>
+<span class="line"><span>│   └── CompleteLesson.java</span></span>
+<span class="line"><span>└── infrastructure/</span></span>
+<span class="line"><span>    └── FileLessonRepository.java</span></span></code></pre>
+<p>名前はframeworkではなく、扱うdomainや責務を表すようにします。</p>
+<h2 id="演習-学習計画domain">演習: 学習計画domain</h2>
+<p>次を実装してください。</p>
+<ul>
+<li><code>Lesson</code>: id、title、estimatedMinutes</li>
+<li><code>StudyPlan</code>: lesson一覧を持つ</li>
+<li>合計時間を返すmethod</li>
+<li>id重複を拒否する処理</li>
+<li>空titleと0以下の時間を拒否</li>
+</ul>
+<p>正常系だけでなく、空一覧、重複id、境界値をテストします。</p>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> source、bytecode、JVMを区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> class、record、interfaceを使う理由を説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> collection操作を副作用の小さい関数へ分けられる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 不正状態を生成時に拒否できる</li>
+</ul>
+<h2 id="公式資料">公式資料</h2>
+<ul>
+<li><a href="https://dev.java/learn/">Dev.java Learn</a></li>
+<li><a href="https://docs.oracle.com/javase/tutorial/java/">Oracle: Learning the Java Language</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/programming/engineering/%E8%A8%AD%E8%A8%88%E3%81%A8%E3%83%AA%E3%83%95%E3%82%A1%E3%82%AF%E3%82%BF%E3%83%AA%E3%83%B3%E3%82%B0/">設計とリファクタリング</a>で、責務と依存関係を整理します。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/programming/fundamentals/%E3%83%87%E3%83%BC%E3%82%BF%E6%A7%8B%E9%80%A0%E3%81%A8%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0%E5%85%A5%E9%96%80/"> <span>実践</span> <strong>データ構造とアルゴリズム入門</strong> <small>data structure、探索、Big Oを選択理由とともに学びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

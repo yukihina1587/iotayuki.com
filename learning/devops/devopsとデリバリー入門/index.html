@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="DevOpsとデリバリー入門を基礎から実践へつなげて学ぶ技術教材。変更をtest・build・deploy・observeへつなぐfeedback cycleを学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/devops/devops%E3%81%A8%E3%83%87%E3%83%AA%E3%83%90%E3%83%AA%E3%83%BC%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="DevOpsとデリバリー入門 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="DevOpsとデリバリー入門を基礎から実践へつなげて学ぶ技術教材。変更をtest・build・deploy・observeへつなぐfeedback cycleを学びます。"><meta property="og:url" content="https://kryix.jp/learning/devops/devops%E3%81%A8%E3%83%87%E3%83%AA%E3%83%90%E3%83%AA%E3%83%BC%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"DevOpsとデリバリー入門","description":"DevOpsとデリバリー入門を基礎から実践へつなげて学ぶ技術教材。変更をtest・build・deploy・observeへつなぐfeedback cycleを学びます。","educationalLevel":"はじめて","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"DevOps・自動化コース","url":"https://kryix.jp/learning/#course-devops"}}</script><title>DevOpsとデリバリー入門 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-devops">DevOps・自動化</a>  </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">DEVOPS / はじめて</p> <div class="learning-course-progress" aria-label="DevOps・自動化コース 2/9"> <span style="--learning-progress: 22.22222222222222%"></span> <small>2 / 9</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/devops/roadmap/"><span>← 前へ</span><strong>⚙️ DevOps 学習ロードマップ</strong></a> <a href="/learning/devops/docker/docker%E5%AE%9F%E8%B7%B5/"><span>次へ →</span><strong>Docker 実践 — コンテナの本質から運用まで</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-devopsの目的">1. DevOpsの目的</a></li><li><a href="#2-pipelineを段階に分ける">2. pipelineを段階に分ける</a></li><li><a href="#3-同じartifactを昇格させる">3. 同じartifactを昇格させる</a></li><li><a href="#4-小さな変更とrollback">4. 小さな変更とrollback</a></li><li><a href="#5-automationの失敗も設計する">5. automationの失敗も設計する</a></li><li><a href="#6-最初のpipeline">6. 最初のpipeline</a></li><li><a href="#演習-手動deployを分解する">演習: 手動deployを分解する</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-devops"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>はじめて</span>LESSON 01</p> <strong>この教材で学ぶこと</strong> <span>変更をtest・build・deploy・observeへつなぐfeedback cycleを学びます。</span> </header> <h1 id="devopsとデリバリー入門">DevOpsとデリバリー入門</h1>
+<blockquote>
+<p>対象読者: codeを書いた後、test・build・deploy・operationまでを安全につなげたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>DevOpsをtool名ではなくfeedback cycleとして説明できる</li>
+<li>sourceからproductionまでのpipelineを分解できる</li>
+<li>artifact、environment、configurationを区別できる</li>
+<li>小さな変更、automation、observability、rollbackを設計できる</li>
+</ul>
+<h2 id="1-devopsの目的">1. DevOpsの目的</h2>
+<p>開発と運用を別々の壁にせず、変更を素早く安全に届け、その結果を次の改善へ戻します。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Plan → Code → Review → Test → Build → Deploy → Observe</span></span>
+<span class="line"><span>  ↑                                              ↓</span></span>
+<span class="line"><span>  └──────────────── Feedback ────────────────────┘</span></span></code></pre>
+<p>CI、container、IaC、Kubernetesは目的ではなく、このcycleを支える手段です。</p>
+<h2 id="2-pipelineを段階に分ける">2. pipelineを段階に分ける</h2>
+<table>
+<thead>
+<tr>
+<th>段階</th>
+<th>確認すること</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lint/type check</td>
+<td>機械的な不整合</td>
+</tr>
+<tr>
+<td>unit test</td>
+<td>core logic</td>
+</tr>
+<tr>
+<td>integration test</td>
+<td>DBやservice境界</td>
+</tr>
+<tr>
+<td>build</td>
+<td>配布できるartifactを再現できるか</td>
+</tr>
+<tr>
+<td>security check</td>
+<td>dependency、secret、image</td>
+</tr>
+<tr>
+<td>deploy</td>
+<td>environmentへ安全に反映できるか</td>
+</tr>
+<tr>
+<td>smoke test</td>
+<td>主要機能が最低限動くか</td>
+</tr>
+<tr>
+<td>observe</td>
+<td>error、latency、traffic、saturation</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-同じartifactを昇格させる">3. 同じartifactを昇格させる</h2>
+<p>testしたsourceから作ったartifactと、productionへ出すartifactが異なると検証の意味が弱くなります。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>commit SHA</span></span>
+<span class="line"><span>  → immutable artifact</span></span>
+<span class="line"><span>  → stagingで検証</span></span>
+<span class="line"><span>  → 同じartifactをproductionへ</span></span></code></pre>
+<p>environment差分は設定とsecretで注入し、artifactを環境ごとに手編集しません。</p>
+<h2 id="4-小さな変更とrollback">4. 小さな変更とrollback</h2>
+<ul>
+<li>一つの目的にまとまった差分</li>
+<li>review可能な大きさ</li>
+<li>backward compatibilityを考えたDB変更</li>
+<li>feature flagや段階release</li>
+<li>直前versionへ戻す手順</li>
+<li>data変更の復旧方法</li>
+</ul>
+<p>deployの成功だけでなく、利用者影響とmetricを確認します。</p>
+<h2 id="5-automationの失敗も設計する">5. automationの失敗も設計する</h2>
+<p>pipelineにはtimeout、retry上限、concurrency、権限、secret maskingを設定します。自動化が失敗したとき、途中まで何が変わったか分かり、再実行しても重複しないことが重要です。</p>
+<h2 id="6-最初のpipeline">6. 最初のpipeline</h2>
+<p>小さな静的サイトなら次から始められます。</p>
+<ol>
+<li>pull requestでbuildとtest</li>
+<li>mainの特定commitからartifact作成</li>
+<li>artifactを保存</li>
+<li>productionへdeploy</li>
+<li>URLへsmoke test</li>
+<li>commitとdeploymentを関連付ける</li>
+</ol>
+<h2 id="演習-手動deployを分解する">演習: 手動deployを分解する</h2>
+<p>自分が行っている手動deployを、入力、処理、出力、失敗時の状態へ分けます。</p>
+<ul>
+<li>どのcommitを出すか</li>
+<li>誰が承認するか</li>
+<li>build結果をどう固定するか</li>
+<li>secretをどこから渡すか</li>
+<li>失敗時にどこまで戻すか</li>
+<li>成功を何で判定するか</li>
+</ul>
+<p>最も危険な一工程だけを選び、最初のautomation候補にします。</p>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> DevOpsをfeedback cycleとして説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> source、artifact、configurationを区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> testしたartifactをそのまま昇格させる理由を説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> deploy前にrollbackと観測方法を決められる</li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/devops/roadmap/">DevOps学習ロードマップ</a>からDocker、CI/CD、IaC、Kubernetesへ進みます。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/devops/docker/docker%E5%AE%9F%E8%B7%B5/"> <span>基礎</span> <strong>Docker 実践 — コンテナの本質から運用まで</strong> <small>コンテナの仕組みとDockerfileの基本を学びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

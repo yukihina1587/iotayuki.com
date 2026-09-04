@@ -1,0 +1,99 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="設計とリファクタリングを基礎から実践へつなげて学ぶ技術教材。責務と依存を整理し、testで守りながら構造を改善します。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/engineering/%E8%A8%AD%E8%A8%88%E3%81%A8%E3%83%AA%E3%83%95%E3%82%A1%E3%82%AF%E3%82%BF%E3%83%AA%E3%83%B3%E3%82%B0/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="設計とリファクタリング — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="設計とリファクタリングを基礎から実践へつなげて学ぶ技術教材。責務と依存を整理し、testで守りながら構造を改善します。"><meta property="og:url" content="https://kryix.jp/learning/programming/engineering/%E8%A8%AD%E8%A8%88%E3%81%A8%E3%83%AA%E3%83%95%E3%82%A1%E3%82%AF%E3%82%BF%E3%83%AA%E3%83%B3%E3%82%B0/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"設計とリファクタリング","description":"設計とリファクタリングを基礎から実践へつなげて学ぶ技術教材。責務と依存を整理し、testで守りながら構造を改善します。","educationalLevel":"発展","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"プログラミングコース","url":"https://kryix.jp/learning/#course-programming"}}</script><title>設計とリファクタリング — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-programming">プログラミング</a> <span aria-hidden="true">/</span><span>engineering</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING / 発展</p> <div class="learning-course-progress" aria-label="プログラミングコース 18/18"> <span style="--learning-progress: 100%"></span> <small>18 / 18</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/programming/engineering/http-api%E8%A8%AD%E8%A8%88/"><span>← 前へ</span><strong>HTTP API設計</strong></a>  </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-良い設計は変更を局所化する">1. 良い設計は変更を局所化する</a></li><li><a href="#2-domain-logicとioを分ける">2. domain logicとI/Oを分ける</a></li><li><a href="#3-名前で境界を明らかにする">3. 名前で境界を明らかにする</a></li><li><a href="#4-小さくrefactorする">4. 小さくrefactorする</a></li><li><a href="#5-abstractionを急がない">5. abstractionを急がない</a></li><li><a href="#6-dependency-direction">6. dependency direction</a></li><li><a href="#7-review-checklist">7. review checklist</a></li><li><a href="#演習-一つの巨大関数を分ける">演習: 一つの巨大関数を分ける</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#次に進む">次に進む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-programming"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>発展</span>LESSON 17</p> <strong>この教材で学ぶこと</strong> <span>責務と依存を整理し、testで守りながら構造を改善します。</span> </header> <h1 id="設計とリファクタリング">設計とリファクタリング</h1>
+<blockquote>
+<p>対象読者: 動くコードを、変更しやすく安全な構造へ育てたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>責務、凝集度、結合度を変更理由から説明できる</li>
+<li>domain logicとI/Oを分離できる</li>
+<li>testで振る舞いを守りながら小さくrefactorできる</li>
+<li>abstractionを導入する時期と、導入しない判断ができる</li>
+</ul>
+<h2 id="1-良い設計は変更を局所化する">1. 良い設計は変更を局所化する</h2>
+<p>設計の目的はclass数を増やすことではありません。要件変更が来たとき、どこを直せばよいか分かり、無関係な場所を壊しにくい構造を作ることです。</p>
+<p>次を観察します。</p>
+<ul>
+<li>一つの関数が複数の理由で変わる</li>
+<li>同じ判断が複数箇所に重複する</li>
+<li>外部serviceがないとcore ruleをtestできない</li>
+<li>名前から副作用や失敗条件が分からない</li>
+<li>小さな変更で多数のmoduleが連鎖的に変わる</li>
+</ul>
+<h2 id="2-domain-logicとioを分ける">2. domain logicとI/Oを分ける</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> calculate_total</span><span style="color:#E1E4E8">(prices: list[</span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">], tax_rate: </span><span style="color:#79B8FF">float</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#79B8FF"> any</span><span style="color:#E1E4E8">(price </span><span style="color:#F97583">&lt;</span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> for</span><span style="color:#E1E4E8"> price </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> prices):</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"price must be non-negative"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#F97583"> not</span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> &lt;=</span><span style="color:#E1E4E8"> tax_rate </span><span style="color:#F97583">&lt;=</span><span style="color:#79B8FF"> 1</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"tax_rate must be between 0 and 1"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> round</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">sum</span><span style="color:#E1E4E8">(prices) </span><span style="color:#F97583">*</span><span style="color:#E1E4E8"> (</span><span style="color:#79B8FF">1</span><span style="color:#F97583"> +</span><span style="color:#E1E4E8"> tax_rate))</span></span></code></pre>
+<p>この関数はHTTP、DB、画面を知りません。adapterが外部入力を変換し、domain functionへ渡します。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>HTTP / CLI / UI</span></span>
+<span class="line"><span>      ↓ adapter</span></span>
+<span class="line"><span> application use case</span></span>
+<span class="line"><span>      ↓</span></span>
+<span class="line"><span>  domain logic</span></span>
+<span class="line"><span>      ↑ interface</span></span>
+<span class="line"><span> DB / external API</span></span></code></pre>
+<h2 id="3-名前で境界を明らかにする">3. 名前で境界を明らかにする</h2>
+<p><code>process()</code>、<code>handle()</code>、<code>data</code>だけでは意図が分かりません。</p>
+<ul>
+<li><code>validate_registration_request</code></li>
+<li><code>calculate_discounted_total</code></li>
+<li><code>save_learning_progress</code></li>
+<li><code>fetch_lesson_catalog</code></li>
+</ul>
+<p>名前が長くなりすぎる場合、関数の責務が広すぎる可能性があります。</p>
+<h2 id="4-小さくrefactorする">4. 小さくrefactorする</h2>
+<p>安全な順序:</p>
+<ol>
+<li>現在の振る舞いをtestで固定する</li>
+<li>名前変更や関数抽出を一種類だけ行う</li>
+<li>testを実行する</li>
+<li>差分を読む</li>
+<li>次の小さな変更へ進む</li>
+</ol>
+<p>refactoring中に新機能を混ぜると、失敗原因が構造変更か仕様変更か分かりにくくなります。</p>
+<h2 id="5-abstractionを急がない">5. abstractionを急がない</h2>
+<p>似て見える二つの処理でも、将来別々に変わるなら統合しないほうがよい場合があります。</p>
+<p>抽象化する前に確認します。</p>
+<ul>
+<li>本当に同じbusiness ruleか</li>
+<li>重複は何回あり、どのように変化したか</li>
+<li>呼び出し側は同じ契約を必要としているか</li>
+<li>新しい抽象化の名前をdomain用語で説明できるか</li>
+<li>削除や差し替えが容易か</li>
+</ul>
+<h2 id="6-dependency-direction">6. dependency direction</h2>
+<p>core ruleがframeworkの型やDB clientへ直接依存すると、technology変更がdomain全体へ広がります。外側が内側へ依存する形を目指します。</p>
+<p>ただし小さなscriptで何層ものinterfaceを作る必要はありません。変更頻度、寿命、team規模、testの必要性に合わせます。</p>
+<h2 id="7-review-checklist">7. review checklist</h2>
+<ul>
+<li>入力境界でvalidationしているか</li>
+<li>function名と戻り値から責務が分かるか</li>
+<li>errorを握りつぶしていないか</li>
+<li>logへ秘密情報を出していないか</li>
+<li>時刻、乱数、networkをtestで差し替えられるか</li>
+<li>変更に対応するtestがあるか</li>
+<li>rollback可能な単位か</li>
+</ul>
+<h2 id="演習-一つの巨大関数を分ける">演習: 一つの巨大関数を分ける</h2>
+<p>「JSONを読む → 入力検証 → 合計計算 → DB保存 → メール送信」を一関数で行うcodeを想定し、次へ分けてください。</p>
+<ol>
+<li>domain valueとvalidation</li>
+<li>合計を求めるpure function</li>
+<li>application use case</li>
+<li>storage interface</li>
+<li>notification interface</li>
+<li>CLIまたはHTTP adapter</li>
+</ol>
+<p>各境界で起きるerrorと、どこで利用者向けmessageへ変換するかも決めます。</p>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> 変更理由から責務を分けられる</li>
+<li class="task-list-item"><input type="checkbox" disabled> core logicを外部I/Oなしでtestできる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 振る舞いを維持した小さなrefactorができる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 不要なabstractionを作らない理由を説明できる</li>
+</ul>
+<h2 id="次に進む">次に進む</h2>
+<p>ここまでの教材から一つの小さな作品を完成させます。CLI、静的Webページ、APIのどれかを選び、README、入力検証、test、実行手順、制約を揃えて公開できる形へ仕上げてください。</p>
+ <footer class="learning-lesson-footer"> <p>COURSE COMPLETE</p> <a href="/learning/#courses"><strong>別のコースを選ぶ</strong><span aria-hidden="true">→</span></a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

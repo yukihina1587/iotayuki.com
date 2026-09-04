@@ -1,0 +1,96 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Python入門を基礎から実践へつなげて学ぶ技術教材。基本文法、collection、function、例外、moduleを順に学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/python/python%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Python入門 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="Python入門を基礎から実践へつなげて学ぶ技術教材。基本文法、collection、function、例外、moduleを順に学びます。"><meta property="og:url" content="https://kryix.jp/learning/programming/python/python%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Python入門","description":"Python入門を基礎から実践へつなげて学ぶ技術教材。基本文法、collection、function、例外、moduleを順に学びます。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"プログラミングコース","url":"https://kryix.jp/learning/#course-programming"}}</script><title>Python入門 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-programming">プログラミング</a> <span aria-hidden="true">/</span><span>python</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING / 基礎</p> <div class="learning-course-progress" aria-label="プログラミングコース 11/18"> <span style="--learning-progress: 61.111111111111114%"></span> <small>11 / 18</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/programming/bash/%E3%82%B7%E3%82%A7%E3%83%AB%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88%E5%AE%9F%E8%B7%B5/"><span>← 前へ</span><strong>Bash シェルスクリプト実践</strong></a> <a href="/learning/programming/python/python%E3%83%86%E3%82%B9%E3%83%88%E3%81%A8cli/"><span>次へ →</span><strong>PythonのテストとCLI</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-最初のprogram">1. 最初のprogram</a></li><li><a href="#2-listとdict">2. listとdict</a></li><li><a href="#3-関数と型hint">3. 関数と型hint</a></li><li><a href="#4-例外を扱う">4. 例外を扱う</a></li><li><a href="#5-moduleへ分ける">5. moduleへ分ける</a></li><li><a href="#6-virtual-environment">6. virtual environment</a></li><li><a href="#7-main-guard">7. main guard</a></li><li><a href="#演習-学習時間集計">演習: 学習時間集計</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#公式資料">公式資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-programming"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 10</p> <strong>この教材で学ぶこと</strong> <span>基本文法、collection、function、例外、moduleを順に学びます。</span> </header> <h1 id="python入門">Python入門</h1>
+<blockquote>
+<p>対象読者: 初めてPythonを学ぶ人。プログラミング基礎を先に読むと理解しやすくなります。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>Pythonの基本的な値、条件分岐、繰り返し、関数を書ける</li>
+<li>listとdictを使ってデータを整理できる</li>
+<li>moduleとvirtual environmentの目的を説明できる</li>
+<li>例外を握りつぶさず、呼び出し側へ伝えられる</li>
+</ul>
+<h2 id="1-最初のprogram">1. 最初のprogram</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#E1E4E8">name </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> input</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"名前: "</span><span style="color:#E1E4E8">).strip()</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#F97583"> not</span><span style="color:#E1E4E8"> name:</span></span>
+<span class="line"><span style="color:#F97583">    raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"名前は必須です"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"こんにちは、</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">name</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">さん"</span><span style="color:#E1E4E8">)</span></span></code></pre>
+<p>Pythonはindentationでblockを表します。tabとspaceを無秩序に混ぜず、通常はspace 4文字を使います。</p>
+<h2 id="2-listとdict">2. listとdict</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#E1E4E8">lessons </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> [</span></span>
+<span class="line"><span style="color:#E1E4E8">    {</span><span style="color:#9ECBFF">"title"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Python入門"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"minutes"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">45</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"done"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">True</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#E1E4E8">    {</span><span style="color:#9ECBFF">"title"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"テスト"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"minutes"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">60</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"done"</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">False</span><span style="color:#E1E4E8">},</span></span>
+<span class="line"><span style="color:#E1E4E8">]</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">remaining </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> [lesson </span><span style="color:#F97583">for</span><span style="color:#E1E4E8"> lesson </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> lessons </span><span style="color:#F97583">if</span><span style="color:#F97583"> not</span><span style="color:#E1E4E8"> lesson[</span><span style="color:#9ECBFF">"done"</span><span style="color:#E1E4E8">]]</span></span>
+<span class="line"><span style="color:#E1E4E8">total_minutes </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> sum</span><span style="color:#E1E4E8">(lesson[</span><span style="color:#9ECBFF">"minutes"</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">for</span><span style="color:#E1E4E8"> lesson </span><span style="color:#F97583">in</span><span style="color:#E1E4E8"> lessons)</span></span></code></pre>
+<p>list comprehensionは短く書けますが、条件や変換が複雑なら通常の<code>for</code>へ戻して読みやすさを優先します。</p>
+<h2 id="3-関数と型hint">3. 関数と型hint</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> completion_rate</span><span style="color:#E1E4E8">(done: </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">, total: </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">float</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> total </span><span style="color:#F97583">&lt;=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"total must be positive"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#F97583"> not</span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> &lt;=</span><span style="color:#E1E4E8"> done </span><span style="color:#F97583">&lt;=</span><span style="color:#E1E4E8"> total:</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"done must be between 0 and total"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> done </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> total</span></span></code></pre>
+<p>型hintは実行時に自動検証する仕組みではありませんが、意図の共有や静的解析に役立ちます。外部入力は別途検証します。</p>
+<h2 id="4-例外を扱う">4. 例外を扱う</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> parse_minutes</span><span style="color:#E1E4E8">(raw: </span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    try</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        minutes </span><span style="color:#F97583">=</span><span style="color:#79B8FF"> int</span><span style="color:#E1E4E8">(raw)</span></span>
+<span class="line"><span style="color:#F97583">    except</span><span style="color:#79B8FF"> ValueError</span><span style="color:#F97583"> as</span><span style="color:#E1E4E8"> error:</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"minutes must be an integer"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">from</span><span style="color:#E1E4E8"> error</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> minutes </span><span style="color:#F97583">&lt;=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"minutes must be positive"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> minutes</span></span></code></pre>
+<p><code>except Exception: pass</code>のようにすべてを無視すると、原因が見えなくなります。回復できる例外だけを、適切な場所で処理します。</p>
+<h2 id="5-moduleへ分ける">5. moduleへ分ける</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>study_tracker/</span></span>
+<span class="line"><span>├── main.py</span></span>
+<span class="line"><span>├── progress.py</span></span>
+<span class="line"><span>└── tests/</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># progress.py</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> remaining_minutes</span><span style="color:#E1E4E8">(planned: </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">, spent: </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> max</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">, planned </span><span style="color:#F97583">-</span><span style="color:#E1E4E8"> spent)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># main.py</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> progress </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> remaining_minutes</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">print</span><span style="color:#E1E4E8">(remaining_minutes(</span><span style="color:#79B8FF">90</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">35</span><span style="color:#E1E4E8">))</span></span></code></pre>
+<h2 id="6-virtual-environment">6. virtual environment</h2>
+<p>projectごとにdependencyを分離します。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">python</span><span style="color:#79B8FF"> -m</span><span style="color:#9ECBFF"> venv</span><span style="color:#9ECBFF"> .venv</span></span>
+<span class="line"><span style="color:#79B8FF">source</span><span style="color:#9ECBFF"> .venv/bin/activate</span></span>
+<span class="line"><span style="color:#B392F0">python</span><span style="color:#79B8FF"> -m</span><span style="color:#9ECBFF"> pip</span><span style="color:#9ECBFF"> install</span><span style="color:#79B8FF"> --upgrade</span><span style="color:#9ECBFF"> pip</span></span></code></pre>
+<p>Windows PowerShellのactivate commandは環境により異なります。<code>.venv</code>は通常Gitへcommitしません。</p>
+<h2 id="7-main-guard">7. main guard</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">() -&gt; </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#79B8FF">    print</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"study tracker"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> 0</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#79B8FF"> __name__</span><span style="color:#F97583"> ==</span><span style="color:#9ECBFF"> "__main__"</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    raise</span><span style="color:#79B8FF"> SystemExit</span><span style="color:#E1E4E8">(main())</span></span></code></pre>
+<p>関数としてimportする場合と、scriptとして実行する場合を分けられます。</p>
+<h2 id="演習-学習時間集計">演習: 学習時間集計</h2>
+<p><code>[{"category": "Python", "minutes": 30}, ...]</code>を受け取り、category別の合計をdictで返す関数を作ってください。</p>
+<p>要件:</p>
+<ul>
+<li>categoryは空文字不可</li>
+<li>minutesは1以上の整数</li>
+<li>不正なentryでは<code>ValueError</code></li>
+<li>入力listを変更しない</li>
+</ul>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> listとdictを用途から選べる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 一つの役割を持つ関数を書ける</li>
+<li class="task-list-item"><input type="checkbox" disabled> 例外を原因付きで伝えられる</li>
+<li class="task-list-item"><input type="checkbox" disabled> projectごとにvirtual environmentを作れる</li>
+</ul>
+<h2 id="公式資料">公式資料</h2>
+<ul>
+<li><a href="https://docs.python.org/3/tutorial/">Python Tutorial</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/programming/python/python%E3%83%86%E3%82%B9%E3%83%88%E3%81%A8cli/">PythonのテストとCLI</a>で、小さなtoolとして完成させます。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/programming/python/python%E3%83%86%E3%82%B9%E3%83%88%E3%81%A8cli/"> <span>実践</span> <strong>PythonのテストとCLI</strong> <small>unittestとargparseで、検証可能なcommand-line toolを作ります。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

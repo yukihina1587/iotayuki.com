@@ -1,0 +1,114 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="HTMLとCSS入門を基礎から実践へつなげて学ぶ技術教材。意味のあるHTMLとresponsiveでaccessibleなCSSを学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/web/html%E3%81%A8css%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="HTMLとCSS入門 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="HTMLとCSS入門を基礎から実践へつなげて学ぶ技術教材。意味のあるHTMLとresponsiveでaccessibleなCSSを学びます。"><meta property="og:url" content="https://kryix.jp/learning/programming/web/html%E3%81%A8css%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"HTMLとCSS入門","description":"HTMLとCSS入門を基礎から実践へつなげて学ぶ技術教材。意味のあるHTMLとresponsiveでaccessibleなCSSを学びます。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"プログラミングコース","url":"https://kryix.jp/learning/#course-programming"}}</script><title>HTMLとCSS入門 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-programming">プログラミング</a> <span aria-hidden="true">/</span><span>web</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING / 基礎</p> <div class="learning-course-progress" aria-label="プログラミングコース 6/18"> <span style="--learning-progress: 33.33333333333333%"></span> <small>6 / 18</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/programming/tools/git%E3%81%A8github%E5%85%A5%E9%96%80/"><span>← 前へ</span><strong>GitとGitHub入門</strong></a> <a href="/learning/programming/javascript/javascript%E5%85%A5%E9%96%80/"><span>次へ →</span><strong>JavaScript入門</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-最小のhtml">1. 最小のHTML</a></li><li><a href="#2-cssを適用する">2. CSSを適用する</a></li><li><a href="#3-box-model">3. box model</a></li><li><a href="#4-responsive-layout">4. responsive layout</a></li><li><a href="#5-accessibilityの最初の基準">5. accessibilityの最初の基準</a></li><li><a href="#演習-自己紹介カード">演習: 自己紹介カード</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#公式資料">公式資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-programming"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 05</p> <strong>この教材で学ぶこと</strong> <span>意味のあるHTMLとresponsiveでaccessibleなCSSを学びます。</span> </header> <h1 id="htmlとcss入門">HTMLとCSS入門</h1>
+<blockquote>
+<p>対象読者: Webページを初めて作る人。HTMLやCSSの知識は不要です。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>HTMLを構造と意味、CSSを見た目と配置として使い分けられる</li>
+<li>見出し、本文、リンク、リストをsemantic HTMLで表せる</li>
+<li>box modelと基本的なresponsive designを説明できる</li>
+<li>キーボード操作と読みやすさを考慮できる</li>
+</ul>
+<h2 id="1-最小のhtml">1. 最小のHTML</h2>
+<p><code>index.html</code>を作り、ブラウザで開きます。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="html"><code><span class="line"><span style="color:#E1E4E8">&lt;!</span><span style="color:#85E89D">doctype</span><span style="color:#B392F0"> html</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">&lt;</span><span style="color:#85E89D">html</span><span style="color:#B392F0"> lang</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"ja"</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">  &lt;</span><span style="color:#85E89D">head</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">    &lt;</span><span style="color:#85E89D">meta</span><span style="color:#B392F0"> charset</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"utf-8"</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">    &lt;</span><span style="color:#85E89D">meta</span><span style="color:#B392F0"> name</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"viewport"</span><span style="color:#B392F0"> content</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"width=device-width, initial-scale=1"</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">    &lt;</span><span style="color:#85E89D">title</span><span style="color:#E1E4E8">&gt;最初の学習ページ&lt;/</span><span style="color:#85E89D">title</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">    &lt;</span><span style="color:#85E89D">link</span><span style="color:#B392F0"> rel</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"stylesheet"</span><span style="color:#B392F0"> href</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"styles.css"</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">  &lt;/</span><span style="color:#85E89D">head</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">  &lt;</span><span style="color:#85E89D">body</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">    &lt;</span><span style="color:#85E89D">header</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">      &lt;</span><span style="color:#85E89D">h1</span><span style="color:#E1E4E8">&gt;学習記録&lt;/</span><span style="color:#85E89D">h1</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">    &lt;/</span><span style="color:#85E89D">header</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">    &lt;</span><span style="color:#85E89D">main</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">      &lt;</span><span style="color:#85E89D">h2</span><span style="color:#E1E4E8">&gt;今日学んだこと&lt;/</span><span style="color:#85E89D">h2</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">      &lt;</span><span style="color:#85E89D">ul</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">        &lt;</span><span style="color:#85E89D">li</span><span style="color:#E1E4E8">&gt;HTMLは意味と構造を表す&lt;/</span><span style="color:#85E89D">li</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">        &lt;</span><span style="color:#85E89D">li</span><span style="color:#E1E4E8">&gt;CSSは見た目を整える&lt;/</span><span style="color:#85E89D">li</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">      &lt;/</span><span style="color:#85E89D">ul</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">      &lt;</span><span style="color:#85E89D">a</span><span style="color:#B392F0"> href</span><span style="color:#E1E4E8">=</span><span style="color:#9ECBFF">"https://developer.mozilla.org/ja/"</span><span style="color:#E1E4E8">&gt;MDNで調べる&lt;/</span><span style="color:#85E89D">a</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">    &lt;/</span><span style="color:#85E89D">main</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">  &lt;/</span><span style="color:#85E89D">body</span><span style="color:#E1E4E8">&gt;</span></span>
+<span class="line"><span style="color:#E1E4E8">&lt;/</span><span style="color:#85E89D">html</span><span style="color:#E1E4E8">&gt;</span></span></code></pre>
+<p>見た目のためだけに見出しを選ばず、文書構造に合う要素を選びます。</p>
+<h2 id="2-cssを適用する">2. CSSを適用する</h2>
+<p><code>styles.css</code>を作ります。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="css"><code><span class="line"><span style="color:#B392F0">:root</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">  color-scheme</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">light</span><span style="color:#79B8FF"> dark</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  font-family</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">system-ui</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">sans-serif</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  line-height</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1.7</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">body</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">  max-width</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">70</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  margin</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0</span><span style="color:#79B8FF"> auto</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  padding</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">clamp</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">1</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">4</span><span style="color:#F97583">vw</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">3</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">);</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">a</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">  color</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">#1553ff</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  text-underline-offset</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">0.2</span><span style="color:#F97583">em</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">a</span><span style="color:#B392F0">:focus-visible</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">  outline</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span><span style="color:#F97583">px</span><span style="color:#79B8FF"> solid</span><span style="color:#79B8FF"> currentColor</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  outline-offset</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">4</span><span style="color:#F97583">px</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>system fontを使えば外部フォントの読み込みは不要です。<code>clamp()</code>は画面幅に応じた余白を一つの宣言で表せます。</p>
+<h2 id="3-box-model">3. box model</h2>
+<p>要素の大きさは、content、padding、border、marginから成ります。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="css"><code><span class="line"><span style="color:#85E89D">*</span><span style="color:#E1E4E8">, </span><span style="color:#85E89D">*</span><span style="color:#B392F0">::before</span><span style="color:#E1E4E8">, </span><span style="color:#85E89D">*</span><span style="color:#B392F0">::after</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">  box-sizing</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">border-box</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">.card</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">  width</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">100</span><span style="color:#F97583">%</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  padding</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  border</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span><span style="color:#F97583">px</span><span style="color:#79B8FF"> solid</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  margin-block</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p><code>box-sizing: border-box</code>では、指定した幅にpaddingとborderが含まれます。</p>
+<h2 id="4-responsive-layout">4. responsive layout</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="css"><code><span class="line"><span style="color:#B392F0">.cards</span><span style="color:#E1E4E8"> {</span></span>
+<span class="line"><span style="color:#79B8FF">  display</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">grid</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#79B8FF">  grid-template-columns</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">repeat</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">auto-fit</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">minmax</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">min</span><span style="color:#E1E4E8">(</span><span style="color:#79B8FF">100</span><span style="color:#F97583">%</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">18</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">), </span><span style="color:#79B8FF">1</span><span style="color:#F97583">fr</span><span style="color:#E1E4E8">));</span></span>
+<span class="line"><span style="color:#79B8FF">  gap</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">1</span><span style="color:#F97583">rem</span><span style="color:#E1E4E8">;</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>固定幅だけに頼らず、内容が狭い画面で収まるかを320px幅と200% zoomでも確認します。</p>
+<h2 id="5-accessibilityの最初の基準">5. accessibilityの最初の基準</h2>
+<ul>
+<li>画像には目的に合う<code>alt</code>を付ける。装飾だけなら<code>alt=""</code></li>
+<li>buttonで行う操作を<code>div</code>のclickで代用しない</li>
+<li>labelとinputを関連付ける</li>
+<li>色だけで状態を伝えない</li>
+<li>heading levelを見た目の都合で飛ばさない</li>
+<li>キーボードでfocus位置が分かるようにする</li>
+</ul>
+<h2 id="演習-自己紹介カード">演習: 自己紹介カード</h2>
+<p>次を含む一枚のカードを作ってください。</p>
+<ol>
+<li>名前を<code>h2</code></li>
+<li>学びたいことを<code>p</code></li>
+<li>三つの項目を<code>ul</code></li>
+<li>公式資料へのlink</li>
+<li>320pxでも横scrollしないCSS</li>
+</ol>
+<p>開発者ツールでviewport幅、見出し構造、focus表示を確認します。</p>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> HTMLとCSSの責務を区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> semantic elementを内容から選べる</li>
+<li class="task-list-item"><input type="checkbox" disabled> box modelを説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 狭幅とキーボード操作を確認できる</li>
+</ul>
+<h2 id="公式資料">公式資料</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/ja/docs/Learn_web_development/About">MDN: ウェブ開発の学習について</a></li>
+<li><a href="https://developer.mozilla.org/ja/docs/MDN/Tutorials">MDN: ウェブ開発のチュートリアル</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/programming/javascript/javascript%E5%85%A5%E9%96%80/">JavaScript入門</a>で、ページへ振る舞いを追加します。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/programming/javascript/javascript%E5%85%A5%E9%96%80/"> <span>基礎</span> <strong>JavaScript入門</strong> <small>言語の基本、DOM、event、非同期通信を使ってページを動かします。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

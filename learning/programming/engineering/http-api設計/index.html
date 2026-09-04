@@ -1,0 +1,133 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="HTTP API設計を基礎から実践へつなげて学ぶ技術教材。resource、status、validation、冪等性を含むAPI契約を設計します。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/engineering/http-api%E8%A8%AD%E8%A8%88/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="HTTP API設計 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="HTTP API設計を基礎から実践へつなげて学ぶ技術教材。resource、status、validation、冪等性を含むAPI契約を設計します。"><meta property="og:url" content="https://kryix.jp/learning/programming/engineering/http-api%E8%A8%AD%E8%A8%88/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"HTTP API設計","description":"HTTP API設計を基礎から実践へつなげて学ぶ技術教材。resource、status、validation、冪等性を含むAPI契約を設計します。","educationalLevel":"発展","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"プログラミングコース","url":"https://kryix.jp/learning/#course-programming"}}</script><title>HTTP API設計 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-programming">プログラミング</a> <span aria-hidden="true">/</span><span>engineering</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING / 発展</p> <div class="learning-course-progress" aria-label="プログラミングコース 17/18"> <span style="--learning-progress: 94.44444444444444%"></span> <small>17 / 18</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/programming/engineering/%E3%83%86%E3%82%B9%E3%83%88%E3%81%A8%E3%83%87%E3%83%90%E3%83%83%E3%82%B0/"><span>← 前へ</span><strong>テストとデバッグ</strong></a> <a href="/learning/programming/engineering/%E8%A8%AD%E8%A8%88%E3%81%A8%E3%83%AA%E3%83%95%E3%82%A1%E3%82%AF%E3%82%BF%E3%83%AA%E3%83%B3%E3%82%B0/"><span>次へ →</span><strong>設計とリファクタリング</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-apiを契約として捉える">1. APIを契約として捉える</a></li><li><a href="#2-resourceとmethod">2. resourceとmethod</a></li><li><a href="#3-status-codeを使い分ける">3. status codeを使い分ける</a></li><li><a href="#4-error-responseを統一する">4. error responseを統一する</a></li><li><a href="#5-validationと認証認可">5. validationと認証認可</a></li><li><a href="#6-冪等性とretry">6. 冪等性とretry</a></li><li><a href="#7-pagination">7. pagination</a></li><li><a href="#演習-学習教材api">演習: 学習教材API</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#公式資料">公式資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-programming"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>発展</span>LESSON 16</p> <strong>この教材で学ぶこと</strong> <span>resource、status、validation、冪等性を含むAPI契約を設計します。</span> </header> <h1 id="http-api設計">HTTP API設計</h1>
+<blockquote>
+<p>対象読者: 基本文法とHTTPの概要を理解し、Web APIの設計・実装へ進みたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>requestとresponseをmethod、path、header、bodyへ分解できる</li>
+<li>resourceに合うURLとHTTP methodを選べる</li>
+<li>status codeとerror responseを一貫して設計できる</li>
+<li>validation、認証、冪等性、paginationを考慮できる</li>
+</ul>
+<h2 id="1-apiを契約として捉える">1. APIを契約として捉える</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="http"><code><span class="line"><span style="color:#F97583">POST</span><span style="color:#E1E4E8"> /lessons </span><span style="color:#F97583">HTTP</span><span style="color:#E1E4E8">/</span><span style="color:#79B8FF">1.1</span></span>
+<span class="line"><span style="color:#85E89D">Content-Type</span><span style="color:#F97583">:</span><span style="color:#9ECBFF"> application/json</span></span>
+<span class="line"><span style="color:#85E89D">Idempotency-Key</span><span style="color:#F97583">:</span><span style="color:#9ECBFF"> 0f95...</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">{</span><span style="color:#79B8FF">"title"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"HTTP API設計"</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"level"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"advanced"</span><span style="color:#E1E4E8">}</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="http"><code><span class="line"><span style="color:#F97583">HTTP</span><span style="color:#E1E4E8">/</span><span style="color:#79B8FF">1.1</span><span style="color:#79B8FF"> 201</span><span style="color:#9ECBFF"> Created</span></span>
+<span class="line"><span style="color:#85E89D">Location</span><span style="color:#F97583">:</span><span style="color:#9ECBFF"> /lessons/lesson-123</span></span>
+<span class="line"><span style="color:#85E89D">Content-Type</span><span style="color:#F97583">:</span><span style="color:#9ECBFF"> application/json</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">{</span><span style="color:#79B8FF">"id"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"lesson-123"</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"title"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"HTTP API設計"</span><span style="color:#E1E4E8">,</span><span style="color:#79B8FF">"level"</span><span style="color:#E1E4E8">:</span><span style="color:#9ECBFF">"advanced"</span><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>clientとserverは、入力、出力、失敗条件を共有する契約で結ばれます。</p>
+<h2 id="2-resourceとmethod">2. resourceとmethod</h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>method</th>
+<th>path例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一覧取得</td>
+<td>GET</td>
+<td><code>/lessons</code></td>
+</tr>
+<tr>
+<td>一件取得</td>
+<td>GET</td>
+<td><code>/lessons/{id}</code></td>
+</tr>
+<tr>
+<td>作成</td>
+<td>POST</td>
+<td><code>/lessons</code></td>
+</tr>
+<tr>
+<td>全体置換</td>
+<td>PUT</td>
+<td><code>/lessons/{id}</code></td>
+</tr>
+<tr>
+<td>部分更新</td>
+<td>PATCH</td>
+<td><code>/lessons/{id}</code></td>
+</tr>
+<tr>
+<td>削除</td>
+<td>DELETE</td>
+<td><code>/lessons/{id}</code></td>
+</tr>
+</tbody>
+</table>
+<p>URLには動詞を乱立させずresourceを表し、操作の意味はHTTP methodへ持たせます。ただし既存契約やdomain上のcommandが明確なら、機械的なREST化より一貫性を優先します。</p>
+<h2 id="3-status-codeを使い分ける">3. status codeを使い分ける</h2>
+<ul>
+<li><code>200 OK</code>: 成功しresponse bodyを返す</li>
+<li><code>201 Created</code>: resourceを作成した</li>
+<li><code>204 No Content</code>: 成功したがbodyなし</li>
+<li><code>400 Bad Request</code>: request形式が不正</li>
+<li><code>401 Unauthorized</code>: 認証が必要または失敗</li>
+<li><code>403 Forbidden</code>: 認証済みだが許可されない</li>
+<li><code>404 Not Found</code>: resourceが存在しない</li>
+<li><code>409 Conflict</code>: 現在状態と競合</li>
+<li><code>422 Unprocessable Content</code>: 形式は読めるが値が要件を満たさない</li>
+<li><code>500 Internal Server Error</code>: server側の予期しない失敗</li>
+</ul>
+<p>内部例外やstack traceをそのまま外部へ返しません。</p>
+<h2 id="4-error-responseを統一する">4. error responseを統一する</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="json"><code><span class="line"><span style="color:#E1E4E8">{</span></span>
+<span class="line"><span style="color:#79B8FF">  "code"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"INVALID_LEVEL"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "message"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"level must be beginner, intermediate, or advanced"</span><span style="color:#E1E4E8">,</span></span>
+<span class="line"><span style="color:#79B8FF">  "details"</span><span style="color:#E1E4E8">: [</span></span>
+<span class="line"><span style="color:#E1E4E8">    { </span><span style="color:#79B8FF">"field"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"level"</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">"reason"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"unsupported value"</span><span style="color:#E1E4E8"> }</span></span>
+<span class="line"><span style="color:#E1E4E8">  ],</span></span>
+<span class="line"><span style="color:#79B8FF">  "requestId"</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"req-123"</span></span>
+<span class="line"><span style="color:#E1E4E8">}</span></span></code></pre>
+<p>利用者向けmessage、機械判定用code、調査用request IDを分けます。request IDからserver logを追えるようにしつつ、秘密情報をresponseへ含めません。</p>
+<h2 id="5-validationと認証認可">5. validationと認証認可</h2>
+<p>検証の順序例:</p>
+<ol>
+<li>body sizeやcontent type</li>
+<li>JSONとして読めるか</li>
+<li>必須fieldと型</li>
+<li>値の範囲</li>
+<li>認証</li>
+<li>対象resourceへの権限</li>
+<li>domain rule</li>
+</ol>
+<p>認証済みであることと、そのresourceを操作できることは別です。resource所有者やroleをserver側で検証します。</p>
+<h2 id="6-冪等性とretry">6. 冪等性とretry</h2>
+<p>network timeoutでは、serverで成功したのにclientがresponseを受け取れないことがあります。作成や決済のような重複が困る操作では、clientが一意なkeyを送り、serverが同じkeyの結果を再利用する設計を検討します。</p>
+<p>GET、PUT、DELETEはHTTP semantics上idempotentですが、実装の副作用まで自動で安全になるわけではありません。</p>
+<h2 id="7-pagination">7. pagination</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="http"><code><span class="line"><span style="color:#F97583">GET</span><span style="color:#E1E4E8"> /lessons?limit=20&amp;cursor=eyJpZCI6...</span></span></code></pre>
+<p>大きな一覧を一度に返さず、上限を設けます。並び順を固定し、cursorの改ざんや期限切れを扱います。</p>
+<h2 id="演習-学習教材api">演習: 学習教材API</h2>
+<p>次のendpointについてrequest、成功response、validation error、権限errorを書いてください。</p>
+<ul>
+<li>教材を作成</li>
+<li>教材一覧をlevelでfilter</li>
+<li>教材を完了へ変更</li>
+<li>教材を削除</li>
+</ul>
+<p>さらに、同じ完了requestが二回来た場合の結果と、同時更新時の競合処理を決めます。</p>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> requestとresponseの構成要素を説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> methodとstatus codeを意味から選べる</li>
+<li class="task-list-item"><input type="checkbox" disabled> error responseを一貫した形で設計できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> retry、冪等性、paginationの必要性を判断できる</li>
+</ul>
+<h2 id="公式資料">公式資料</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview">MDN: Overview of HTTP</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods">MDN: HTTP request methods</a></li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status">MDN: HTTP response status codes</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/programming/engineering/%E8%A8%AD%E8%A8%88%E3%81%A8%E3%83%AA%E3%83%95%E3%82%A1%E3%82%AF%E3%82%BF%E3%83%AA%E3%83%B3%E3%82%B0/">設計とリファクタリング</a>で、APIの内側を変更しやすく保ちます。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/programming/engineering/%E8%A8%AD%E8%A8%88%E3%81%A8%E3%83%AA%E3%83%95%E3%82%A1%E3%82%AF%E3%82%BF%E3%83%AA%E3%83%B3%E3%82%B0/"> <span>発展</span> <strong>設計とリファクタリング</strong> <small>責務と依存を整理し、testで守りながら構造を改善します。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

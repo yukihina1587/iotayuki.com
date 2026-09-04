@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="サーバーとネットワーク入門を基礎から実践へつなげて学ぶ技術教材。server、resource、DNS、port、HTTPを一つのrequest経路で学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/infrastructure/basics/%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC%E3%81%A8%E3%83%8D%E3%83%83%E3%83%88%E3%83%AF%E3%83%BC%E3%82%AF%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="サーバーとネットワーク入門 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="サーバーとネットワーク入門を基礎から実践へつなげて学ぶ技術教材。server、resource、DNS、port、HTTPを一つのrequest経路で学びます。"><meta property="og:url" content="https://kryix.jp/learning/infrastructure/basics/%E3%82%B5%E3%83%BC%E3%83%90%E3%83%BC%E3%81%A8%E3%83%8D%E3%83%83%E3%83%88%E3%83%AF%E3%83%BC%E3%82%AF%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"サーバーとネットワーク入門","description":"サーバーとネットワーク入門を基礎から実践へつなげて学ぶ技術教材。server、resource、DNS、port、HTTPを一つのrequest経路で学びます。","educationalLevel":"はじめて","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"インフラストラクチャコース","url":"https://kryix.jp/learning/#course-infrastructure"}}</script><title>サーバーとネットワーク入門 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-infrastructure">インフラストラクチャ</a> <span aria-hidden="true">/</span><span>basics</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">INFRASTRUCTURE / はじめて</p> <div class="learning-course-progress" aria-label="インフラストラクチャコース 2/6"> <span style="--learning-progress: 33.33333333333333%"></span> <small>2 / 6</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/infrastructure/roadmap/"><span>← 前へ</span><strong>🌐 インフラ基礎 学習ロードマップ</strong></a> <a href="/learning/infrastructure/linux/linux%E5%AE%9F%E8%B7%B5/"><span>次へ →</span><strong>Linux 実践 — インフラエンジニアの日常操作</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-serverは役割の名前">1. serverは役割の名前</a></li><li><a href="#2-resourceを見る">2. resourceを見る</a></li><li><a href="#3-addressとport">3. addressとport</a></li><li><a href="#4-dnsからhttpまで">4. DNSからHTTPまで</a></li><li><a href="#5-最初の調査command">5. 最初の調査command</a></li><li><a href="#演習-request経路を描く">演習: request経路を描く</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-infrastructure"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>はじめて</span>LESSON 01</p> <strong>この教材で学ぶこと</strong> <span>server、resource、DNS、port、HTTPを一つのrequest経路で学びます。</span> </header> <h1 id="サーバーとネットワーク入門">サーバーとネットワーク入門</h1>
+<blockquote>
+<p>対象読者: インフラを初めて学び、LinuxやTCP/IPへ進む前の全体像を知りたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>client、server、networkの関係を説明できる</li>
+<li>CPU、memory、storage、processの役割を区別できる</li>
+<li>IP address、port、DNS、HTTPの流れを順番に説明できる</li>
+<li>障害を「名前解決・接続・暗号化・HTTP・application」に分けられる</li>
+</ul>
+<h2 id="1-serverは役割の名前">1. serverは役割の名前</h2>
+<p>serverは特別な形の機械だけを指す言葉ではありません。requestを受け、機能やdataを提供する役割です。一台のPC上で複数のserver processが動くこともあります。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>Browser (client)</span></span>
+<span class="line"><span>  → DNSで名前を調べる</span></span>
+<span class="line"><span>  → IP addressへ接続する</span></span>
+<span class="line"><span>  → port 443でTLSを確立する</span></span>
+<span class="line"><span>  → HTTP requestを送る</span></span>
+<span class="line"><span>Web server</span></span>
+<span class="line"><span>  → applicationやfileからresponseを返す</span></span></code></pre>
+<h2 id="2-resourceを見る">2. resourceを見る</h2>
+<table>
+<thead>
+<tr>
+<th>resource</th>
+<th>観察すること</th>
+<th>枯渇時の例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CPU</td>
+<td>実行時間、load</td>
+<td>処理遅延</td>
+</tr>
+<tr>
+<td>memory</td>
+<td>使用量、swap</td>
+<td>OOM、極端な遅延</td>
+</tr>
+<tr>
+<td>storage</td>
+<td>容量、IOPS、latency</td>
+<td>書込み失敗</td>
+</tr>
+<tr>
+<td>network</td>
+<td>bandwidth、latency、loss</td>
+<td>timeout</td>
+</tr>
+</tbody>
+</table>
+<p>利用率一つだけで原因を断定せず、時系列と関連metricを確認します。</p>
+<h2 id="3-addressとport">3. addressとport</h2>
+<p>IP addressはnetwork上の宛先、portは同じhost上のserviceを区別する番号です。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>192.0.2.10:443</span></span>
+<span class="line"><span>└ address ┘ └ port</span></span></code></pre>
+<p>processがportで待ち受け、firewallやroutingが通信を許可し、clientがそこへ接続します。</p>
+<h2 id="4-dnsからhttpまで">4. DNSからHTTPまで</h2>
+<ol>
+<li>URLからhost nameを取り出す</li>
+<li>DNSでaddressを得る</li>
+<li>network経路を通って接続する</li>
+<li>HTTPSならTLSで相手と暗号化を確認する</li>
+<li>HTTP requestを送る</li>
+<li>serverがstatus、header、bodyを返す</li>
+</ol>
+<p>「サイトが開かない」だけでは範囲が広いため、この段階ごとに観測します。</p>
+<h2 id="5-最初の調査command">5. 最初の調査command</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">uname</span><span style="color:#79B8FF"> -a</span></span>
+<span class="line"><span style="color:#B392F0">df</span><span style="color:#79B8FF"> -h</span></span>
+<span class="line"><span style="color:#B392F0">free</span><span style="color:#79B8FF"> -h</span></span>
+<span class="line"><span style="color:#B392F0">ps</span><span style="color:#9ECBFF"> aux</span></span>
+<span class="line"><span style="color:#B392F0">ip</span><span style="color:#9ECBFF"> address</span></span>
+<span class="line"><span style="color:#B392F0">getent</span><span style="color:#9ECBFF"> hosts</span><span style="color:#9ECBFF"> example.com</span></span>
+<span class="line"><span style="color:#B392F0">curl</span><span style="color:#79B8FF"> -I</span><span style="color:#9ECBFF"> https://example.com/</span></span></code></pre>
+<p>環境によってcommandの有無や出力は異なります。出力を変更するcommandではなく、まずread-onlyな観測から始めます。</p>
+<h2 id="演習-request経路を描く">演習: request経路を描く</h2>
+<p>ブラウザで<code>https://example.com/lessons</code>を開くまでを、次の語をすべて使って矢印で描いてください。</p>
+<p><code>browser</code>、<code>DNS</code>、<code>IP address</code>、<code>port</code>、<code>TLS</code>、<code>HTTP request</code>、<code>web server</code>、<code>response</code></p>
+<p>次に、各段階が失敗した場合に利用者からどう見えるかを一つずつ書きます。</p>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> serverを物理機ではなく役割として説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> addressとportを区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> URL入力からresponseまでを順番に説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 障害調査を層ごとに分けられる</li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/infrastructure/linux/linux%E5%AE%9F%E8%B7%B5/">Linux実践</a>で、process、log、permissionを実際に観察します。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/infrastructure/linux/linux%E5%AE%9F%E8%B7%B5/"> <span>基礎</span> <strong>Linux 実践 — インフラエンジニアの日常操作</strong> <small>プロセス・ログ・権限・サービスを調査する基本を学びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

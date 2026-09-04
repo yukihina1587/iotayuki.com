@@ -1,0 +1,111 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="セキュリティ基礎を基礎から実践へつなげて学ぶ技術教材。asset、threat、risk、CIA、認証認可、多層防御を学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/security/%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E5%9F%BA%E7%A4%8E/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="セキュリティ基礎 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="セキュリティ基礎を基礎から実践へつなげて学ぶ技術教材。asset、threat、risk、CIA、認証認可、多層防御を学びます。"><meta property="og:url" content="https://kryix.jp/learning/security/%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E5%9F%BA%E7%A4%8E/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"セキュリティ基礎","description":"セキュリティ基礎を基礎から実践へつなげて学ぶ技術教材。asset、threat、risk、CIA、認証認可、多層防御を学びます。","educationalLevel":"はじめて","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"セキュリティコース","url":"https://kryix.jp/learning/#course-security"}}</script><title>セキュリティ基礎 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-security">セキュリティ</a>  </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">SECURITY / はじめて</p> <div class="learning-course-progress" aria-label="セキュリティコース 2/4"> <span style="--learning-progress: 50%"></span> <small>2 / 4</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/security/roadmap/"><span>← 前へ</span><strong>🔒 セキュリティ 学習ロードマップ</strong></a> <a href="/learning/security/%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E5%AE%9F%E8%B7%B5/"><span>次へ →</span><strong>セキュリティ実践 — インフラ・応用情報対策</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-守る対象から始める">1. 守る対象から始める</a></li><li><a href="#2-用語を分ける">2. 用語を分ける</a></li><li><a href="#3-ciaで影響を見る">3. CIAで影響を見る</a></li><li><a href="#4-認証と認可">4. 認証と認可</a></li><li><a href="#5-多層防御">5. 多層防御</a></li><li><a href="#6-最初のchecklist">6. 最初のchecklist</a></li><li><a href="#演習-学習記録serviceのthreat-model">演習: 学習記録serviceのthreat model</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#参考資料">参考資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-security"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>はじめて</span>LESSON 01</p> <strong>この教材で学ぶこと</strong> <span>asset、threat、risk、CIA、認証認可、多層防御を学びます。</span> </header> <h1 id="セキュリティ基礎">セキュリティ基礎</h1>
+<blockquote>
+<p>対象読者: applicationやinfrastructureを作り始め、何から守るかを体系的に考えたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>asset、threat、vulnerability、riskを区別できる</li>
+<li>confidentiality、integrity、availabilityで影響を整理できる</li>
+<li>認証と認可を区別できる</li>
+<li>prevention、detection、response、recoveryを組み合わせられる</li>
+</ul>
+<h2 id="1-守る対象から始める">1. 守る対象から始める</h2>
+<p>security productの一覧から始めず、まずassetを列挙します。</p>
+<ul>
+<li>user accountと個人情報</li>
+<li>source codeとcredential</li>
+<li>databaseとbackup</li>
+<li>serviceのavailability</li>
+<li>audit log</li>
+<li>reputationと法的義務</li>
+</ul>
+<h2 id="2-用語を分ける">2. 用語を分ける</h2>
+<table>
+<thead>
+<tr>
+<th>用語</th>
+<th>問い</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>asset</td>
+<td>何を守るか</td>
+</tr>
+<tr>
+<td>threat</td>
+<td>誰が・何が害を与え得るか</td>
+</tr>
+<tr>
+<td>vulnerability</td>
+<td>どの弱点を使われるか</td>
+</tr>
+<tr>
+<td>likelihood</td>
+<td>起こりやすさはどれくらいか</td>
+</tr>
+<tr>
+<td>impact</td>
+<td>起きた場合の被害は何か</td>
+</tr>
+<tr>
+<td>risk</td>
+<td>likelihoodとimpactを踏まえ何を優先するか</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-ciaで影響を見る">3. CIAで影響を見る</h2>
+<ul>
+<li>Confidentiality: 読めてはいけない人にdataが見える</li>
+<li>Integrity: dataやcodeが意図せず変更される</li>
+<li>Availability: 必要なときserviceを利用できない</li>
+</ul>
+<p>一つの事故が複数へ影響することもあります。</p>
+<h2 id="4-認証と認可">4. 認証と認可</h2>
+<ul>
+<li>認証: あなたは誰か</li>
+<li>認可: その人はこの操作をしてよいか</li>
+</ul>
+<p>loginできた利用者が、他人のresourceをIDだけ変えて読めないよう、server側でresource単位の認可を行います。</p>
+<h2 id="5-多層防御">5. 多層防御</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>予防: 最小権限、validation、patch、暗号化</span></span>
+<span class="line"><span>検知: audit log、alert、integrity check</span></span>
+<span class="line"><span>対応: triage、封じ込め、credential失効</span></span>
+<span class="line"><span>復旧: backup restore、redeploy、再発防止</span></span></code></pre>
+<p>予防だけでは侵入を完全に防げない前提で、検知と復旧も設計します。</p>
+<h2 id="6-最初のchecklist">6. 最初のchecklist</h2>
+<ul>
+<li>secretをsource codeへ置かない</li>
+<li>dependencyとOSを更新できるようにする</li>
+<li>入力を信用せず、出力先に応じてencodeする</li>
+<li>HTTPSを使う</li>
+<li>passwordは適切なpassword hashingで保存する</li>
+<li>access logへtokenやpasswordを残さない</li>
+<li>backupを作るだけでなくrestoreを試す</li>
+<li>security updateをrollback可能な単位で行う</li>
+</ul>
+<h2 id="演習-学習記録serviceのthreat-model">演習: 学習記録serviceのthreat model</h2>
+<p>学習記録を保存するWeb serviceについて、次を作ります。</p>
+<ol>
+<li>assetを5件</li>
+<li>attackerまたは事故を3件</li>
+<li>trust boundaryを図示</li>
+<li>riskをlikelihoodとimpactで並べる</li>
+<li>上位3riskへ予防・検知・復旧を一つずつ</li>
+</ol>
+<p>「すべて危険」ではなく、優先順位と残るriskを書きます。</p>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> assetとthreatとvulnerabilityを区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> CIAでimpactを説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 認証後にも認可が必要な理由を説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 予防だけでなく検知・対応・復旧を設計できる</li>
+</ul>
+<h2 id="参考資料">参考資料</h2>
+<ul>
+<li><a href="https://www.nist.gov/cyberframework">NIST Cybersecurity Framework</a></li>
+<li><a href="https://owasp.org/www-project-top-ten/">OWASP Top 10</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/security/roadmap/">セキュリティ学習ロードマップ</a>で、threat modelingからapplication・cloud防御へ進みます。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/security/%E3%82%BB%E3%82%AD%E3%83%A5%E3%83%AA%E3%83%86%E3%82%A3%E5%AE%9F%E8%B7%B5/"> <span>基礎</span> <strong>セキュリティ実践 — インフラ・応用情報対策</strong> <small>脅威モデリングと代表的な攻撃への対策を学びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

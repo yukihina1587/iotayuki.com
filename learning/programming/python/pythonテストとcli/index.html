@@ -1,0 +1,133 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="PythonのテストとCLIを基礎から実践へつなげて学ぶ技術教材。unittestとargparseで、検証可能なcommand-line toolを作ります。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/python/python%E3%83%86%E3%82%B9%E3%83%88%E3%81%A8cli/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="PythonのテストとCLI — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="PythonのテストとCLIを基礎から実践へつなげて学ぶ技術教材。unittestとargparseで、検証可能なcommand-line toolを作ります。"><meta property="og:url" content="https://kryix.jp/learning/programming/python/python%E3%83%86%E3%82%B9%E3%83%88%E3%81%A8cli/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"PythonのテストとCLI","description":"PythonのテストとCLIを基礎から実践へつなげて学ぶ技術教材。unittestとargparseで、検証可能なcommand-line toolを作ります。","educationalLevel":"実践","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"プログラミングコース","url":"https://kryix.jp/learning/#course-programming"}}</script><title>PythonのテストとCLI — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-programming">プログラミング</a> <span aria-hidden="true">/</span><span>python</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING / 実践</p> <div class="learning-course-progress" aria-label="プログラミングコース 12/18"> <span style="--learning-progress: 66.66666666666666%"></span> <small>12 / 18</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/programming/python/python%E5%85%A5%E9%96%80/"><span>← 前へ</span><strong>Python入門</strong></a> <a href="/learning/programming/python/python%E5%AE%9F%E8%B7%B5-kotlin%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E5%90%91%E3%81%91/"><span>次へ →</span><strong>Python 実践 — Kotlin エンジニアのための高速キャッチアップ</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-先にcore-logicを分ける">1. 先にcore logicを分ける</a></li><li><a href="#2-unittestを書く">2. unittestを書く</a></li><li><a href="#3-argparseでcliを作る">3. argparseでCLIを作る</a></li><li><a href="#4-cli自体もテストする">4. CLI自体もテストする</a></li><li><a href="#5-filesystemを扱うとき">5. filesystemを扱うとき</a></li><li><a href="#演習-学習記録cli">演習: 学習記録CLI</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#公式資料">公式資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-programming"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>実践</span>LESSON 11</p> <strong>この教材で学ぶこと</strong> <span>unittestとargparseで、検証可能なcommand-line toolを作ります。</span> </header> <h1 id="pythonのテストとcli">PythonのテストとCLI</h1>
+<blockquote>
+<p>対象読者: Pythonの基本文法を学び、再利用できるcommand-line toolを作りたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>pure functionと入出力を分離できる</li>
+<li>標準libraryの<code>unittest</code>で正常系・境界値・異常系を検証できる</li>
+<li><code>argparse</code>で利用方法が分かるCLIを作れる</li>
+<li>exit statusと標準エラーを使い分けられる</li>
+</ul>
+<h2 id="1-先にcore-logicを分ける">1. 先にcore logicを分ける</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># study.py</span></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> completion_rate</span><span style="color:#E1E4E8">(completed: </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">, total: </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">float</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#E1E4E8"> total </span><span style="color:#F97583">&lt;=</span><span style="color:#79B8FF"> 0</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"total must be positive"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    if</span><span style="color:#F97583"> not</span><span style="color:#79B8FF"> 0</span><span style="color:#F97583"> &lt;=</span><span style="color:#E1E4E8"> completed </span><span style="color:#F97583">&lt;=</span><span style="color:#E1E4E8"> total:</span></span>
+<span class="line"><span style="color:#F97583">        raise</span><span style="color:#79B8FF"> ValueError</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">"completed must be between 0 and total"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> completed </span><span style="color:#F97583">/</span><span style="color:#E1E4E8"> total</span></span></code></pre>
+<p>引数だけで結果が決まり、画面表示やファイル操作を行わない関数はテストしやすくなります。</p>
+<h2 id="2-unittestを書く">2. unittestを書く</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># test_study.py</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> unittest</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> study </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> completion_rate</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> CompletionRateTest</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">unittest</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">TestCase</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> test_returns_ratio</span><span style="color:#E1E4E8">(self) -&gt; </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.assertEqual(completion_rate(</span><span style="color:#79B8FF">3</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">4</span><span style="color:#E1E4E8">), </span><span style="color:#79B8FF">0.75</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> test_accepts_zero_completed</span><span style="color:#E1E4E8">(self) -&gt; </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.assertEqual(completion_rate(</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">4</span><span style="color:#E1E4E8">), </span><span style="color:#79B8FF">0.0</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> test_rejects_zero_total</span><span style="color:#E1E4E8">(self) -&gt; </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        with</span><span style="color:#79B8FF"> self</span><span style="color:#E1E4E8">.assertRaisesRegex(</span><span style="color:#79B8FF">ValueError</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"total must be positive"</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#E1E4E8">            completion_rate(</span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> test_rejects_completed_over_total</span><span style="color:#E1E4E8">(self) -&gt; </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">        with</span><span style="color:#79B8FF"> self</span><span style="color:#E1E4E8">.assertRaises(</span><span style="color:#79B8FF">ValueError</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#E1E4E8">            completion_rate(</span><span style="color:#79B8FF">5</span><span style="color:#E1E4E8">, </span><span style="color:#79B8FF">4</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#79B8FF"> __name__</span><span style="color:#F97583"> ==</span><span style="color:#9ECBFF"> "__main__"</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    unittest.main()</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">python</span><span style="color:#79B8FF"> -m</span><span style="color:#9ECBFF"> unittest</span><span style="color:#79B8FF"> -v</span></span></code></pre>
+<p>実装の内部手順ではなく、外から観測できる振る舞いを検証します。</p>
+<h2 id="3-argparseでcliを作る">3. argparseでCLIを作る</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#6A737D"># cli.py</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> argparse</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> sys</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> study </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> completion_rate</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> parser</span><span style="color:#E1E4E8">() -&gt; argparse.ArgumentParser:</span></span>
+<span class="line"><span style="color:#E1E4E8">    result </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> argparse.ArgumentParser(</span><span style="color:#FFAB70">description</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"学習の完了率を計算します"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    result.add_argument(</span><span style="color:#9ECBFF">"completed"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">type</span><span style="color:#F97583">=</span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">help</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"完了した教材数"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#E1E4E8">    result.add_argument(</span><span style="color:#9ECBFF">"total"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">type</span><span style="color:#F97583">=</span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">help</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"教材の総数"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#E1E4E8"> result</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">def</span><span style="color:#B392F0"> main</span><span style="color:#E1E4E8">(argv: list[</span><span style="color:#79B8FF">str</span><span style="color:#E1E4E8">] </span><span style="color:#F97583">|</span><span style="color:#79B8FF"> None</span><span style="color:#F97583"> =</span><span style="color:#79B8FF"> None</span><span style="color:#E1E4E8">) -&gt; </span><span style="color:#79B8FF">int</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">    args </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> parser().parse_args(argv)</span></span>
+<span class="line"><span style="color:#F97583">    try</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        rate </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> completion_rate(args.completed, args.total)</span></span>
+<span class="line"><span style="color:#F97583">    except</span><span style="color:#79B8FF"> ValueError</span><span style="color:#F97583"> as</span><span style="color:#E1E4E8"> error:</span></span>
+<span class="line"><span style="color:#79B8FF">        print</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"error: </span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">error</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">file</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">sys.stderr)</span></span>
+<span class="line"><span style="color:#F97583">        return</span><span style="color:#79B8FF"> 2</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">    print</span><span style="color:#E1E4E8">(</span><span style="color:#F97583">f</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">{</span><span style="color:#E1E4E8">rate</span><span style="color:#F97583">:.0%</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    return</span><span style="color:#79B8FF"> 0</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#79B8FF"> __name__</span><span style="color:#F97583"> ==</span><span style="color:#9ECBFF"> "__main__"</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#F97583">    raise</span><span style="color:#79B8FF"> SystemExit</span><span style="color:#E1E4E8">(main())</span></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">python</span><span style="color:#9ECBFF"> cli.py</span><span style="color:#79B8FF"> 3</span><span style="color:#79B8FF"> 4</span></span>
+<span class="line"><span style="color:#B392F0">python</span><span style="color:#9ECBFF"> cli.py</span><span style="color:#79B8FF"> --help</span></span></code></pre>
+<h2 id="4-cli自体もテストする">4. CLI自体もテストする</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> contextlib </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> redirect_stderr, redirect_stdout</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> io </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> StringIO</span></span>
+<span class="line"><span style="color:#F97583">import</span><span style="color:#E1E4E8"> unittest</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> cli </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> main</span></span>
+<span class="line"></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">class</span><span style="color:#B392F0"> CliTest</span><span style="color:#E1E4E8">(</span><span style="color:#B392F0">unittest</span><span style="color:#E1E4E8">.</span><span style="color:#B392F0">TestCase</span><span style="color:#E1E4E8">):</span></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> test_prints_rate</span><span style="color:#E1E4E8">(self) -&gt; </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        output </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> StringIO()</span></span>
+<span class="line"><span style="color:#F97583">        with</span><span style="color:#E1E4E8"> redirect_stdout(output):</span></span>
+<span class="line"><span style="color:#E1E4E8">            status </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> main([</span><span style="color:#9ECBFF">"3"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"4"</span><span style="color:#E1E4E8">])</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.assertEqual(status, </span><span style="color:#79B8FF">0</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.assertEqual(output.getvalue(), </span><span style="color:#9ECBFF">"75%</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">    def</span><span style="color:#B392F0"> test_reports_invalid_range</span><span style="color:#E1E4E8">(self) -&gt; </span><span style="color:#79B8FF">None</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">        error_output </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> StringIO()</span></span>
+<span class="line"><span style="color:#F97583">        with</span><span style="color:#E1E4E8"> redirect_stderr(error_output):</span></span>
+<span class="line"><span style="color:#E1E4E8">            status </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> main([</span><span style="color:#9ECBFF">"5"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"4"</span><span style="color:#E1E4E8">])</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.assertEqual(status, </span><span style="color:#79B8FF">2</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#79B8FF">        self</span><span style="color:#E1E4E8">.assertIn(</span><span style="color:#9ECBFF">"error:"</span><span style="color:#E1E4E8">, error_output.getvalue())</span></span></code></pre>
+<h2 id="5-filesystemを扱うとき">5. filesystemを扱うとき</h2>
+<p>固定pathや利用者のhomeをテスト対象にせず、temporary directoryを使います。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="python"><code><span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> pathlib </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> Path</span></span>
+<span class="line"><span style="color:#F97583">from</span><span style="color:#E1E4E8"> tempfile </span><span style="color:#F97583">import</span><span style="color:#E1E4E8"> TemporaryDirectory</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">with</span><span style="color:#E1E4E8"> TemporaryDirectory() </span><span style="color:#F97583">as</span><span style="color:#E1E4E8"> directory:</span></span>
+<span class="line"><span style="color:#E1E4E8">    path </span><span style="color:#F97583">=</span><span style="color:#E1E4E8"> Path(directory) </span><span style="color:#F97583">/</span><span style="color:#9ECBFF"> "result.txt"</span></span>
+<span class="line"><span style="color:#E1E4E8">    path.write_text(</span><span style="color:#9ECBFF">"75%</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">, </span><span style="color:#FFAB70">encoding</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"utf-8"</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"><span style="color:#F97583">    assert</span><span style="color:#E1E4E8"> path.read_text(</span><span style="color:#FFAB70">encoding</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"utf-8"</span><span style="color:#E1E4E8">) </span><span style="color:#F97583">==</span><span style="color:#9ECBFF"> "75%</span><span style="color:#79B8FF">\n</span><span style="color:#9ECBFF">"</span></span></code></pre>
+<h2 id="演習-学習記録cli">演習: 学習記録CLI</h2>
+<p><code>record.py add TITLE MINUTES</code>と<code>record.py total</code>を持つCLIを作ってください。</p>
+<ul>
+<li>保存先pathは引数または環境変数で差し替えられる</li>
+<li>minutesは正の整数だけ許可</li>
+<li>JSONを一度temp fileへ書き、成功後に置換する</li>
+<li>core logic、file adapter、CLIを分離する</li>
+<li>正常系・空data・壊れたJSON・不正入力をテストする</li>
+</ul>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> core logicとI/Oを分けられる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 正常系・境界値・異常系を列挙できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> CLIのhelp、標準エラー、exit statusを設計できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> temporary directoryで安全にfilesystem testを書ける</li>
+</ul>
+<h2 id="公式資料">公式資料</h2>
+<ul>
+<li><a href="https://docs.python.org/3/library/unittest.html">Python: unittest</a></li>
+<li><a href="https://docs.python.org/3/library/argparse.html">Python: argparse</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/programming/python/python%E5%AE%9F%E8%B7%B5-kotlin%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E5%90%91%E3%81%91/">Python実践</a>で、型・非同期処理・repository設計へ進みます。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/programming/python/python%E5%AE%9F%E8%B7%B5-kotlin%E3%82%A8%E3%83%B3%E3%82%B8%E3%83%8B%E3%82%A2%E5%90%91%E3%81%91/"> <span>発展</span> <strong>Python 実践 — Kotlin エンジニアのための高速キャッチアップ</strong> <small>型・非同期処理・設計パターンをPythonで実装します。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

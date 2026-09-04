@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="GitとGitHub入門を基礎から実践へつなげて学ぶ技術教材。差分を確認し、commitとbranchで変更を安全に管理します。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/tools/git%E3%81%A8github%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="GitとGitHub入門 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="GitとGitHub入門を基礎から実践へつなげて学ぶ技術教材。差分を確認し、commitとbranchで変更を安全に管理します。"><meta property="og:url" content="https://kryix.jp/learning/programming/tools/git%E3%81%A8github%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"GitとGitHub入門","description":"GitとGitHub入門を基礎から実践へつなげて学ぶ技術教材。差分を確認し、commitとbranchで変更を安全に管理します。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"プログラミングコース","url":"https://kryix.jp/learning/#course-programming"}}</script><title>GitとGitHub入門 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-programming">プログラミング</a> <span aria-hidden="true">/</span><span>tools</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING / 基礎</p> <div class="learning-course-progress" aria-label="プログラミングコース 5/18"> <span style="--learning-progress: 27.77777777777778%"></span> <small>5 / 18</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/programming/fundamentals/%E3%83%97%E3%83%AD%E3%82%B0%E3%83%A9%E3%83%9F%E3%83%B3%E3%82%B0%E5%9F%BA%E7%A4%8E/"><span>← 前へ</span><strong>プログラミング基礎</strong></a> <a href="/learning/programming/web/html%E3%81%A8css%E5%85%A5%E9%96%80/"><span>次へ →</span><strong>HTMLとCSS入門</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-gitとgithubは別物">1. GitとGitHubは別物</a></li><li><a href="#2-最初のコミット">2. 最初のコミット</a></li><li><a href="#3-良いコミットの単位">3. 良いコミットの単位</a></li><li><a href="#4-branchで作業を分ける">4. branchで作業を分ける</a></li><li><a href="#5-remoteと同期する">5. remoteと同期する</a></li><li><a href="#6-秘密情報をコミットしない">6. 秘密情報をコミットしない</a></li><li><a href="#7-元に戻す前に状態を読む">7. 元に戻す前に状態を読む</a></li><li><a href="#演習-二つのコミットに分ける">演習: 二つのコミットに分ける</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#公式資料">公式資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-programming"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 04</p> <strong>この教材で学ぶこと</strong> <span>差分を確認し、commitとbranchで変更を安全に管理します。</span> </header> <h1 id="gitとgithub入門">GitとGitHub入門</h1>
+<blockquote>
+<p>対象読者: コードを保存し、変更履歴を安全に管理したい初学者。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>GitとGitHubの役割を区別できる</li>
+<li>変更を確認してからコミットできる</li>
+<li>branchを使って作業を分離できる</li>
+<li>push前に秘密情報の混入を確認できる</li>
+</ul>
+<h2 id="1-gitとgithubは別物">1. GitとGitHubは別物</h2>
+<p><strong>Git</strong>は手元の変更履歴を管理する分散バージョン管理システムです。<strong>GitHub</strong>はGitリポジトリを保存・共有し、レビューやIssueなどの共同作業を提供するサービスです。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>作業ファイル → staging area → local repository → remote repository</span></span>
+<span class="line"><span>              git add       git commit          git push</span></span></code></pre>
+<h2 id="2-最初のコミット">2. 最初のコミット</h2>
+<p>練習用ディレクトリで実行します。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> init</span></span>
+<span class="line"><span style="color:#79B8FF">printf</span><span style="color:#9ECBFF"> '# hello-git\n'</span><span style="color:#F97583"> &gt;</span><span style="color:#9ECBFF"> README.md</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> status</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> add</span><span style="color:#9ECBFF"> README.md</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> diff</span><span style="color:#79B8FF"> --cached</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> commit</span><span style="color:#79B8FF"> -m</span><span style="color:#9ECBFF"> "docs: add project overview"</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> log</span><span style="color:#79B8FF"> --oneline</span></span></code></pre>
+<p><code>git add</code>は「次のコミットへ含める変更を選ぶ」操作です。毎回<code>git status</code>と<code>git diff --cached</code>を確認すると、意図しないファイルを含めにくくなります。</p>
+<h2 id="3-良いコミットの単位">3. 良いコミットの単位</h2>
+<p>一つのコミットには一つの目的を持たせます。</p>
+<ul>
+<li>良い例: テスト追加と、そのテストを通す実装</li>
+<li>悪い例: 機能追加、無関係な整形、設定変更をまとめる</li>
+</ul>
+<p>メッセージは「何をしたか」が分かる命令形や簡潔な説明にします。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>feat: add score validation</span></span>
+<span class="line"><span>fix: handle empty score list</span></span>
+<span class="line"><span>docs: explain local setup</span></span></code></pre>
+<h2 id="4-branchで作業を分ける">4. branchで作業を分ける</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> switch</span><span style="color:#79B8FF"> -c</span><span style="color:#9ECBFF"> feature/score-validation</span></span>
+<span class="line"><span style="color:#6A737D"># ファイルを編集</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> add</span><span style="color:#9ECBFF"> src</span><span style="color:#9ECBFF"> tests</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> commit</span><span style="color:#79B8FF"> -m</span><span style="color:#9ECBFF"> "feat: validate score range"</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> switch</span><span style="color:#9ECBFF"> main</span></span></code></pre>
+<p>branchはディレクトリのコピーではなく、コミット列を指す名前です。作業中の変更が残った状態で切り替える前に<code>git status</code>を確認します。</p>
+<h2 id="5-remoteと同期する">5. remoteと同期する</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> remote</span><span style="color:#79B8FF"> -v</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> fetch</span><span style="color:#9ECBFF"> origin</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> log</span><span style="color:#79B8FF"> --oneline</span><span style="color:#79B8FF"> --decorate</span><span style="color:#79B8FF"> --graph</span><span style="color:#79B8FF"> --all</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> push</span><span style="color:#79B8FF"> -u</span><span style="color:#9ECBFF"> origin</span><span style="color:#9ECBFF"> feature/score-validation</span></span></code></pre>
+<p><code>fetch</code>はremoteの状態を取得しますが、自分のbranchへ自動統合しません。状況を見てからmergeまたはrebaseを選べます。</p>
+<h2 id="6-秘密情報をコミットしない">6. 秘密情報をコミットしない</h2>
+<p>次のようなものをGitへ入れてはいけません。</p>
+<ul>
+<li>APIキー、アクセストークン、パスワード</li>
+<li><code>.env</code>や秘密鍵</li>
+<li>顧客情報、個人情報、非公開URL</li>
+<li>本番データのdump</li>
+</ul>
+<p><code>.gitignore</code>は未追跡ファイルを除外しますが、すでにコミットした秘密を消す機能ではありません。誤って公開した場合は、ファイル削除より先に認証情報を無効化・再発行します。</p>
+<h2 id="7-元に戻す前に状態を読む">7. 元に戻す前に状態を読む</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> status</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> diff</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> log</span><span style="color:#79B8FF"> --oneline</span><span style="color:#79B8FF"> -5</span></span></code></pre>
+<p>変更を失う可能性がある操作を、意味を理解せず実行しないでください。まず差分を退避するか、復元対象を限定します。</p>
+<h2 id="演習-二つのコミットに分ける">演習: 二つのコミットに分ける</h2>
+<ol>
+<li>READMEへ目的を追加し、docsコミットを作る</li>
+<li><code>hello.py</code>を追加し、featコミットを作る</li>
+<li><code>git log --oneline</code>で二つに分かれたことを確認する</li>
+<li>新しいbranchでメッセージを変更する</li>
+<li><code>git diff</code>を確認する</li>
+</ol>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> working tree、staging、repositoryを区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> コミット前に対象差分を確認できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> branchを使う目的を説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 秘密情報を誤公開した際の初動を説明できる</li>
+</ul>
+<h2 id="公式資料">公式資料</h2>
+<ul>
+<li><a href="https://git-scm.com/book/ja/v2">Pro Git 日本語版</a></li>
+<li><a href="https://docs.github.com/en/get-started/learning-to-code/getting-started-with-git">GitHub Docs: Getting started with Git</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/programming/web/html%E3%81%A8css%E5%85%A5%E9%96%80/">HTMLとCSS入門</a>で、ブラウザに表示する最初のページを作ります。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/programming/web/html%E3%81%A8css%E5%85%A5%E9%96%80/"> <span>基礎</span> <strong>HTMLとCSS入門</strong> <small>意味のあるHTMLとresponsiveでaccessibleなCSSを学びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

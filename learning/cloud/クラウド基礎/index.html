@@ -1,0 +1,106 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="クラウド基礎を基礎から実践へつなげて学ぶ技術教材。compute、storage、network、database、identityを役割から学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89%E5%9F%BA%E7%A4%8E/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="クラウド基礎 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="クラウド基礎を基礎から実践へつなげて学ぶ技術教材。compute、storage、network、database、identityを役割から学びます。"><meta property="og:url" content="https://kryix.jp/learning/cloud/%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89%E5%9F%BA%E7%A4%8E/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"クラウド基礎","description":"クラウド基礎を基礎から実践へつなげて学ぶ技術教材。compute、storage、network、database、identityを役割から学びます。","educationalLevel":"はじめて","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"クラウドコース","url":"https://kryix.jp/learning/#course-cloud"}}</script><title>クラウド基礎 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-cloud">クラウド</a>  </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD / はじめて</p> <div class="learning-course-progress" aria-label="クラウドコース 2/7"> <span style="--learning-progress: 28.57142857142857%"></span> <small>2 / 7</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/cloud/roadmap/"><span>← 前へ</span><strong>☁️ クラウド（AWS）学習ロードマップ</strong></a> <a href="/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/"><span>次へ →</span><strong>AWS — SAA 以上の設計・運用知識</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-cloudは他人のpcだけではない">1. cloudは「他人のPC」だけではない</a></li><li><a href="#2-基本serviceを五つに分ける">2. 基本serviceを五つに分ける</a></li><li><a href="#3-shared-responsibility">3. shared responsibility</a></li><li><a href="#4-availabilityを設計する">4. availabilityを設計する</a></li><li><a href="#5-costを四つに分ける">5. costを四つに分ける</a></li><li><a href="#6-最小権限から始める">6. 最小権限から始める</a></li><li><a href="#演習-静的サイトを設計する">演習: 静的サイトを設計する</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#公式資料">公式資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-cloud"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>はじめて</span>LESSON 01</p> <strong>この教材で学ぶこと</strong> <span>compute、storage、network、database、identityを役割から学びます。</span> </header> <h1 id="クラウド基礎">クラウド基礎</h1>
+<blockquote>
+<p>対象読者: AWS、Google Cloud、Cloudflareなどを学ぶ前に、cloud computingの判断軸を知りたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>on-premisesとcloudの違いを所有・責任・課金から説明できる</li>
+<li>compute、storage、network、database、identityを分類できる</li>
+<li>availability、security、cost、operationのtrade-offを整理できる</li>
+<li>小さなsystemを要件から構成へ落とせる</li>
+</ul>
+<h2 id="1-cloudは他人のpcだけではない">1. cloudは「他人のPC」だけではない</h2>
+<p>cloud providerは、計算、保存、network、identity、監視などをAPI経由で組み合わせられる形で提供します。価値はserverの場所だけでなく、必要時に作成・変更でき、使用量を観測し、自動化できることにあります。</p>
+<h2 id="2-基本serviceを五つに分ける">2. 基本serviceを五つに分ける</h2>
+<table>
+<thead>
+<tr>
+<th>分類</th>
+<th>問うこと</th>
+<th>例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>compute</td>
+<td>codeをどこで実行するか</td>
+<td>VM、container、function</td>
+</tr>
+<tr>
+<td>storage</td>
+<td>fileをどう保存するか</td>
+<td>object、block、file storage</td>
+</tr>
+<tr>
+<td>network</td>
+<td>どこからどこへ通信できるか</td>
+<td>VPC、subnet、load balancer、CDN</td>
+</tr>
+<tr>
+<td>database</td>
+<td>dataをどう検索・更新するか</td>
+<td>relational、key-value、cache</td>
+</tr>
+<tr>
+<td>identity</td>
+<td>誰が何をできるか</td>
+<td>user、role、policy</td>
+</tr>
+</tbody>
+</table>
+<p>製品名を暗記する前に、この問いへ戻ります。</p>
+<h2 id="3-shared-responsibility">3. shared responsibility</h2>
+<p>providerがすべてを守るわけではありません。managed serviceの範囲が広いほどOS patch等をproviderへ任せられる一方、data、identity、application code、設定は利用者側に残ります。</p>
+<p>責任境界はserviceごとに異なるため、公式documentで確認します。</p>
+<h2 id="4-availabilityを設計する">4. availabilityを設計する</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>利用者</span></span>
+<span class="line"><span>  ↓</span></span>
+<span class="line"><span>DNS / CDN</span></span>
+<span class="line"><span>  ↓</span></span>
+<span class="line"><span>Load Balancer</span></span>
+<span class="line"><span>  ↓</span></span>
+<span class="line"><span>Application (複数failure domain)</span></span>
+<span class="line"><span>  ↓</span></span>
+<span class="line"><span>Database + backup</span></span></code></pre>
+<p>部品を増やせば自動的に高可用になるわけではありません。health check、timeout、retry、data整合性、復旧手順、監視を一緒に考えます。</p>
+<h2 id="5-costを四つに分ける">5. costを四つに分ける</h2>
+<ul>
+<li>常時稼働する固定的なresource</li>
+<li>requestや実行時間に比例するresource</li>
+<li>保存容量とoperation回数</li>
+<li>data transfer</li>
+</ul>
+<p>小規模ではserverlessが安くても、負荷や待ち時間、運用要件によって答えは変わります。見積り後もbudget alertと実績を確認します。</p>
+<h2 id="6-最小権限から始める">6. 最小権限から始める</h2>
+<ul>
+<li>人のaccountとworkload identityを分ける</li>
+<li>長期credentialをcodeへ埋め込まない</li>
+<li>roleと一時credentialを優先する</li>
+<li>resourceとactionを必要範囲へ絞る</li>
+<li>audit logを有効にし、変更を追えるようにする</li>
+</ul>
+<h2 id="演習-静的サイトを設計する">演習: 静的サイトを設計する</h2>
+<p>次の要件を満たす構成を考えてください。</p>
+<ul>
+<li>HTML/CSS/画像だけ</li>
+<li>世界中から閲覧</li>
+<li>更新は週一回</li>
+<li>server管理は避けたい</li>
+<li>月額上限を決めたい</li>
+<li>独自domainとHTTPSが必要</li>
+</ul>
+<p>computeが必要か、object storageまたはstatic hosting、CDN、DNS、certificate、deploy、rollbackをどうするかを書きます。</p>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> serviceを製品名ではなく役割で分類できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> providerと利用者の責任を区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> availabilityと複雑性のtrade-offを説明できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> costの主要因と上限管理を説明できる</li>
+</ul>
+<h2 id="公式資料">公式資料</h2>
+<ul>
+<li><a href="https://docs.aws.amazon.com/whitepapers/latest/aws-overview/introduction.html">AWS: Overview of Amazon Web Services</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/cloud/roadmap/">Cloudロードマップ</a>で、設計、container、serverless、database、static hostingへ進みます。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/"> <span>実践</span> <strong>AWS — SAA 以上の設計・運用知識</strong> <small>可用性・コスト・組織設計を比較し、構成を選びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

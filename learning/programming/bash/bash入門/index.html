@@ -1,0 +1,90 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Bash入門を基礎から実践へつなげて学ぶ技術教材。command、quote、pipeline、exit statusから安全な自動化を始めます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/programming/bash/bash%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Bash入門 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="Bash入門を基礎から実践へつなげて学ぶ技術教材。command、quote、pipeline、exit statusから安全な自動化を始めます。"><meta property="og:url" content="https://kryix.jp/learning/programming/bash/bash%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Bash入門","description":"Bash入門を基礎から実践へつなげて学ぶ技術教材。command、quote、pipeline、exit statusから安全な自動化を始めます。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"プログラミングコース","url":"https://kryix.jp/learning/#course-programming"}}</script><title>Bash入門 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-programming">プログラミング</a> <span aria-hidden="true">/</span><span>bash</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">PROGRAMMING / 基礎</p> <div class="learning-course-progress" aria-label="プログラミングコース 9/18"> <span style="--learning-progress: 50%"></span> <small>9 / 18</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/programming/typescript/typescript%E5%85%A5%E9%96%80/"><span>← 前へ</span><strong>TypeScript入門</strong></a> <a href="/learning/programming/bash/%E3%82%B7%E3%82%A7%E3%83%AB%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88%E5%AE%9F%E8%B7%B5/"><span>次へ →</span><strong>Bash シェルスクリプト実践</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-bashはshellでありprogramming-languageでもある">1. Bashはshellでありprogramming languageでもある</a></li><li><a href="#2-quoteを習慣にする">2. quoteを習慣にする</a></li><li><a href="#3-pipelineとredirection">3. pipelineとredirection</a></li><li><a href="#4-最小のscript">4. 最小のscript</a></li><li><a href="#5-loopと配列">5. loopと配列</a></li><li><a href="#6-destructive-commandの前に対象を固定する">6. destructive commandの前に対象を固定する</a></li><li><a href="#演習-拡張子別に数える">演習: 拡張子別に数える</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#公式資料">公式資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-programming"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 08</p> <strong>この教材で学ぶこと</strong> <span>command、quote、pipeline、exit statusから安全な自動化を始めます。</span> </header> <h1 id="bash入門">Bash入門</h1>
+<blockquote>
+<p>対象読者: ターミナルで基本操作を行い、短い自動化を安全に書きたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>command、argument、exit status、pipelineを説明できる</li>
+<li>quoteと変数展開を安全に扱える</li>
+<li>条件分岐・繰り返し・関数を使える</li>
+<li>削除や上書きの対象を実行前に確認できる</li>
+</ul>
+<h2 id="1-bashはshellでありprogramming-languageでもある">1. Bashはshellでありprogramming languageでもある</h2>
+<p>Bashはコマンドを対話的に実行できるだけでなく、変数、条件分岐、関数を使って処理を自動化できます。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#79B8FF">printf</span><span style="color:#9ECBFF"> '%s\n'</span><span style="color:#9ECBFF"> "Hello"</span></span>
+<span class="line"><span style="color:#79B8FF">printf</span><span style="color:#9ECBFF"> 'exit=%s\n'</span><span style="color:#9ECBFF"> "</span><span style="color:#79B8FF">$?</span><span style="color:#9ECBFF">"</span></span></code></pre>
+<p>commandは終了時にstatus codeを返します。慣例として0は成功、0以外は失敗です。</p>
+<h2 id="2-quoteを習慣にする">2. quoteを習慣にする</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#E1E4E8">file_name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">'my notes.txt'</span></span>
+<span class="line"><span style="color:#79B8FF">printf</span><span style="color:#9ECBFF"> '%s\n'</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$file_name</span><span style="color:#9ECBFF">"</span></span></code></pre>
+<p>変数展開をquoteしないと、空白で単語分割されたりwildcardが展開されたりします。特別な理由がなければ<code>"$variable"</code>と書きます。</p>
+<h2 id="3-pipelineとredirection">3. pipelineとredirection</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#79B8FF">printf</span><span style="color:#9ECBFF"> '%s\n'</span><span style="color:#9ECBFF"> apple</span><span style="color:#9ECBFF"> banana</span><span style="color:#9ECBFF"> apricot</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> rg</span><span style="color:#9ECBFF"> '^a'</span></span>
+<span class="line"><span style="color:#79B8FF">printf</span><span style="color:#9ECBFF"> '%s\n'</span><span style="color:#9ECBFF"> "学習記録"</span><span style="color:#F97583"> &gt;</span><span style="color:#9ECBFF"> notes.txt</span></span>
+<span class="line"><span style="color:#79B8FF">printf</span><span style="color:#9ECBFF"> '%s\n'</span><span style="color:#9ECBFF"> "Bash"</span><span style="color:#F97583"> &gt;&gt;</span><span style="color:#9ECBFF"> notes.txt</span></span></code></pre>
+<ul>
+<li><code>|</code>: 左の標準出力を右の標準入力へ渡す</li>
+<li><code>&gt;</code>: ファイルを上書きする</li>
+<li><code>&gt;&gt;</code>: ファイル末尾へ追加する</li>
+<li><code>2&gt;</code>: 標準エラーをredirectする</li>
+</ul>
+<p>上書きは練習用ファイルで確認してから使います。</p>
+<h2 id="4-最小のscript">4. 最小のscript</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D">#!/usr/bin/env bash</span></span>
+<span class="line"><span style="color:#79B8FF">set</span><span style="color:#79B8FF"> -u</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">name</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF">${1</span><span style="color:#F97583">:-</span><span style="color:#79B8FF">}</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> [[ </span><span style="color:#F97583">-z</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$name</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8"> ]]; </span><span style="color:#F97583">then</span></span>
+<span class="line"><span style="color:#79B8FF">  printf</span><span style="color:#9ECBFF"> '%s\n'</span><span style="color:#9ECBFF"> 'Usage: hello.sh NAME'</span><span style="color:#F97583"> &gt;&amp;2</span></span>
+<span class="line"><span style="color:#79B8FF">  exit</span><span style="color:#79B8FF"> 2</span></span>
+<span class="line"><span style="color:#F97583">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF">printf</span><span style="color:#9ECBFF"> 'Hello, %s\n'</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$name</span><span style="color:#9ECBFF">"</span></span></code></pre>
+<p>実行します。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">chmod</span><span style="color:#9ECBFF"> +x</span><span style="color:#9ECBFF"> hello.sh</span></span>
+<span class="line"><span style="color:#B392F0">./hello.sh</span><span style="color:#9ECBFF"> Kryik</span></span></code></pre>
+<p><code>set -e</code>には文脈による例外があるため、魔法の安全装置とは考えません。終了statusをどこで扱うかを設計したうえで<code>set -euo pipefail</code>を選びます。</p>
+<h2 id="5-loopと配列">5. loopと配列</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#E1E4E8">files</span><span style="color:#F97583">=</span><span style="color:#E1E4E8">(</span><span style="color:#9ECBFF">README.md</span><span style="color:#9ECBFF"> notes.txt</span><span style="color:#E1E4E8">)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">for</span><span style="color:#E1E4E8"> file </span><span style="color:#F97583">in</span><span style="color:#9ECBFF"> "${</span><span style="color:#E1E4E8">files</span><span style="color:#9ECBFF">[</span><span style="color:#F97583">@</span><span style="color:#9ECBFF">]}"</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">do</span></span>
+<span class="line"><span style="color:#F97583">  if</span><span style="color:#E1E4E8"> [[ </span><span style="color:#F97583">-f</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$file</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8"> ]]; </span><span style="color:#F97583">then</span></span>
+<span class="line"><span style="color:#79B8FF">    printf</span><span style="color:#9ECBFF"> 'found: %s\n'</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$file</span><span style="color:#9ECBFF">"</span></span>
+<span class="line"><span style="color:#F97583">  else</span></span>
+<span class="line"><span style="color:#79B8FF">    printf</span><span style="color:#9ECBFF"> 'missing: %s\n'</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$file</span><span style="color:#9ECBFF">"</span><span style="color:#F97583"> &gt;&amp;2</span></span>
+<span class="line"><span style="color:#F97583">  fi</span></span>
+<span class="line"><span style="color:#F97583">done</span></span></code></pre>
+<p>配列全体も<code>"${files[@]}"</code>とquoteし、各要素の境界を保ちます。</p>
+<h2 id="6-destructive-commandの前に対象を固定する">6. destructive commandの前に対象を固定する</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#E1E4E8">target_dir</span><span style="color:#F97583">=</span><span style="color:#9ECBFF">"./build-output"</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#E1E4E8"> [[ </span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8">$target_dir</span><span style="color:#9ECBFF">"</span><span style="color:#F97583"> !=</span><span style="color:#9ECBFF"> "./build-output"</span><span style="color:#F97583"> ||</span><span style="color:#F97583"> !</span><span style="color:#F97583"> -d</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$target_dir</span><span style="color:#9ECBFF">"</span><span style="color:#E1E4E8"> ]]; </span><span style="color:#F97583">then</span></span>
+<span class="line"><span style="color:#79B8FF">  printf</span><span style="color:#9ECBFF"> '%s\n'</span><span style="color:#9ECBFF"> 'unexpected target'</span><span style="color:#F97583"> &gt;&amp;2</span></span>
+<span class="line"><span style="color:#79B8FF">  exit</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#F97583">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#B392F0">find</span><span style="color:#9ECBFF"> "</span><span style="color:#E1E4E8">$target_dir</span><span style="color:#9ECBFF">"</span><span style="color:#79B8FF"> -maxdepth</span><span style="color:#79B8FF"> 1</span><span style="color:#79B8FF"> -type</span><span style="color:#9ECBFF"> f</span><span style="color:#79B8FF"> -print</span></span></code></pre>
+<p>対象を表示して確認し、空の変数、root、home directory、予期しないsymlinkを削除対象にしないよう検証します。</p>
+<h2 id="演習-拡張子別に数える">演習: 拡張子別に数える</h2>
+<p>引数でdirectoryを受け取り、その直下にある<code>.md</code>と<code>.txt</code>の件数を表示するscriptを作ってください。</p>
+<p>要件:</p>
+<ul>
+<li>引数がない、またはdirectoryでない場合はstatus 2</li>
+<li>pathは必ずquoteする</li>
+<li>subdirectoryは数えない</li>
+<li>ファイル名に空白があっても動く</li>
+</ul>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> 標準出力と標準エラーを区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> exit statusを条件分岐に利用できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 変数と配列を安全にquoteできる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 上書き・削除前に対象を検証できる</li>
+</ul>
+<h2 id="公式資料">公式資料</h2>
+<ul>
+<li><a href="https://www.gnu.org/software/bash/manual/">GNU Bash Reference Manual</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/programming/bash/%E3%82%B7%E3%82%A7%E3%83%AB%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88%E5%AE%9F%E8%B7%B5/">Bashシェルスクリプト実践</a>で、エラー処理や運用自動化へ進みます。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/programming/bash/%E3%82%B7%E3%82%A7%E3%83%AB%E3%82%B9%E3%82%AF%E3%83%AA%E3%83%97%E3%83%88%E5%AE%9F%E8%B7%B5/"> <span>実践</span> <strong>Bash シェルスクリプト実践</strong> <small>Bash特有の挙動と、安全な自動化の実践パターンを学びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

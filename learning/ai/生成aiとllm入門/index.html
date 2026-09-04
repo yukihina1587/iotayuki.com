@@ -1,0 +1,113 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="生成AIとLLM入門を基礎から実践へつなげて学ぶ技術教材。LLMの用語、限界、情報境界、検証とevaluationを学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/ai/%E7%94%9F%E6%88%90ai%E3%81%A8llm%E5%85%A5%E9%96%80/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="生成AIとLLM入門 — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="生成AIとLLM入門を基礎から実践へつなげて学ぶ技術教材。LLMの用語、限界、情報境界、検証とevaluationを学びます。"><meta property="og:url" content="https://kryix.jp/learning/ai/%E7%94%9F%E6%88%90ai%E3%81%A8llm%E5%85%A5%E9%96%80/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"生成AIとLLM入門","description":"生成AIとLLM入門を基礎から実践へつなげて学ぶ技術教材。LLMの用語、限界、情報境界、検証とevaluationを学びます。","educationalLevel":"はじめて","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"AI・LLMコース","url":"https://kryix.jp/learning/#course-ai"}}</script><title>生成AIとLLM入門 — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-ai">AI・LLM</a>  </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">AI / はじめて</p> <div class="learning-course-progress" aria-label="AI・LLMコース 2/9"> <span style="--learning-progress: 22.22222222222222%"></span> <small>2 / 9</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/ai/roadmap/"><span>← 前へ</span><strong>🤖 AI・LLM 学習ロードマップ</strong></a> <a href="/learning/ai/claude/claude%E6%B4%BB%E7%94%A8%E5%AE%9F%E8%B7%B5/"><span>次へ →</span><strong>Claude 活用実践 — AI Fluency + 業務活用</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#この教材でできるようになること">この教材でできるようになること</a></li><li><a href="#1-llmが行うこと">1. LLMが行うこと</a></li><li><a href="#2-重要な用語">2. 重要な用語</a></li><li><a href="#3-良い依頼の最小構造">3. 良い依頼の最小構造</a></li><li><a href="#4-入力してよい情報を決める">4. 入力してよい情報を決める</a></li><li><a href="#5-出力を検証する">5. 出力を検証する</a></li><li><a href="#6-evaluationを小さく始める">6. evaluationを小さく始める</a></li><li><a href="#演習-要約機能を設計する">演習: 要約機能を設計する</a></li><li><a href="#理解チェック">理解チェック</a></li><li><a href="#参考資料">参考資料</a></li><li><a href="#次に読む">次に読む</a></li> </ol> <a class="learning-index-back" href="/learning/#course-ai"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>はじめて</span>LESSON 01</p> <strong>この教材で学ぶこと</strong> <span>LLMの用語、限界、情報境界、検証とevaluationを学びます。</span> </header> <h1 id="生成aiとllm入門">生成AIとLLM入門</h1>
+<blockquote>
+<p>対象読者: 生成AIを初めて使う人、または仕組みと限界を理解してapplicationへ組み込みたい人。</p>
+</blockquote>
+<h2 id="この教材でできるようになること">この教材でできるようになること</h2>
+<ul>
+<li>model、prompt、context、token、inferenceを説明できる</li>
+<li>生成結果を事実ではなく候補として検証できる</li>
+<li>機密情報を入力しない境界を決められる</li>
+<li>小さなevaluation setで変更前後を比較できる</li>
+</ul>
+<h2 id="1-llmが行うこと">1. LLMが行うこと</h2>
+<p>LLMは、与えられたcontextに続くtokenの分布をもとに出力を生成します。流暢さは事実性の保証ではありません。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>system instruction</span></span>
+<span class="line"><span>user request</span></span>
+<span class="line"><span>reference context</span></span>
+<span class="line"><span>tool results</span></span>
+<span class="line"><span>conversation history</span></span>
+<span class="line"><span>        ↓</span></span>
+<span class="line"><span>      model</span></span>
+<span class="line"><span>        ↓</span></span>
+<span class="line"><span>generated response</span></span></code></pre>
+<h2 id="2-重要な用語">2. 重要な用語</h2>
+<table>
+<thead>
+<tr>
+<th>用語</th>
+<th>意味</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>prompt</td>
+<td>modelへ渡す指示や入力</td>
+</tr>
+<tr>
+<td>context window</td>
+<td>一度の処理で参照できるtoken範囲</td>
+</tr>
+<tr>
+<td>inference</td>
+<td>入力から出力を生成する処理</td>
+</tr>
+<tr>
+<td>temperature</td>
+<td>出力選択のばらつきに関するparameter</td>
+</tr>
+<tr>
+<td>grounding</td>
+<td>信頼できる資料やtool resultへ根拠を置くこと</td>
+</tr>
+<tr>
+<td>hallucination</td>
+<td>根拠のない内容をもっともらしく生成すること</td>
+</tr>
+</tbody>
+</table>
+<h2 id="3-良い依頼の最小構造">3. 良い依頼の最小構造</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>目的: 誰の何を助けるか</span></span>
+<span class="line"><span>入力: 利用してよいdata</span></span>
+<span class="line"><span>出力形式: JSON、表、文章など</span></span>
+<span class="line"><span>制約: 禁止事項、長さ、対象範囲</span></span>
+<span class="line"><span>評価基準: 何を満たせば成功か</span></span>
+<span class="line"><span>不明時: 推測せず不足情報を示す</span></span></code></pre>
+<p>曖昧な「いい感じに」より、成功条件を観測可能にします。</p>
+<h2 id="4-入力してよい情報を決める">4. 入力してよい情報を決める</h2>
+<ul>
+<li>credential、token、passwordを入力しない</li>
+<li>個人情報や顧客dataは承認された範囲だけ</li>
+<li>repositoryやdocumentの公開・非公開境界を確認する</li>
+<li>providerの保存、training、retention設定を確認する</li>
+<li>outputにも秘密情報が再出力され得ると考える</li>
+</ul>
+<p>modelの性能とは別に、data governanceを設計します。</p>
+<h2 id="5-出力を検証する">5. 出力を検証する</h2>
+<p>codeなら次を確認します。</p>
+<ul>
+<li>build・type check・testが通るか</li>
+<li>存在しないAPIを使っていないか</li>
+<li>security boundaryを壊していないか</li>
+<li>edge caseとerror handlingがあるか</li>
+<li>licenseやsourceを確認したか</li>
+</ul>
+<p>文章なら一次資料との一致、日付、固有名詞、数値を優先的に確認します。</p>
+<h2 id="6-evaluationを小さく始める">6. evaluationを小さく始める</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>case | input | expected properties | result | notes</span></span>
+<span class="line"><span>01   | ...   | JSON schema valid   | pass   | ...</span></span>
+<span class="line"><span>02   | ...   | cites source        | fail   | source missing</span></span></code></pre>
+<p>代表例だけでなく、空入力、長文、曖昧な依頼、攻撃的入力、tool failureを含めます。promptやmodelを変えたとき同じsetで比較します。</p>
+<h2 id="演習-要約機能を設計する">演習: 要約機能を設計する</h2>
+<p>公開documentを200字以内で要約する機能について、次を書いてください。</p>
+<ol>
+<li>入力できるdocumentの条件</li>
+<li>promptの目的・形式・禁止事項</li>
+<li>成功例3件</li>
+<li>edge case3件</li>
+<li>人が確認すべき項目</li>
+<li>logへ残してよい情報</li>
+</ol>
+<h2 id="理解チェック">理解チェック</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" disabled> 流暢さと事実性を区別できる</li>
+<li class="task-list-item"><input type="checkbox" disabled> promptへ成功条件を含められる</li>
+<li class="task-list-item"><input type="checkbox" disabled> dataの公開境界をmodel利用前に決められる</li>
+<li class="task-list-item"><input type="checkbox" disabled> 固定したevaluation setで変更を比較できる</li>
+</ul>
+<h2 id="参考資料">参考資料</h2>
+<ul>
+<li><a href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI Risk Management Framework</a></li>
+</ul>
+<h2 id="次に読む">次に読む</h2>
+<p><a href="/learning/ai/roadmap/">AI・LLMロードマップ</a>からprompt、API、MCP、cloud提供基盤へ進みます。</p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/ai/claude/claude%E6%B4%BB%E7%94%A8%E5%AE%9F%E8%B7%B5/"> <span>基礎</span> <strong>Claude 活用実践 — AI Fluency + 業務活用</strong> <small>AI Fluencyを軸に、AIとの協働方法を整理します。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>
