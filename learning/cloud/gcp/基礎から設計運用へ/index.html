@@ -1,0 +1,131 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Google Cloud（GCP）— 基礎から設計・運用へを基礎から実践へつなげて学ぶ技術教材。プロジェクト、IAM、VPC、Cloud Run、保存と監視を学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/gcp/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Google Cloud（GCP）— 基礎から設計・運用へ — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="Google Cloud（GCP）— 基礎から設計・運用へを基礎から実践へつなげて学ぶ技術教材。プロジェクト、IAM、VPC、Cloud Run、保存と監視を学びます。"><meta property="og:url" content="https://kryix.jp/learning/cloud/gcp/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Google Cloud（GCP）— 基礎から設計・運用へ","description":"Google Cloud（GCP）— 基礎から設計・運用へを基礎から実践へつなげて学ぶ技術教材。プロジェクト、IAM、VPC、Cloud Run、保存と監視を学びます。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"クラウドコース","url":"https://kryix.jp/learning/#course-cloud"}}</script><title>Google Cloud（GCP）— 基礎から設計・運用へ — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-cloud">クラウド</a> <span aria-hidden="true">/</span><span>gcp</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD / 基礎</p> <div class="learning-course-progress" aria-label="クラウドコース 6/13"> <span style="--learning-progress: 46.15384615384615%"></span> <small>6 / 13</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/cloud/azure/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><span>← 前へ</span><strong>Azure — 基礎から設計・運用へ</strong></a> <a href="/learning/cloud/comparison/%E9%A1%9E%E4%BC%BC%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%81%A8%E8%A8%AD%E8%A8%88%E3%81%AE%E9%81%95%E3%81%84/"><span>次へ →</span><strong>AWS・Azure・GCP — 類似サービスと設計の違い</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#1-プロジェクトとiam">1. プロジェクトとIAM</a></li><li><a href="#2-vpcがグローバルである意味">2. VPCがグローバルである意味</a></li><li><a href="#3-実行基盤とデータ">3. 実行基盤とデータ</a></li><li><a href="#4-監視費用復旧">4. 監視・費用・復旧</a></li><li><a href="#5-設計演習">5. 設計演習</a></li><li><a href="#理解度チェック">理解度チェック</a></li> </ol> <a class="learning-index-back" href="/learning/#course-cloud"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 05</p> <strong>この教材で学ぶこと</strong> <span>プロジェクト、IAM、VPC、Cloud Run、保存と監視を学びます。</span> </header> <h1 id="google-cloudgcp-基礎から設計運用へ">Google Cloud（GCP）— 基礎から設計・運用へ</h1>
+<blockquote>
+<p>前提: <a href="/learning/cloud/azure/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/">Azure章</a>。同じ学習ポータルをGCPで設計する。</p>
+</blockquote>
+<h2 id="1-プロジェクトとiam">1. プロジェクトとIAM</h2>
+<p>Google Cloudは、組織 → フォルダ → プロジェクト → リソースという階層を使う。
+組織・フォルダの有無は利用形態によるが、プロジェクトはAPIの利用、権限、資源管理の基本単位になる。
+請求先アカウントはプロジェクトと区別して扱う。<a href="https://docs.cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy">リソース階層の公式説明</a></p>
+<p>IAMは、誰に、どのロールを、どのリソース階層で与えるかを考える。
+上位階層の付与が下位へ影響するため、プロジェクト内の設定だけを見て権限を判断しない。
+アプリにはサービスアカウントなどのワークロード用IDを使い、人のアカウントから分離する。
+長期鍵ファイルを配る前に、実行環境のIDやWorkload Identity Federationを使えるか検討する。</p>
+<p>課題: ポータルの開発プロジェクト、請求先、デプロイ担当、実行サービスアカウントを図にする。
+解答例: デプロイ担当とアプリの実行主体を分離し、アプリには教材読取などの用途に限定した権限を付ける。</p>
+<h2 id="2-vpcがグローバルである意味">2. VPCがグローバルである意味</h2>
+<p>Google CloudのVPCネットワークはグローバル、サブネットはリージョンに属する。
+同じリージョンの複数ゾーンにあるVMが同じサブネットを使える。
+AWSの「VPCはリージョン、サブネットはAZ」という図をそのまま使わない。<a href="https://docs.cloud.google.com/vpc/docs/vpc">VPCの公式仕様</a></p>
+<p>グローバルVPCだからといって、すべてのデータが世界中に複製されるわけではない。
+VM、DB、バケット、実行サービスの配置と冗長化は個別に決める。
+ファイアウォールルール、経路、外部IP、プライベートアクセスの方式を合わせて接続性を確認する。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>プロジェクト</span></span>
+<span class="line"><span>  ├─ VPC（グローバル）</span></span>
+<span class="line"><span>  │    ├─ リージョンAのサブネット → 複数ゾーンのVM</span></span>
+<span class="line"><span>  │    └─ リージョンBのサブネット → 別地域のVM</span></span>
+<span class="line"><span>  ├─ Cloud Runなどの実行サービス → 必要に応じたVPC接続</span></span>
+<span class="line"><span>  └─ IAMで各資源の操作権限を管理</span></span></code></pre>
+<p>Cloud Runなどのマネージド実行サービスを、VMと同じようにサブネットへ配置したと考えない。
+サービスの入口制御と、サービスからVPC内の宛先へ接続する方法を区別する。</p>
+<h2 id="3-実行基盤とデータ">3. 実行基盤とデータ</h2>
+<table>
+<thead>
+<tr>
+<th>候補</th>
+<th>まず理解すること</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Compute Engine</td>
+<td>VM、イメージ、ディスク、サービスアカウント</td>
+</tr>
+<tr>
+<td>Managed Instance Groups</td>
+<td>同じ定義からVMを管理し、配置・ヘルスチェック・スケールを設計</td>
+</tr>
+<tr>
+<td>Cloud Run</td>
+<td>コンテナ実行、入口、実行ID、同時実行、スケール、外部接続</td>
+</tr>
+<tr>
+<td>GKE</td>
+<td>Kubernetesの管理範囲、ワークロード、更新、権限</td>
+</tr>
+<tr>
+<td>Cloud Storage</td>
+<td>オブジェクト、ロケーション、アクセス、ライフサイクル</td>
+</tr>
+<tr>
+<td>Cloud SQL</td>
+<td>RDBのエンジン、接続、認証、可用性、バックアップ</td>
+</tr>
+<tr>
+<td>Firestore</td>
+<td>ドキュメントとクエリからの設計、索引、整合性、費用</td>
+</tr>
+<tr>
+<td>BigQuery</td>
+<td>分析用のデータ処理。日常の進捗更新DBと役割を分ける</td>
+</tr>
+</tbody>
+</table>
+<p>ポータルではCloud Run + Cloud SQL + Cloud Storageを最初の候補にする。
+アプリの自動スケールでDB接続が増えすぎないよう、最大インスタンス数、同時実行、接続プールを一緒に検討する。
+サーバーレス側が増やせることと、DBが処理を受け止められることは別問題。</p>
+<p>Pub/Subは非同期のメッセージ配信に使う候補。教材更新イベントから後続処理を分離する場合、再配信と重複、失敗時の保管・再処理を設計する。
+Vertex AIなどのAI領域は、この基盤とIAMを理解してから選択学習に進む。</p>
+<h2 id="4-監視費用復旧">4. 監視・費用・復旧</h2>
+<p>Cloud Monitoringで数値を観測し、Cloud Loggingでログを調査する。
+Cloud Audit Logsで管理やアクセスに関する記録を扱うが、ログ種別、有効化の要否、保持、閲覧権限を確認する。
+Secret Managerで秘密情報、Cloud KMSで暗号鍵、Cloud Billingで費用を管理する構成を検討する。</p>
+<p>ログが出ていても、必要な事象を記録していなければ障害原因は分からない。
+ポータルでは要求ID、処理の種類、失敗した依存先を追えるようにし、個人情報や認証情報をログへ出さない。
+予算通知を設定しても支出が強制停止されると考えず、利用上限や資源の管理を別に設計する。</p>
+<p>Cloud SQLの可用性構成とバックアップ復旧を区別する。
+教材側の保存ロケーション・保護と、進捗側の復元時点が揃うかも確認し、復元後に参照できない教材がないか検証する。</p>
+<h2 id="5-設計演習">5. 設計演習</h2>
+<ol>
+<li>プロジェクト、実行主体、VPC、サブネット、データの配置を描く。</li>
+<li>Cloud RunからCloud SQLとCloud Storageへ接続するための、ネットワークと認証の要件を分ける。</li>
+<li>アクセスが10倍になったとき、実行基盤・DB接続・ログ量・費用のどこが増えるかを書く。</li>
+<li>教材の読取だけを許したアプリが、削除を試みた場合の期待結果を書く。</li>
+<li>復元先を用意してから利用再開までの手順を並べる。</li>
+</ol>
+<p>解答例: 開発専用プロジェクトにCloud Run、Cloud SQL、Cloud Storageを置く。
+実行サービスアカウントに必要な操作だけ許し、DB接続の経路とDB側認証を別に設計する。
+最大スケールとDB接続数の予算を揃え、応答遅延と接続失敗を監視する。
+教材削除は拒否が期待結果。復旧ではDBだけでなくアプリの接続先と教材参照も検証する。</p>
+<h2 id="理解度チェック">理解度チェック</h2>
+<table>
+<thead>
+<tr>
+<th>問い</th>
+<th>解答の要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>プロジェクトと請求先アカウントは同じか</td>
+<td>別の管理対象。関連付けを確認する</td>
+</tr>
+<tr>
+<td>VPCがグローバルならDBも自動で多地域化するか</td>
+<td>しない。各資源の配置と複製を別に設計する</td>
+</tr>
+<tr>
+<td>サービスアカウントを作れば安全か</td>
+<td>作成だけでは不十分。付与権限、利用主体、鍵管理が必要</td>
+</tr>
+<tr>
+<td>Cloud Runがスケールすれば性能問題は解消するか</td>
+<td>DB接続や外部APIなどが詰まる可能性がある</td>
+</tr>
+<tr>
+<td>BigQueryを進捗更新DBと同じ用途で選んでよいか</td>
+<td>分析とトランザクションの要求を分けて比較する</td>
+</tr>
+</tbody>
+</table>
+<p>次: <a href="/learning/cloud/comparison/%E9%A1%9E%E4%BC%BC%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%81%A8%E8%A8%AD%E8%A8%88%E3%81%AE%E9%81%95%E3%81%84/">類似サービスと設計の違い</a></p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/cloud/comparison/%E9%A1%9E%E4%BC%BC%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%81%A8%E8%A8%AD%E8%A8%88%E3%81%AE%E9%81%95%E3%81%84/"> <span>基礎</span> <strong>AWS・Azure・GCP — 類似サービスと設計の違い</strong> <small>AWS・Azure・GCPの似たサービスと、移植時に見直す仕様を比較します。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="クラウド全般 — 仕組みから設計判断までを基礎から実践へつなげて学ぶ技術教材。責任分界、通信、データ、可用性、復旧、費用を具体例と確認問題で学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/fundamentals/%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89%E5%85%A8%E8%88%AC/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="クラウド全般 — 仕組みから設計判断まで — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="クラウド全般 — 仕組みから設計判断までを基礎から実践へつなげて学ぶ技術教材。責任分界、通信、データ、可用性、復旧、費用を具体例と確認問題で学びます。"><meta property="og:url" content="https://kryix.jp/learning/cloud/fundamentals/%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89%E5%85%A8%E8%88%AC/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"クラウド全般 — 仕組みから設計判断まで","description":"クラウド全般 — 仕組みから設計判断までを基礎から実践へつなげて学ぶ技術教材。責任分界、通信、データ、可用性、復旧、費用を具体例と確認問題で学びます。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"クラウドコース","url":"https://kryix.jp/learning/#course-cloud"}}</script><title>クラウド全般 — 仕組みから設計判断まで — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-cloud">クラウド</a> <span aria-hidden="true">/</span><span>fundamentals</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD / 基礎</p> <div class="learning-course-progress" aria-label="クラウドコース 3/13"> <span style="--learning-progress: 23.076923076923077%"></span> <small>3 / 13</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/cloud/%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89%E5%9F%BA%E7%A4%8E/"><span>← 前へ</span><strong>クラウド基礎</strong></a> <a href="/learning/cloud/aws/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><span>次へ →</span><strong>AWS — 基礎から設計・運用へ</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#到達目標">到達目標</a></li><li><a href="#1-クラウドとは何か">1. クラウドとは何か</a></li><li class="learning-toc-subitem"><a href="#提供範囲と利用形態">提供範囲と利用形態</a></li><li><a href="#2-責任共有と権限">2. 責任共有と権限</a></li><li><a href="#3-リージョンゾーン障害範囲">3. リージョン・ゾーン・障害範囲</a></li><li><a href="#4-ネットワークを一本の通信で追う">4. ネットワークを一本の通信で追う</a></li><li><a href="#5-実行基盤とデータを選ぶ">5. 実行基盤とデータを選ぶ</a></li><li><a href="#6-バックアップ冗長化災害復旧">6. バックアップ・冗長化・災害復旧</a></li><li><a href="#7-監視とコストを設計に含める">7. 監視とコストを設計に含める</a></li><li><a href="#8-総合演習と解答例">8. 総合演習と解答例</a></li><li class="learning-toc-subitem"><a href="#理解度チェック">理解度チェック</a></li> </ol> <a class="learning-index-back" href="/learning/#course-cloud"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 02</p> <strong>この教材で学ぶこと</strong> <span>責任分界、通信、データ、可用性、復旧、費用を具体例と確認問題で学びます。</span> </header> <h1 id="クラウド全般--仕組みから設計判断まで">クラウド全般 — 仕組みから設計判断まで</h1>
+<blockquote>
+<p>前提: IPアドレス、HTTP、OS、DBという言葉を知っていること。不明点は<a href="/learning/#course-infrastructure">インフラ基礎</a>へ戻る。</p>
+</blockquote>
+<h2 id="到達目標">到達目標</h2>
+<p>クラウドを使う理由と引き受ける責任を説明し、特定ベンダー名を使わずにWebシステムを設計できる。
+各節の小さな例で理解を確認する。<a href="/learning/cloud/roadmap/">共通の例題</a>は設計を比較したい場合に使う架空のもので、実際の業務情報とは関係ない。</p>
+<h2 id="1-クラウドとは何か">1. クラウドとは何か</h2>
+<p>クラウドは、計算・保存・ネットワークなどのIT資源を、必要に応じてサービスとして利用する仕組み。
+単に遠くのサーバーを借りるだけでなく、APIで調達・変更を自動化し、需要に合わせて増減できる点が設計を変える。
+従量制で支出を利用量に結び付けられる一方、放置した資源や大量の通信も支出になる。</p>
+<p>オンプレミスでは機器の調達・設置・保守から考える。クラウドではサービス選定、設定、利用量管理に仕事の比重が移る。
+専用機器、既存設備との近さ、契約条件などからオンプレミスが適する場合もある。移行そのものを目的にしない。</p>
+<h3 id="提供範囲と利用形態">提供範囲と利用形態</h3>
+<table>
+<thead>
+<tr>
+<th>分類</th>
+<th>自分が主に管理するもの</th>
+<th>学習ポータルでの例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IaaS</td>
+<td>ゲストOS、ミドルウェア、アプリ、データ、アクセス設定</td>
+<td>VMにWebサーバーとアプリを導入</td>
+</tr>
+<tr>
+<td>PaaS</td>
+<td>アプリ、データ、アクセス設定、サービス設定</td>
+<td>実行基盤にアプリをデプロイ</td>
+</tr>
+<tr>
+<td>SaaS</td>
+<td>利用者、共有範囲、データの扱い、契約・利用設定</td>
+<td>既製の学習管理サービスを利用</td>
+</tr>
+</tbody>
+</table>
+<p>サーバーレスは、サーバーの調達・管理をサービス側へ任せる実行モデル。サーバーが消えるわけではなく、実行時間・同時実行・外部接続などの制約は残る。
+マネージドDBでも、テーブル設計・アクセス権・バックアップ方針・復旧確認は利用者の仕事になる。</p>
+<p>パブリッククラウドは広く利用者に提供される基盤、プライベートクラウドは特定組織向けの基盤。
+ハイブリッドクラウドはオンプレミスなどとクラウドを組み合わせる構成、マルチクラウドは複数クラウドを利用する構成。
+「複数社を使う」と「障害時に自動で代替できる」は別々に設計する必要がある。</p>
+<h2 id="2-責任共有と権限">2. 責任共有と権限</h2>
+<p>クラウド事業者と利用者は管理責任を分担する。たとえばAWSのEC2ではゲストOSの更新は利用者側、物理設備の管理はAWS側に属する。
+利用するサービスによって分担が変わるため、サービス単位で確認する。<a href="https://aws.amazon.com/compliance/shared-responsibility-model/">AWS責任共有モデル</a></p>
+<p>認証は「誰かを確かめる」、認可は「その主体に何を許すか」。管理者のログインと、アプリがDBへ接続する認証は分けて考える。
+人には組織のIDと多要素認証、アプリには必要な権限だけを持つ実行用IDを割り当てる。
+ネットワークで到達できても、認可がなければデータを読めない構成を目指す。</p>
+<table>
+<thead>
+<tr>
+<th>対象</th>
+<th>責任を明文化する質問</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OS</td>
+<td>誰が更新し、失敗したら誰が戻すか</td>
+</tr>
+<tr>
+<td>データ</td>
+<td>誰が閲覧でき、どこに保存し、いつ消すか</td>
+</tr>
+<tr>
+<td>認証情報</td>
+<td>人とアプリのIDをどう分離し、失効するか</td>
+</tr>
+<tr>
+<td>復旧</td>
+<td>誰がバックアップを確認し、復元を実行するか</td>
+</tr>
+</tbody>
+</table>
+<p>ミニ演習: ポータルをIaaSからPaaSへ移したとき、OS更新・アプリ修正・利用者の利用終了時の権限削除の担当がどう変わるか書く。
+答えの要点: OSの運用負担は減るが、アプリ修正と利用者のライフサイクル管理は残る。</p>
+<h2 id="3-リージョンゾーン障害範囲">3. リージョン・ゾーン・障害範囲</h2>
+<p>リージョンは地理的な配置の単位、ゾーンはリージョン内で障害を分離する単位として考える。
+名称、対応サービス、実際に複数ゾーンへ配置される設定は事業者やサービスによって異なる。
+「リージョンを選んだ」だけでは、アプリもDBも冗長化されたことにはならない。</p>
+<p>可用性は使いたいときに使える性質。耐久性は保存したデータを失いにくい性質。
+ファイルが失われなくても認証基盤が停止すれば閲覧できないため、耐久性が高いストレージだけでシステムの可用性は決まらない。</p>
+<p>SLAは提供者のサービス水準に関する契約上の条件。SLOは自分たちが設定する運用品質の目標。
+30日を分母とする単純な時間ベースの計算では、99.9%の停止許容量は43.2分。実際の測定窓と除外条件は別途定義する。</p>
+<h2 id="4-ネットワークを一本の通信で追う">4. ネットワークを一本の通信で追う</h2>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>利用者端末 → DNSで名前解決 → HTTPS入口・認証 → アプリ → 進捗DB</span></span>
+<span class="line"><span>                                         └→ 教材ストレージ</span></span>
+<span class="line"><span>管理者 → 管理用認証・接続経路 → 管理API／運用対象</span></span></code></pre>
+<p>DNSは名前から接続先を調べる仕組み。TLSは通信の暗号化と接続相手の検証に使う。
+ロードバランサーは複数の処理先へ通信を振り分ける。CDNは利用者に近い場所からコンテンツを配信し、オリジンの負荷を減らす。
+CDNで利用者向け教材を配信するときは、認証の有無、キャッシュキー、認証後のコンテンツが他人へ配られない条件も設計する。</p>
+<p>仮想ネットワークとサブネットはアドレスや配置を整理する単位。経路表は通信の次の行き先、ファイアウォールは許可する通信を決める。
+プライベートという名前だけで安全性は決まらない。公開IP、経路、通信ルール、サービス側の公開設定を合わせて確認する。
+NATはアドレスを変換する仕組みであり、認証や権限管理の代替にはならない。</p>
+<p>通信できない場合は、名前解決 → 経路 → 通信許可 → TLS → アプリ認証 → DB接続の順に観測する。
+タイムアウトと権限不足の応答を区別すると、調べる範囲を絞れる。</p>
+<h2 id="5-実行基盤とデータを選ぶ">5. 実行基盤とデータを選ぶ</h2>
+<p>VMはOSを含めて制御したい場合に向く。コンテナはアプリと依存物をまとめて配布する単位で、実行基盤の管理責任は選択したサービス次第。
+関数やマネージドコンテナは運用を任せやすいが、常駐処理・実行制約・接続数・課金モデルを確認する。
+水平スケールは台数を増やすこと、垂直スケールは一台を大きくすること。台数を増やすにはセッションやファイルを一台だけに閉じ込めない工夫が要る。</p>
+<table>
+<thead>
+<tr>
+<th>保存対象</th>
+<th>基本となる候補</th>
+<th>判断理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>教材PDFや画像</td>
+<td>オブジェクトストレージ</td>
+<td>ファイルをキーで取得し、アプリの稼働台数から切り離せる</td>
+</tr>
+<tr>
+<td>VMのOS領域</td>
+<td>ブロックストレージ</td>
+<td>OSがディスクとして扱う</td>
+</tr>
+<tr>
+<td>既存アプリの共有フォルダー</td>
+<td>ファイルストレージ</td>
+<td>ファイル共有プロトコルや既存パスへの依存を扱う</td>
+</tr>
+<tr>
+<td>利用者と学習進捗</td>
+<td>RDBを最初の候補にする</td>
+<td>関係、更新の整合性、集計を表現しやすい</td>
+</tr>
+<tr>
+<td>大規模なキー検索</td>
+<td>NoSQLを要件から検討</td>
+<td>読み書きのパターンと分散方法が設計の中心になる</td>
+</tr>
+</tbody>
+</table>
+<p>キャッシュはDB負荷を減らす一方、更新の反映遅延と無効化が課題になる。
+キューは処理を非同期にして突発負荷を受け止めるが、遅延、重複、再試行、失敗メッセージの扱いを追加で設計する。
+サービスを増やすたびに、解決する課題と増える運用の両方を書く。</p>
+<h2 id="6-バックアップ冗長化災害復旧">6. バックアップ・冗長化・災害復旧</h2>
+<p>冗長化は一部が壊れても継続しやすくすること。バックアップは過去の状態に戻す手段。
+誤更新が複製先へ伝われば、二台あっても正しいデータは戻らない。</p>
+<p>RTOは復旧までに許容する時間、RPOは失ってよいデータを時間で表した目標。
+ポータルのRPO 24時間なら、復元できる有効なコピーの間隔が24時間を超えない設計が必要。
+「毎日ジョブを設定した」だけでは成功と復元可能性は分からないので、失敗通知と復元訓練を含める。</p>
+<p>復旧手順は、障害検知、担当者への連絡、復元先の用意、データ復元、接続先変更、アプリ確認、利用再開まで分ける。
+DBの復元だけでRTO全体を測らない。教材と進捗の参照関係も確認する。</p>
+<h2 id="7-監視とコストを設計に含める">7. 監視とコストを設計に含める</h2>
+<p>メトリクスはエラー率や待ち時間などの数値、ログは個々の出来事、トレースは一つの要求が通った処理のつながり。
+監視では「CPUが高い」だけでなく「利用者がログインできるか」「教材を開けるか」「進捗を保存できるか」を見る。
+通知には担当者、緊急度、最初に見る情報、復旧手順へのリンクを添える。</p>
+<p>机上の費用モデルは、実行基盤 + データ保存 + リクエスト処理 + データ転送 + 監視ログ + バックアップ + 接続設備 + サポート + 運用工数。
+安いVMでも、外向き通信、NAT、LB、ログ、運用時間が支配的になる場合がある。
+無料枠や予算通知を支出の強制上限とみなさず、契約と制御方法を個別に確認する。</p>
+<h2 id="8-総合演習と解答例">8. 総合演習と解答例</h2>
+<p>まず解答例を隠して、次を一枚の設計メモにまとめる。</p>
+<ol>
+<li>ポータルの通信経路を描き、利用者・管理者・アプリのIDを分ける。</li>
+<li>実行基盤、教材保存、進捗保存を選び、不採用案を一つずつ挙げる。</li>
+<li>アプリ一台の停止と進捗の誤削除に、それぞれどう対応するか書く。</li>
+<li>月間費用を増やす変数を五つ挙げる。</li>
+</ol>
+<p>解答例: 認証されたHTTPS入口からステートレスなアプリへ送り、教材をオブジェクトストレージ、進捗をRDBに保存する。
+OS固有の要件がなければマネージド実行基盤を候補にする。利用者はアプリだけを使い、アプリの実行用IDに必要な保存先への権限を与える。
+アプリ停止は別の実行先への振り分けと再作成、誤削除は隔離した復元先でデータを検証してから戻す。
+費用の変数は同時実行数、保存量、外向き転送量、ログ量、バックアップ保持期間など。</p>
+<h3 id="理解度チェック">理解度チェック</h3>
+<table>
+<thead>
+<tr>
+<th>問い</th>
+<th>解答の要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PaaSにしたらセキュリティ担当は不要か</td>
+<td>必要。利用者・権限・データ・アプリの責任が残る</td>
+</tr>
+<tr>
+<td>DB二台ならバックアップは不要か</td>
+<td>不要にはならない。誤削除や論理破損も複製され得る</td>
+</tr>
+<tr>
+<td>サーバーレスなら常に安いか</td>
+<td>利用量、実行時間、周辺サービス、運用工数による</td>
+</tr>
+<tr>
+<td>マルチクラウドにすると自動で高可用になるか</td>
+<td>ならない。データ同期、切替、認証、運用の設計が必要</td>
+</tr>
+<tr>
+<td>99.9%のSLOとRTO 4時間は両立を保証するか</td>
+<td>保証しない。4時間の停止は30日換算の許容量43.2分を超える</td>
+</tr>
+</tbody>
+</table>
+<p>次: <a href="/learning/cloud/aws/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/">AWSの基礎から設計・運用へ</a></p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/cloud/aws/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"> <span>基礎</span> <strong>AWS — 基礎から設計・運用へ</strong> <small>IAM、VPC、EC2、保存、監視からAWSの設計・運用を理解します。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

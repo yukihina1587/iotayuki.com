@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Cloudflare・ニフクラとその他のクラウドを基礎から実践へつなげて学ぶ技術教材。Cloudflareとニフクラを学び、用途・責任・費用から選定します。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/other/%E3%81%9D%E3%81%AE%E4%BB%96%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Cloudflare・ニフクラとその他のクラウド — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="Cloudflare・ニフクラとその他のクラウドを基礎から実践へつなげて学ぶ技術教材。Cloudflareとニフクラを学び、用途・責任・費用から選定します。"><meta property="og:url" content="https://kryix.jp/learning/cloud/other/%E3%81%9D%E3%81%AE%E4%BB%96%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Cloudflare・ニフクラとその他のクラウド","description":"Cloudflare・ニフクラとその他のクラウドを基礎から実践へつなげて学ぶ技術教材。Cloudflareとニフクラを学び、用途・責任・費用から選定します。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"クラウドコース","url":"https://kryix.jp/learning/#course-cloud"}}</script><title>Cloudflare・ニフクラとその他のクラウド — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-cloud">クラウド</a> <span aria-hidden="true">/</span><span>other</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD / 基礎</p> <div class="learning-course-progress" aria-label="クラウドコース 8/13"> <span style="--learning-progress: 61.53846153846154%"></span> <small>8 / 13</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/cloud/comparison/%E9%A1%9E%E4%BC%BC%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%81%A8%E8%A8%AD%E8%A8%88%E3%81%AE%E9%81%95%E3%81%84/"><span>← 前へ</span><strong>AWS・Azure・GCP — 類似サービスと設計の違い</strong></a> <a href="/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/"><span>次へ →</span><strong>AWS — SAA 以上の設計・運用知識</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#1-この章で広げる視点">1. この章で広げる視点</a></li><li><a href="#2-cloudflare--dns配信保護から理解する">2. Cloudflare — DNS・配信・保護から理解する</a></li><li><a href="#3-workersとr2--アプリの実行保存">3. WorkersとR2 — アプリの実行・保存</a></li><li><a href="#4-ニフクラ--iaasを運用まで学ぶ">4. ニフクラ — IaaSを運用まで学ぶ</a></li><li><a href="#5-その他のクラウドを調べる順序">5. その他のクラウドを調べる順序</a></li><li><a href="#6-最終演習と理解度チェック">6. 最終演習と理解度チェック</a></li> </ol> <a class="learning-index-back" href="/learning/#course-cloud"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 07</p> <strong>この教材で学ぶこと</strong> <span>Cloudflareとニフクラを学び、用途・責任・費用から選定します。</span> </header> <h1 id="cloudflareニフクラとその他のクラウド">Cloudflare・ニフクラとその他のクラウド</h1>
+<blockquote>
+<p>前提: <a href="/learning/cloud/comparison/%E9%A1%9E%E4%BC%BC%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%81%A8%E8%A8%AD%E8%A8%88%E3%81%AE%E9%81%95%E3%81%84/">三社の比較</a>。クラウドを用途から選ぶ練習をする。</p>
+</blockquote>
+<h2 id="1-この章で広げる視点">1. この章で広げる視点</h2>
+<p>クラウドには総合的な基盤に加え、配信や保護、アプリ実行、国内のインフラ運用などから検討するサービスがある。
+「一社ですべて構成する」と「得意な機能を組み合わせる」の両方を、責任分界と運用から比較する。
+ここではCloudflareを配信・保護・エッジ実行の入口から、ニフクラをIaaSの構築・運用の入口から学ぶ。</p>
+<h2 id="2-cloudflare--dns配信保護から理解する">2. Cloudflare — DNS・配信・保護から理解する</h2>
+<p>DNSは名前解決、CDNはコンテンツ配信、WAFはWebリクエストの検査と制御を担う。
+この三つの役割を分けてから、Cloudflareをポータルの前段に置く構成を考える。
+DNSで名前を管理するだけの場合と、HTTP通信をプロキシさせる場合では、通信経路と適用される機能が異なる。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>利用者 → Cloudflareの配信・保護 → オリジン側の入口 → アプリ → DB</span></span>
+<span class="line"><span>                  └→ キャッシュ対象のコンテンツ</span></span></code></pre>
+<p>WAFを経由しないオリジンへの直接アクセスが残ると、前段で検査する前提が崩れる。
+オリジンへの接続制限、TLSの検証、元の接続元情報、ログの照合を設計する。
+「Cloudflareに追加した」だけで保護が完成したとは判断しない。</p>
+<p>利用者限定教材はキャッシュと認証が重要。
+未認証の利用者にキャッシュが返らないか、利用者ごとの応答が共有されないか、権限失効後にどう扱うかを確認する。
+運用者向けアプリを保護する場合はCloudflare Accessなども検討するが、アプリ内部の認可まで自動で代替されるとは考えない。</p>
+<p>公式の入口: <a href="https://developers.cloudflare.com/resources/">Cloudflare学習リソース</a></p>
+<h2 id="3-workersとr2--アプリの実行保存">3. WorkersとR2 — アプリの実行・保存</h2>
+<p>WorkersはCloudflareのネットワーク上でアプリを実行するための基盤。
+API、入口での軽い処理、外部サービスとの連携などを題材にし、実行モデル・API・制限・データの配置を確認する。
+既存VM上の常駐アプリを変更せず動かす前提では選ばない。<a href="https://developers.cloudflare.com/workers/">Workers公式資料</a></p>
+<p>R2はオブジェクトストレージで、S3互換APIを提供する。
+ただしS3の全機能が同一という意味ではない。既存アプリが使う操作を互換表と照合する。<a href="https://developers.cloudflare.com/r2/">R2の概要</a>、<a href="https://developers.cloudflare.com/r2/api/s3/api/">S3 API互換性</a></p>
+<p>演習: 教材PDFをR2に置き、Workersが認証済みの要求だけを扱う案を書く。
+確認項目はユーザー認証、教材への認可、非公開バケット、期限付きアクセスの扱い、監査、費用。
+解答例: 認証できたことに加え、その利用者が対象教材を読めることを判定する。
+バケットを直接公開するとこの判定を迂回し得るので、アクセス経路を限定して試験する。</p>
+<h2 id="4-ニフクラ--iaasを運用まで学ぶ">4. ニフクラ — IaaSを運用まで学ぶ</h2>
+<p>ニフクラではサーバー、ネットワーク、ファイアウォール、ロードバランサーなどの構成要素を、公式の機能一覧と仕様から確認する。
+共通基礎で学んだ通信図を描き、AWS固有の用語をそのまま設定名として使わない。
+提供される機能は<a href="https://docs.nifcloud.com/">ニフクラドキュメント</a>を起点に、<a href="https://docs.nifcloud.com/network/spec/">ネットワーク仕様</a>などで確認する。</p>
+<p>最初の学習対象は次の六つ。</p>
+<table>
+<thead>
+<tr>
+<th>対象</th>
+<th>自分で説明すること</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>サーバー</td>
+<td>OS、スペック、ディスク、配置、更新と再作成</td>
+</tr>
+<tr>
+<td>ネットワーク</td>
+<td>パブリック／プライベートの接続、IP、ルーティング</td>
+</tr>
+<tr>
+<td>通信制御</td>
+<td>利用者→入口、入口→アプリ、アプリ→DBの許可条件</td>
+</tr>
+<tr>
+<td>負荷分散</td>
+<td>ヘルスチェック、障害時の振分け、TLS終端</td>
+</tr>
+<tr>
+<td>データ保護</td>
+<td>利用可能な保存・バックアップ機能、保持、復元</td>
+</tr>
+<tr>
+<td>運用</td>
+<td>監視、問い合わせ経路、保守、契約・費用、障害時の担当</td>
+</tr>
+</tbody>
+</table>
+<p>学習用の比較案として、Web/アプリ用サーバーとDB用サーバーを分けるIaaS構成を考える。
+自分でDBを運用する案では、OSだけでなくDB更新、複製、バックアップ、復旧まで担当範囲に入れる。
+マネージド機能を使う案と比べるときは、対象リージョンや対応エンジンを現行仕様で確認する。</p>
+<p>国内サービスだから要件を自動的に満たすと考えず、データの保存先、サポート範囲、接続、SLA、契約を確認する。
+閉域接続が必要なら、経路・帯域・冗長化・申込や運用の分担を設計し、サービス提供者への確認事項を残す。</p>
+<p>演習: ニフクラ上のIaaS構成でポータルを運用するときの担当表を書く。
+解答例: 利用者側がOS・アプリ・自前DBの更新と復旧を担当する部分を明記し、基盤障害時の連絡・復旧範囲は契約で確認する。
+マネージドDBとの比較では、VM料金に加えて更新・監視・復元訓練の工数を費用へ含める。</p>
+<h2 id="5-その他のクラウドを調べる順序">5. その他のクラウドを調べる順序</h2>
+<p>次はOCI、さくらのクラウド、IBM Cloud、Alibaba Cloudなどから、実際の用途に合う一社を選んで深める。
+今回の必修本文はCloudflareとニフクラまで。他社は以下の調査票を使う選択学習とする。
+ブランドの印象だけで強みを断定せず、同じポータルの要件で比較する。</p>
+<table>
+<thead>
+<tr>
+<th>調査項目</th>
+<th>記録する内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>要件</td>
+<td>地域、既存システム、ID連携、サポート、予算</td>
+</tr>
+<tr>
+<td>機能</td>
+<td>実行、保存、ネットワーク、権限、監視の候補</td>
+</tr>
+<tr>
+<td>責任</td>
+<td>利用者が更新・バックアップ・復旧する範囲</td>
+</tr>
+<tr>
+<td>互換性</td>
+<td>アプリAPI、データ形式、DB、IaCの移植差分</td>
+</tr>
+<tr>
+<td>費用</td>
+<td>同じ利用量での見積、転送、サポート、運用工数</td>
+</tr>
+<tr>
+<td>根拠</td>
+<td>公式URL、確認日、提供条件、未確認事項</td>
+</tr>
+</tbody>
+</table>
+<h2 id="6-最終演習と理解度チェック">6. 最終演習と理解度チェック</h2>
+<p>「AWSだけで構成」「AWSなどの前段にCloudflare」「ニフクラのIaaSで構成」の三案を比較する。
+すべてを実際に構築する必要はない。構成図、責任分界、障害時の連絡先、費用の項目を揃えて評価する。</p>
+<p>解答例: 前段にCloudflareを追加する案は配信・保護の機能を評価できるが、TLS、キャッシュ、オリジン制限、二社の障害切り分けを追加で設計する。
+ニフクラのIaaS案は既存アプリの要件と照合し、自分で運用するOS・DBの責任を見積もる。
+単一クラウド案は管理対象をまとめやすいが、必要機能や契約条件を満たすか確認する。</p>
+<table>
+<thead>
+<tr>
+<th>問い</th>
+<th>解答の要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CloudflareはDNSだけのサービスか</td>
+<td>配信・保護・実行・保存なども学習対象になる</td>
+</tr>
+<tr>
+<td>R2ならS3の機能を全部使えるか</td>
+<td>互換APIの対応範囲を確認する必要がある</td>
+</tr>
+<tr>
+<td>WAFを置けばオリジンの公開制御は不要か</td>
+<td>不要にはならない。迂回経路を確認する</td>
+</tr>
+<tr>
+<td>IaaSで自前DBを動かすと何を引き受けるか</td>
+<td>DBとOSの更新、バックアップ、監視、復旧など</td>
+</tr>
+<tr>
+<td>新しいクラウドの調査は何から始めるか</td>
+<td>解決する要件と、根拠を残す比較項目から始める</td>
+</tr>
+</tbody>
+</table>
+<p><a href="/learning/cloud/roadmap/">ロードマップへ戻る</a></p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/cloud/aws/saa%E4%BB%A5%E4%B8%8A%E3%81%AE%E8%A8%AD%E8%A8%88/"> <span>実践</span> <strong>AWS — SAA 以上の設計・運用知識</strong> <small>可用性・コスト・組織設計を比較し、構成を選びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

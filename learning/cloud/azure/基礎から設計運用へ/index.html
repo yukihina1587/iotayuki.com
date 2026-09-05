@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="Azure — 基礎から設計・運用へを基礎から実践へつなげて学ぶ技術教材。Entra ID、管理階層、VNet、実行基盤、データと運用を学びます。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/azure/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="Azure — 基礎から設計・運用へ — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="Azure — 基礎から設計・運用へを基礎から実践へつなげて学ぶ技術教材。Entra ID、管理階層、VNet、実行基盤、データと運用を学びます。"><meta property="og:url" content="https://kryix.jp/learning/cloud/azure/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Azure — 基礎から設計・運用へ","description":"Azure — 基礎から設計・運用へを基礎から実践へつなげて学ぶ技術教材。Entra ID、管理階層、VNet、実行基盤、データと運用を学びます。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"クラウドコース","url":"https://kryix.jp/learning/#course-cloud"}}</script><title>Azure — 基礎から設計・運用へ — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-cloud">クラウド</a> <span aria-hidden="true">/</span><span>azure</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD / 基礎</p> <div class="learning-course-progress" aria-label="クラウドコース 5/13"> <span style="--learning-progress: 38.46153846153847%"></span> <small>5 / 13</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/cloud/aws/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><span>← 前へ</span><strong>AWS — 基礎から設計・運用へ</strong></a> <a href="/learning/cloud/gcp/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><span>次へ →</span><strong>Google Cloud（GCP）— 基礎から設計・運用へ</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#1-管理階層とidを先に理解する">1. 管理階層とIDを先に理解する</a></li><li><a href="#2-vnetサブネット公開範囲">2. VNet・サブネット・公開範囲</a></li><li><a href="#3-実行基盤を選ぶ">3. 実行基盤を選ぶ</a></li><li><a href="#4-データと運用">4. データと運用</a></li><li><a href="#5-設計演習">5. 設計演習</a></li><li><a href="#理解度チェック">理解度チェック</a></li> </ol> <a class="learning-index-back" href="/learning/#course-cloud"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 04</p> <strong>この教材で学ぶこと</strong> <span>Entra ID、管理階層、VNet、実行基盤、データと運用を学びます。</span> </header> <h1 id="azure--基礎から設計運用へ">Azure — 基礎から設計・運用へ</h1>
+<blockquote>
+<p>前提: <a href="/learning/cloud/aws/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/">AWS導入章</a>。同じ学習ポータルをAzureで設計する。</p>
+</blockquote>
+<h2 id="1-管理階層とidを先に理解する">1. 管理階層とIDを先に理解する</h2>
+<p>Azureでは、Microsoft Entra IDのテナントと、サブスクリプション・リソースグループ・リソースの関係を理解する。
+テナントはID管理の境界。サブスクリプションは課金やリソース管理の単位で、リソースグループは関連リソースを管理するまとまり。
+管理グループを使うと複数サブスクリプションに統制を適用できる。
+これらをAWSアカウント一つに対応付けると、ID・課金・管理の違いを見失う。</p>
+<p>Azure Resource Managerがリソースのデプロイ・管理を担い、Azure RBACでスコープを指定して操作権限を割り当てる。
+同じ環境で一緒に管理するアプリ資源をリソースグループへまとめ、担当者の操作範囲を設計する。<a href="https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/overview">Resource Managerの概要</a></p>
+<p>アプリにはマネージドIDを利用する構成を候補にし、対応サービスへの認証情報をコードに埋め込まない。
+リソース作成などの管理操作と、Blob内容の読取などのデータ操作は必要な権限が異なる。
+「Contributorだからあらゆるデータを読める」とは考えず、対象サービスのデータ権限を確認する。</p>
+<p>課題: 開発用サブスクリプション、ポータル用リソースグループ、運用担当、アプリのマネージドIDを図にする。
+権限表には主体・ロール・スコープ・用途を書く。利用者のアプリログインも別の線で描く。</p>
+<h2 id="2-vnetサブネット公開範囲">2. VNet・サブネット・公開範囲</h2>
+<p>VNetはリージョン内の仮想ネットワーク。サブネットはAWSのように一つのAZへ固定する単位ではない。<a href="https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview#virtual-networks-and-availability-zones">VNetと可用性ゾーン</a>
+NSGで通信を制御し、経路、サービスのネットワーク統合、公開アクセス設定を合わせて読む。
+Private Endpointは対象サービスへのプライベート接続で用いるが、名前解決も含めて構成する必要がある。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="text"><code><span class="line"><span>利用者 → Entra IDによる認証 → HTTPS入口 → アプリ実行基盤</span></span>
+<span class="line"><span>                                            ├→ 進捗DB</span></span>
+<span class="line"><span>                                            └→ Blob Storage</span></span>
+<span class="line"><span>                     アプリのマネージドID ─→ 必要なデータ権限</span></span></code></pre>
+<p>VNet内にVMを置く構成と、App ServiceなどからVNetへ接続する構成は同じ手順ではない。
+入口の制御と、アプリからDBへの出口の制御を分けて描く。
+AZ対応やゾーン冗長の設定はサービスとリージョンごとに確認する。<a href="https://learn.microsoft.com/en-us/azure/availability-zones/az-overview">Azureの可用性ゾーン</a></p>
+<h2 id="3-実行基盤を選ぶ">3. 実行基盤を選ぶ</h2>
+<table>
+<thead>
+<tr>
+<th>候補</th>
+<th>選ぶ理由</th>
+<th>自分で設計・管理すること</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Virtual Machines / VM Scale Sets</td>
+<td>OS制御や既存VM構成が必要</td>
+<td>OS更新、イメージ、台数、ヘルスチェック</td>
+</tr>
+<tr>
+<td>App Service</td>
+<td>Webアプリの実行・運用をまとめたい</td>
+<td>プラン、デプロイ、認証、接続、スケール</td>
+</tr>
+<tr>
+<td>Container Apps</td>
+<td>コンテナをマネージド環境で動かしたい</td>
+<td>イメージ、入口、リビジョン、スケール、接続</td>
+</tr>
+<tr>
+<td>AKS</td>
+<td>Kubernetesの機能や運用標準が必要</td>
+<td>クラスター、ワークロード、権限、更新</td>
+</tr>
+<tr>
+<td>Functions</td>
+<td>イベントに応じて処理したい</td>
+<td>トリガー、プラン、再試行、冪等性</td>
+</tr>
+</tbody>
+</table>
+<p>ポータルではApp ServiceまたはContainer Appsを候補にし、必要な実行形式とネットワーク要件から選ぶ。
+マネージドサービスでも、プランによって可用性・ネットワーク機能・費用が変わるため、名前だけで要件充足を判断しない。</p>
+<h2 id="4-データと運用">4. データと運用</h2>
+<p>教材はBlob Storage、進捗はAzure SQL DatabaseやAzure Database for PostgreSQLを候補にする。
+SQLの方言、既存アプリとの互換性、バックアップと復元、認証方式からDBを選ぶ。
+Cosmos DBは分散データベースの候補だが、API、パーティション、整合性、リクエストの課金を理解してから採用する。</p>
+<p>Azure Monitorで稼働を観測し、Log Analyticsでログを調査し、Application Insightsでアプリの振る舞いを追う。
+Activity Logによる管理操作の記録と、アプリ・データアクセスのログは用途を分ける。
+Key Vaultで秘密情報や鍵の管理、Azure Policyで構成の統制、Cost Managementで費用の把握を検討する。</p>
+<p>可用性設計は、実行基盤のゾーン対応、DBの冗長化、ストレージの冗長方式、IDと入口の依存関係まで確認する。
+復旧訓練では別の復元先を使い、アプリの接続先と権限を変更して読取・更新を確認する。</p>
+<h2 id="5-設計演習">5. 設計演習</h2>
+<p>次の成果物を作る。実環境へのデプロイはまだ行わない。</p>
+<ol>
+<li>管理階層と通信経路を別々に描く。</li>
+<li>実行基盤一つ、RDB一つ、教材保存先を選ぶ。</li>
+<li>アプリ用IDに必要なデータ権限を一覧にする。</li>
+<li>外部公開の設定、プライベート接続、DNSの確認箇所を書く。</li>
+<li>ログイン失敗、DB接続失敗、教材取得失敗をどの情報で切り分けるか決める。</li>
+</ol>
+<p>解答例: 開発用の管理単位にApp Service、PostgreSQL、Blob Storageを配置する。
+Entra IDで利用者を認証し、アプリのマネージドIDへ必要なデータ権限を割り当てる。
+DBへのネットワーク接続とDNSを設計し、利用するプランの機能を確認する。
+アプリログ、依存先の失敗、管理操作の変更履歴を照合できるようにする。
+可用性要件はこのサービス名の選択だけでは保証されないので、配置・冗長化・復旧条件を設計メモに追記する。</p>
+<h2 id="理解度チェック">理解度チェック</h2>
+<table>
+<thead>
+<tr>
+<th>問い</th>
+<th>解答の要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Entra IDとAzure RBACは何を扱うか</td>
+<td>ID・認証と、Azure資源への操作権限を分けて理解する</td>
+</tr>
+<tr>
+<td>リソースグループを分ければ課金単位も独立するか</td>
+<td>同一視できない。サブスクリプションや請求構造を確認する</td>
+</tr>
+<tr>
+<td>AWSのAZごとのサブネット図をそのまま移せるか</td>
+<td>移せない。Azureサブネットとゾーンの関係を描き直す</td>
+</tr>
+<tr>
+<td>Private Endpointがあれば認証は不要か</td>
+<td>不要にならない。ネットワーク接続とデータ権限は別</td>
+</tr>
+<tr>
+<td>VMをPaaSにすれば復旧設計は不要か</td>
+<td>不要にならない。データ復元、接続先、アプリ確認が残る</td>
+</tr>
+</tbody>
+</table>
+<p>次: <a href="/learning/cloud/gcp/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/">Google Cloud</a></p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/cloud/gcp/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"> <span>基礎</span> <strong>Google Cloud（GCP）— 基礎から設計・運用へ</strong> <small>プロジェクト、IAM、VPC、Cloud Run、保存と監視を学びます。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>

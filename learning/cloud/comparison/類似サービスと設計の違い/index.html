@@ -1,0 +1,191 @@
+<!DOCTYPE html><html lang="ja"> <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="AWS・Azure・GCP — 類似サービスと設計の違いを基礎から実践へつなげて学ぶ技術教材。AWS・Azure・GCPの似たサービスと、移植時に見直す仕様を比較します。"><meta name="robots" content="index, follow"><link rel="canonical" href="https://kryix.jp/learning/cloud/comparison/%E9%A1%9E%E4%BC%BC%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%81%A8%E8%A8%AD%E8%A8%88%E3%81%AE%E9%81%95%E3%81%84/"><meta property="og:type" content="website"><meta property="og:locale" content="ja_JP"><meta property="og:title" content="AWS・Azure・GCP — 類似サービスと設計の違い — 技術学習ロードマップ — Kryιk"><meta property="og:description" content="AWS・Azure・GCP — 類似サービスと設計の違いを基礎から実践へつなげて学ぶ技術教材。AWS・Azure・GCPの似たサービスと、移植時に見直す仕様を比較します。"><meta property="og:url" content="https://kryix.jp/learning/cloud/comparison/%E9%A1%9E%E4%BC%BC%E3%82%B5%E3%83%BC%E3%83%93%E3%82%B9%E3%81%A8%E8%A8%AD%E8%A8%88%E3%81%AE%E9%81%95%E3%81%84/"><meta name="theme-color" content="#c8ff4a"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"AWS・Azure・GCP — 類似サービスと設計の違い","description":"AWS・Azure・GCP — 類似サービスと設計の違いを基礎から実践へつなげて学ぶ技術教材。AWS・Azure・GCPの似たサービスと、移植時に見直す仕様を比較します。","educationalLevel":"基礎","learningResourceType":"Lesson","isPartOf":{"@type":"Course","name":"クラウドコース","url":"https://kryix.jp/learning/#course-cloud"}}</script><title>AWS・Azure・GCP — 類似サービスと設計の違い — 技術学習ロードマップ — Kryιk</title><link rel="stylesheet" href="/assets/BaseLayout.DLMVfHxw.css"></head> <body> <a class="skip-link" href="#main">本文へ移動</a> <header class="site-header"> <a class="brand" href="/" aria-label="ホームへ戻る">Kry<span lang="el">ι</span>k<span aria-hidden="true">.</span></a> <nav aria-label="メインナビゲーション"> <a href="/about/">自己紹介</a> <a href="/#patch-notes">人生</a> <a href="/#toolbox">技術</a> <a href="/projects/">作品</a> <a href="/research/">研究</a> <a href="/play/roulette/">遊び</a> <a href="/learning/">学ぶ</a> </nav> </header>  <main id="main" class="learning-note-page"> <div class="learning-note-shell" id="top"> <nav class="learning-breadcrumb" aria-label="パンくずリスト"> <a href="/learning/">技術学習</a> <span aria-hidden="true">/</span> <a href="/learning/#course-cloud">クラウド</a> <span aria-hidden="true">/</span><span>comparison</span> </nav> <div class="learning-note-layout"> <aside class="learning-toc" aria-labelledby="learning-toc-title"> <p class="section-number">CLOUD / 基礎</p> <div class="learning-course-progress" aria-label="クラウドコース 7/13"> <span style="--learning-progress: 53.84615384615385%"></span> <small>7 / 13</small> </div> <h2 class="learning-course-nav-title">コース内の位置</h2> <div class="learning-course-neighbors"> <a href="/learning/cloud/gcp/%E5%9F%BA%E7%A4%8E%E3%81%8B%E3%82%89%E8%A8%AD%E8%A8%88%E9%81%8B%E7%94%A8%E3%81%B8/"><span>← 前へ</span><strong>Google Cloud（GCP）— 基礎から設計・運用へ</strong></a> <a href="/learning/cloud/other/%E3%81%9D%E3%81%AE%E4%BB%96%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89/"><span>次へ →</span><strong>Cloudflare・ニフクラとその他のクラウド</strong></a> </div> <h2 id="learning-toc-title">この教材の目次</h2> <ol> <li><a href="#1-対応表の読み方">1. 対応表の読み方</a></li><li><a href="#2-用途別対応表">2. 用途別対応表</a></li><li><a href="#3-特に混同しやすい四つの違い">3. 特に混同しやすい四つの違い</a></li><li class="learning-toc-subitem"><a href="#idと管理階層">IDと管理階層</a></li><li class="learning-toc-subitem"><a href="#ネットワークのスコープ">ネットワークのスコープ</a></li><li class="learning-toc-subitem"><a href="#実行基盤とスケール">実行基盤とスケール</a></li><li class="learning-toc-subitem"><a href="#dbとメッセージング">DBとメッセージング</a></li><li><a href="#4-移植演習--学習ポータルを別クラウドへ">4. 移植演習 — 学習ポータルを別クラウドへ</a></li><li><a href="#5-理解度チェック">5. 理解度チェック</a></li> </ol> <a class="learning-index-back" href="/learning/#course-cloud"><span aria-hidden="true">←</span> コース一覧へ戻る</a> </aside> <article class="learning-prose"> <header class="learning-lesson-intro"> <p><span>基礎</span>LESSON 06</p> <strong>この教材で学ぶこと</strong> <span>AWS・Azure・GCPの似たサービスと、移植時に見直す仕様を比較します。</span> </header> <h1 id="awsazuregcp--類似サービスと設計の違い">AWS・Azure・GCP — 類似サービスと設計の違い</h1>
+<blockquote>
+<p>前提: 三社の導入章を読み、学習ポータルの構成図をそれぞれ作っていること。</p>
+</blockquote>
+<h2 id="1-対応表の読み方">1. 対応表の読み方</h2>
+<p>ここでの対応は「似た目的を扱う候補」であり、API、料金、可用性、権限、性能の互換性を示さない。
+Google Cloudの<a href="https://docs.cloud.google.com/docs/get-started/aws-azure-gcp-service-comparison">公式サービス比較表</a>も、similar or comparableなサービスを対応付ける資料として使う。
+公式比較表にも更新日があるため、採用する機能は個別サービスの現行資料で確認する。</p>
+<h2 id="2-用途別対応表">2. 用途別対応表</h2>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>AWS</th>
+<th>Azure</th>
+<th>GCP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>仮想マシン</td>
+<td>EC2</td>
+<td>Virtual Machines</td>
+<td>Compute Engine</td>
+</tr>
+<tr>
+<td>VMのグループ管理・伸縮</td>
+<td>EC2 Auto Scaling</td>
+<td>VM Scale Sets</td>
+<td>Managed Instance Groups</td>
+</tr>
+<tr>
+<td>Kubernetes</td>
+<td>EKS</td>
+<td>AKS</td>
+<td>GKE</td>
+</tr>
+<tr>
+<td>マネージドなコンテナ実行</td>
+<td>ECS + Fargate</td>
+<td>Container Apps</td>
+<td>Cloud Run</td>
+</tr>
+<tr>
+<td>イベントからの関数実行</td>
+<td>Lambda</td>
+<td>Functions</td>
+<td>Cloud Run functions</td>
+</tr>
+<tr>
+<td>オブジェクト保存</td>
+<td>S3</td>
+<td>Blob Storage</td>
+<td>Cloud Storage</td>
+</tr>
+<tr>
+<td>PostgreSQLのマネージド運用</td>
+<td>RDS for PostgreSQL</td>
+<td>Azure Database for PostgreSQL</td>
+<td>Cloud SQL for PostgreSQL</td>
+</tr>
+<tr>
+<td>仮想ネットワーク</td>
+<td>VPC</td>
+<td>VNet</td>
+<td>VPC</td>
+</tr>
+<tr>
+<td>DNS</td>
+<td>Route 53</td>
+<td>Azure DNS</td>
+<td>Cloud DNS</td>
+</tr>
+<tr>
+<td>メトリクス・ログ</td>
+<td>CloudWatch</td>
+<td>Azure Monitor</td>
+<td>Cloud Monitoring / Cloud Logging</td>
+</tr>
+<tr>
+<td>操作監査</td>
+<td>CloudTrail</td>
+<td>Activity Logなど</td>
+<td>Cloud Audit Logs</td>
+</tr>
+<tr>
+<td>秘密情報管理</td>
+<td>Secrets Manager</td>
+<td>Key Vault</td>
+<td>Secret Manager</td>
+</tr>
+</tbody>
+</table>
+<p>これは最初に覚える範囲。サービス全件の暗記より、上の表から三組を選んで仕様の違いを説明する。
+Cloud Run functionsは関数実行を学ぶ項目であり、Cloud Runのコンテナ実行と別の汎用VMサービスという意味ではない。<a href="https://docs.cloud.google.com/run/docs/functions/overview">公式の関数実行の概要</a></p>
+<h2 id="3-特に混同しやすい四つの違い">3. 特に混同しやすい四つの違い</h2>
+<h3 id="idと管理階層">IDと管理階層</h3>
+<p>AWSアカウント、Azureサブスクリプション、GCPプロジェクトは、いずれも資源を整理する手掛かりだが同じ境界ではない。
+AzureはEntra IDテナントとの関係、GCPは組織・フォルダと請求先の関係を別に描く。
+権限移植では「管理者ロール」という名前を移すより、必要な操作と適用先を列挙して最小権限に組み直す。</p>
+<h3 id="ネットワークのスコープ">ネットワークのスコープ</h3>
+<table>
+<thead>
+<tr>
+<th>観点</th>
+<th>AWS</th>
+<th>Azure</th>
+<th>GCP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>仮想ネットワーク</td>
+<td>リージョン</td>
+<td>リージョン</td>
+<td>グローバル</td>
+</tr>
+<tr>
+<td>サブネット</td>
+<td>一つのAZ</td>
+<td>VNet内。AZに固定されない</td>
+<td>一つのリージョン。複数ゾーンで利用</td>
+</tr>
+<tr>
+<td>図の描き直し</td>
+<td>AZごとのサブネットを描く</td>
+<td>サブネットとゾーン配置を分ける</td>
+<td>VPC内にリージョンごとのサブネットを描く</td>
+</tr>
+</tbody>
+</table>
+<p>この違いはアドレス計画、リージョン追加、障害範囲の説明に影響する。
+同じCIDRを使えば同じ設計になるわけではない。</p>
+<h3 id="実行基盤とスケール">実行基盤とスケール</h3>
+<p>FargateはECS/EKSと組み合わせて使う実行基盤。Container AppsやCloud Runのサービスモデルとは抽象化の境界が異なる。
+比較するときはHTTP入口、常駐・ジョブ、同時実行、最小稼働数、ネットワーク接続、デプロイ切替を項目にする。
+「コンテナを実行できる」だけでは既存アプリの実行条件を満たすと判断できない。</p>
+<h3 id="dbとメッセージング">DBとメッセージング</h3>
+<p>DynamoDB、Cosmos DB、Firestoreは、NoSQLという分類だけで互換と扱わない。
+キー・パーティション、クエリ、トランザクション、整合性、課金単位を再検討する。
+同じPostgreSQLでも拡張機能、バージョン、管理権限、バックアップと認証方式が異なり得る。</p>
+<p>キュー・イベント配信では、AWSのSQS/SNS/EventBridge、AzureのService Bus/Event Grid、GCPのPub/SubやEventarcなどを用途から絞る。
+順序、再配信、重複、保持期間、失敗時の扱いを確認してから候補を決め、一列の置換表で済ませない。</p>
+<h2 id="4-移植演習--学習ポータルを別クラウドへ">4. 移植演習 — 学習ポータルを別クラウドへ</h2>
+<p>AWS版をAzureまたはGCPへ移す。サービス名の対応だけでなく、次を一枚にまとめる。</p>
+<ol>
+<li>維持する要件: 認証、非公開教材、進捗の整合性、RTO/RPO。</li>
+<li>書き換える設計: 管理階層、実行ID、権限、サブネットとゾーン。</li>
+<li>修正候補: ストレージSDK、署名付きアクセス、秘密情報取得、イベント形式。</li>
+<li>移すデータ: PDF、進捗DB、ユーザー識別子と参照関係。</li>
+<li>切替と復旧: データ同期、書込停止の必要性、DNS、証明書、戻す条件。</li>
+<li>検証: 正常な閲覧、権限外アクセスの拒否、進捗更新、バックアップからの復旧。</li>
+</ol>
+<p>解答例: アプリのHTTP APIや業務ロジックは維持できる可能性がある。
+S3用の読取処理は移行先のストレージAPIや認証に合わせて修正し、アプリの実行IDも作り直す。
+DBのエクスポート・インポートに加えて、切替中の更新をどう扱うかを決める。
+同じコンテナが起動することと、利用者が以前の進捗を読めることは別の試験として確認する。</p>
+<h2 id="5-理解度チェック">5. 理解度チェック</h2>
+<table>
+<thead>
+<tr>
+<th>問い</th>
+<th>解答の要点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EKS、AKS、GKEなら変更なく移せるか</td>
+<td>Kubernetesの共通部分は使えるが、ID、LB、ストレージ、監視などは確認が必要</td>
+</tr>
+<tr>
+<td>S3とCloud StorageならSDKも同じか</td>
+<td>ネイティブAPIや認証は異なる。互換機能の利用範囲は別途確認</td>
+</tr>
+<tr>
+<td>三社ともPostgreSQLなら運用手順も同じか</td>
+<td>管理権限、接続、復元、メンテナンスなどを見直す</td>
+</tr>
+<tr>
+<td>VM単価が最小の会社を選べば最安か</td>
+<td>転送、保存、周辺資源、契約、運用工数を含めて比較する</td>
+</tr>
+<tr>
+<td>マルチクラウドを選ぶ理由は何か</td>
+<td>具体的な要件上の利益と、追加の運用・同期負担を比較して答える</td>
+</tr>
+</tbody>
+</table>
+<p>公式根拠: <a href="https://docs.aws.amazon.com/vpc/latest/userguide/what-is-amazon-vpc.html">AWS VPC</a>、<a href="https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview">Azure VNet</a>、<a href="https://docs.cloud.google.com/vpc/docs/vpc">GCP VPC</a>。</p>
+<p>次: <a href="/learning/cloud/other/%E3%81%9D%E3%81%AE%E4%BB%96%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89/">Cloudflare・ニフクラとその他のクラウド</a></p>
+ <footer class="learning-lesson-footer"> <p>NEXT LESSON</p> <a href="/learning/cloud/other/%E3%81%9D%E3%81%AE%E4%BB%96%E3%81%AE%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89/"> <span>基礎</span> <strong>Cloudflare・ニフクラとその他のクラウド</strong> <small>Cloudflareとニフクラを学び、用途・責任・費用から選定します。</small> </a> </footer> </article> </div> </div> </main>  <footer> <p>Kryιk — BUILT FROM EVERYDAY PROBLEMS.</p> <a href="#top">ページの先頭へ ↑</a> </footer> </body> </html>
